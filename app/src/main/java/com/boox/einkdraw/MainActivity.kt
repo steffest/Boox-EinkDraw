@@ -79,6 +79,9 @@ class MainActivity : AppCompatActivity() {
         setupColorPalette(colorPalette)
         buttonColorPicker.setOnClickListener { showColorPickerPopup(it) }
 
+        installRapidTouchSuppression(buttonColorPicker)
+        installRapidTouchSuppression(buttonMenu)
+
         buttonMenu.setOnClickListener { anchor ->
             showActionsMenu(anchor)
         }
@@ -103,8 +106,8 @@ class MainActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
             override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
         })
-        installRapidSliderTouchSuppression(sliderBrushSize)
-        installRapidSliderTouchSuppression(sliderBrushOpacity)
+        installRapidTouchSuppression(sliderBrushSize)
+        installRapidTouchSuppression(sliderBrushOpacity)
 
         drawingView.setBrushSizeFromPercent(sliderBrushSize.progress)
         drawingView.setBrushOpacityFromPercent(sliderBrushOpacity.progress)
@@ -215,8 +218,8 @@ class MainActivity : AppCompatActivity() {
         updateRapidModeButtonText()
     }
 
-    private fun installRapidSliderTouchSuppression(slider: VerticalSeekBar) {
-        slider.setOnTouchListener { _, event ->
+    private fun installRapidTouchSuppression(view: View) {
+        view.setOnTouchListener { _, event ->
             if (rapidModeEnabled) {
                 when (event.actionMasked) {
                     MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> drawingView.setRapidInputSuppressed(true)
@@ -322,6 +325,7 @@ class MainActivity : AppCompatActivity() {
             }
             container.addView(swatch, params)
             paletteButtons.add(swatch to paletteColor)
+            installRapidTouchSuppression(swatch)
         }
     }
 

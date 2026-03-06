@@ -18,6 +18,7 @@ import com.onyx.android.sdk.pen.data.TouchPointList
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
+import kotlin.math.abs
 
 class DrawingView @JvmOverloads constructor(
     context: Context,
@@ -71,6 +72,7 @@ class DrawingView @JvmOverloads constructor(
     private var rapidTouchHelper: TouchHelper? = null
     private var rapidInputSuppressed = false
     private var rapidCallbackPointsSeen = false
+    private var rapidStrokeStyle = TouchHelper.STROKE_STYLE_PENCIL
     private var rawPressureFloor = 0f
     private var rawPressureCeiling = 1024f
 
@@ -314,8 +316,14 @@ class DrawingView @JvmOverloads constructor(
     fun disableRapidMode() {
         rapidInputSuppressed = false
         RapidRawPointRelay.setListener(null)
-        rapidTouchHelper?.closeRawDrawing()
+        val helper = rapidTouchHelper
         rapidTouchHelper = null
+        // Close raw drawing off UI thread — all strokes are already on the
+        // app bitmap so there is nothing to wait for.  This avoids the ANR
+        // that closeRawDrawing() can cause after many dynamic stroke updates.
+        if (helper != null) {
+            Thread { runCatching { helper.closeRawDrawing() } }.start()
+        }
     }
 
     fun setRapidInputSuppressed(suppressed: Boolean) {
@@ -327,20 +335,75 @@ class DrawingView @JvmOverloads constructor(
 
     private fun drawSegment(x0: Float, y0: Float, p0: Float, x1: Float, y1: Float, p1: Float) {
         val avgPressure = ((p0 + p1) * 0.5f).coerceIn(0f, 1f)
-        val pressureForWidth = avgPressure.toDouble().pow(2.4).toFloat().coerceIn(0f, 1f)
-        strokePaint.strokeWidth = lerp(minStrokePx, maxStrokePx, pressureForWidth) * brushSizeMultiplier
+
+        val pressureForWidth = avgPressure.toDouble().pow(0.5).toFloat().coerceIn(0f, 1f)
+        val baseWidth = lerp(minStrokePx, maxStrokePx, pressureForWidth) * brushSizeMultiplier
+        val radius = baseWidth * 0.5f
+
+        // Density determines how many tiny dots we scatter (opacity equivalent)
+        val density = lerp(0.12f, 1.2f, avgPressure) * brushOpacityMultiplier
+
+        val dx = x1 - x0
+        val dy = y1 - y0
+        val segLen = Math.sqrt((dx * dx + dy * dy).toDouble()).toFloat()
+
+        // Distribute dots proportional to the area covered by the segment
+        val area = segLen * baseWidth
+        val dotCount = (area * density * 1.5f).toInt() // Tweaked multiplier for visual look
+
+        strokePaint.strokeWidth = 1f // Tiny 1px dot
         strokePaint.color = drawColorArgb
-        strokePaint.alpha = (pressureToAlpha(avgPressure) * brushOpacityMultiplier).toInt().coerceIn(0, 255)
-        drawCanvas.drawLine(x0, y0, x1, y1, strokePaint)
-        invalidateCanvasArea(x0, y0, x1, y1, strokePaint.strokeWidth)
+        strokePaint.alpha = 255 // Pure solid color for dots
+
+        val nx = if (segLen > 0.001f) -dy / segLen else 0f
+        val ny = if (segLen > 0.001f) dx / segLen else 1f
+
+        for (i in 0 until dotCount) {
+            // Predictable scatter based on coordinate to keep it consistent
+            val hash1 = ((x0.toInt() * 73856093) xor (y0.toInt() * 19349663) xor (i * 83492791))
+            val hash2 = hash1 * 13353457
+
+            val t = (Math.abs(hash1) % 1000) / 1000f
+            // Normal distribution leaning toward the center of the stroke
+            val r = ((Math.abs(hash2) % 1000) / 1000f * 2f - 1f) * radius
+
+            val px = x0 + dx * t
+            val py = y0 + dy * t
+
+            val dotX = px + nx * r
+            val dotY = py + ny * r
+
+            drawCanvas.drawPoint(dotX, dotY, strokePaint)
+        }
+
+        invalidateCanvasArea(x0, y0, x1, y1, radius)
     }
 
     private fun drawPoint(x: Float, y: Float, pressure: Float) {
-        val pressureForWidth = pressure.toDouble().pow(2.4).toFloat().coerceIn(0f, 1f)
-        strokePaint.strokeWidth = lerp(minStrokePx, maxStrokePx, pressureForWidth) * brushSizeMultiplier
+        val pressureForWidth = pressure.toDouble().pow(0.5).toFloat().coerceIn(0f, 1f)
+        val baseWidth = lerp(minStrokePx, maxStrokePx, pressureForWidth) * brushSizeMultiplier
+        val radius = baseWidth * 0.5f
+
+        val density = lerp(0.12f, 1.2f, pressure) * brushOpacityMultiplier
+        val area = Math.PI.toFloat() * radius * radius
+        val dotCount = (area * density * 1.5f).toInt()
+
+        strokePaint.strokeWidth = 1f
         strokePaint.color = drawColorArgb
-        strokePaint.alpha = (pressureToAlpha(pressure) * brushOpacityMultiplier).toInt().coerceIn(0, 255)
-        drawCanvas.drawPoint(x, y, strokePaint)
+        strokePaint.alpha = 255
+
+        for (i in 0 until dotCount) {
+            val hash1 = ((x.toInt() * 73856093) xor (y.toInt() * 19349663) xor (i * 83492791))
+            val hash2 = hash1 * 13353457
+
+            val angle = (Math.abs(hash1) % 1000) / 1000f * Math.PI.toFloat() * 2f
+            val r = Math.sqrt(((Math.abs(hash2) % 1000) / 1000f).toDouble()).toFloat() * radius
+
+            val dotX = x + Math.cos(angle.toDouble()).toFloat() * r
+            val dotY = y + Math.sin(angle.toDouble()).toFloat() * r
+
+            drawCanvas.drawPoint(dotX, dotY, strokePaint)
+        }
     }
 
     private fun shouldAcceptSample(x: Float, y: Float, eventTimeMs: Long): Boolean {
@@ -400,13 +463,14 @@ class DrawingView @JvmOverloads constructor(
             rawPressure
         }
         val clamped = normalizedRaw.coerceIn(0.01f, 1f)
-        // Aggressive curve to exaggerate pressure separation.
-        return clamped.toDouble().pow(1.25).toFloat().coerceIn(0.01f, 1f)
+        // Gentle curve - pencil pressure should feel gradual.
+        return clamped.toDouble().pow(0.85).toFloat().coerceIn(0.01f, 1f)
     }
 
     private fun pressureToAlpha(pressure: Float): Int {
-        val t = pressure.coerceIn(0f, 1f).toDouble().pow(2.8).toFloat()
-        return lerp(4f, 255f, t).toInt().coerceIn(4, 255)
+        // Pencil: visible at light pressure, darker with more force, gradual ramp.
+        val t = pressure.coerceIn(0f, 1f)
+        return lerp(50f, 235f, t).toInt().coerceIn(20, 235)
     }
 
     private fun handleTwoFingerPan(event: MotionEvent) {
@@ -484,17 +548,23 @@ class DrawingView @JvmOverloads constructor(
         val helper = rapidTouchHelper ?: return
         if (width <= 0 || height <= 0) return
         val bounds = Rect(0, 0, width, height)
-        helper.setStrokeStyle(TouchHelper.STROKE_STYLE_FOUNTAIN)
+        
+        val midPressureWidth = lerp(minStrokePx, maxStrokePx, 0.25f) * brushSizeMultiplier
+        val initWidth = (midPressureWidth * displayScale * zoom).coerceIn(0.15f, 64f)
+        
+        helper.setStrokeWidth(initWidth)
+        helper.setStrokeColor(drawColorArgb or 0xFF000000.toInt())
+        helper.setLimitRect(bounds, listOf())
         helper.openRawDrawing()
+        
+        helper.setStrokeStyle(rapidStrokeStyle)
         helper.setRawDrawingRenderEnabled(false)
         helper.setRawDrawingEnabled(!rapidInputSuppressed)
         helper.setBrushRawDrawingEnabled(true)
         helper.setEraserRawDrawingEnabled(false)
         helper.setFilterRepeatMovePoint(false)
         helper.setPenUpRefreshTimeMs(1000)
-        helper.setLimitRect(bounds, listOf())
         helper.setRawInputReaderEnable(!helper.isRawDrawingInputEnabled)
-        applyRapidBrushSettings()
     }
 
     private val rapidRawCallback = object : RawInputCallback() {
@@ -545,15 +615,19 @@ class DrawingView @JvmOverloads constructor(
             point.timestamp > 0L -> point.timestamp
             else -> System.currentTimeMillis()
         }
+
         ingestRawPoint(point.x, point.y, pressure, action, time)
     }
 
     private fun applyRapidBrushSettings() {
         val helper = rapidTouchHelper ?: return
-        val width = (1.8f * brushSizeMultiplier).coerceIn(0.15f, 32f)
-        val rapidColor = blendWithWhite(drawColorArgb, brushOpacityMultiplier.coerceIn(0f, 1f))
+        val midPressureWidth = lerp(minStrokePx, maxStrokePx, 0.25f) * brushSizeMultiplier
+        val width = (midPressureWidth * displayScale * zoom).coerceIn(0.15f, 64f)
+        
         helper.setStrokeWidth(width)
-        helper.setStrokeColor(rapidColor)
+        // Must use a pure color; alpha manipulation breaks the native shader!
+        helper.setStrokeColor(drawColorArgb or 0xFF000000.toInt())
+        helper.setStrokeStyle(rapidStrokeStyle)
     }
 
     private fun blendWithWhite(color: Int, amount: Float): Int {

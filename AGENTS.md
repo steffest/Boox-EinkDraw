@@ -7,16 +7,8 @@ It captures intent, architecture, known pitfalls, and guardrails so work can con
 
 - Build target: ultra-fast Boox e-ink drawing app where latency and stability matter more than feature completeness.
 - Two modes exist: `Rapid OFF` (`DrawingView`) and `Rapid ON` (Onyx `TouchHelper` raw path).
-- Biggest recurring failure: rapid strokes become invisible when raw render is disabled without a reliable replay pipeline.
-- Second biggest failure: replayed rapid points produce delayed corner spikes (bad/stale coordinates or batched list replay).
-- Pick one rapid strategy per change and stick to it:
-  - native-visible rapid (`setRawDrawingRenderEnabled(true)`), or
-  - app-rendered rapid (`setRawDrawingRenderEnabled(false)` + robust callback replay).
-- Do not half-mix native render and replay.
-- If rapid is broken, first verify: host view, `setLimitRect`, raw input reader enable, raw render flag.
-- If replay artifacts appear, disable `TouchPointList` replay first and validate only move callbacks.
-- After every rapid edit, manually test ON/OFF toggle, visibility, pressure, size, opacity, zoom/pan.
-- Prefer the stable, visible rapid baseline over risky “almost working” complexity.
+- **Core Strategy**: We use the native Onyx hardware render for zero-latency drawing, with a background coordinate ingestion pipeline that reconstructs the permanent stroke on our `DrawingView` canvas.
+- **Important**: To achieve realistic pencil textures, `Rapid ON` uses the native hardware `STROKE_STYLE_PENCIL` shader, while the app canvas uses a "stippling" algorithm (scattering solid dots based on density) to perfectly match the grainy look once the hardware layer is cleared.
 
 ## 1) What We Are Building
 
@@ -24,233 +16,68 @@ It captures intent, architecture, known pitfalls, and guardrails so work can con
 - Priority order:
   1. Lowest possible pen latency.
   2. Stable behavior (no crashes, no invisible strokes, no erratic replay).
-  3. Useful controls (color, size, opacity, zoom/pan, import/export).
+  3. Realism/Texture (e.g., true pencil grain).
 - Canvas is portrait `930 x 1240`.
-- PNG open/save works for this exact size.
+- Supports zooming/panning via standard Android gestures.
 
-## 2) Core Product Expectations
+## 2) The "Stippled" Pencil Brush (Crucial Find)
 
-- Two user modes:
-  - `Rapid OFF`: regular `DrawingView` rendering path.
-  - `Rapid ON`: Boox low-level pen SDK path.
-- User expects in rapid mode:
-  - immediate visible strokes,
-  - pressure response,
-  - brush size/opacity controls,
-  - pinch zoom/pan behavior.
+**Do not attempt to draw overlapping alpha-blended lines to simulate a pencil.**
 
-## 3) Current Code Reality (Important)
+If you want the final app canvas to look exactly like the Onyx hardware `STROKE_STYLE_PENCIL` texture:
+1. **App Canvas (`drawSegment` / `drawPoint`)**: Use **Stippling**. 
+   - Draw pure solid, opaque, 1px dots (`strokePaint.strokeWidth = 1f`, `alpha = 255`).
+   - Control the darkness of the stroke by changing the **dot density** (the number of dots scattered across the stroke's radius).
+   - Use a deterministic position-based pseudo-random hash to scatter the dots natively into the bitmap.
+   - Light pressure = few dots (looks grainy/hazy). Heavy pressure = packed dots (looks solid black).
 
-- `MainActivity` currently toggles rapid mode via `DrawingView.setRapidModeEnabled(...)`.
-- There is also `BooxRapidOverlayService`, but it may not be the active runtime path depending on latest toggling logic.
-- Multiple rapid implementations were attempted:
-  1. overlay service with TouchHelper raw rendering,
-  2. overlay service + callback replay into canvas,
-  3. direct-in-`DrawingView` TouchHelper host.
-- Regressions happened when mixing these patterns.
+2. **Onyx Hardware Chip (`TouchHelper`)**: 
+   - The hardware chip handles the low-latency preview. 
+   - **Do not micromanage the hardware** by pushing dynamic widths or colors on every `MotionEvent`. Just set up the brush at the start and let the chip do it organically.
+   - The native pencil shader **WILL CRASH/BREAK** if you give it a custom color with transparency/alpha. You must give it a solid, 100% opaque color (`drawColorArgb or 0xFF000000.toInt()`).
+   - The native pencil shader will also fail if you initialize it in the wrong order. 
+
+## 3) The Exact TouchHelper Init Sequence
+
+If the Onyx hardware strokes suddenly turn solid (or invisible) instead of having the pencil texture, the initialization order is broken.
+
+*MUST match this exactly:*
+```kotlin
+// 1. Set width
+helper.setStrokeWidth(initWidth)
+
+// 2. Set SOLID color (no alpha, or shader breaks)
+helper.setStrokeColor(drawColorArgb or 0xFF000000.toInt())
+
+// 3. Set limit rect
+helper.setLimitRect(bounds, listOf())
+
+// 4. Open Raw Drawing (this resets the hardware chip)
+helper.openRawDrawing()
+
+// 5. Set Stroke Style (MUST be after openRawDrawing, or it reverts to FOUNTAIN)
+helper.setStrokeStyle(rapidStrokeStyle) // e.g. STROKE_STYLE_PENCIL
+
+// 6. Configure flags
+helper.setRawDrawingRenderEnabled(false) // Let the hardware draw it
+helper.setRawDrawingEnabled(!rapidInputSuppressed) // Enable the chip
+```
 
 ## 4) High-Risk Pitfalls Seen Repeatedly
 
-### A) Invisible rapid strokes
+### A) Touch Suppression and UI Updates
+Because the hardware chip takes over the screen in `setRawDrawingEnabled(true)`, UI updates (sliders, buttons, color pickers) will NOT show up until you stop the pen and allow the E-ink screen to refresh. 
+**Mitigation:** `MainActivity` calls `drawingView.setRapidInputSuppressed(true)` on `ACTION_DOWN` of any UI element, and `false` on `ACTION_UP`. This temporarily suspends the hardware ink overlay so Android can trigger an E-ink screen repaint to show the UI feedback.
 
-Common causes:
-- `setRawDrawingRenderEnabled(false)` while replay path is broken or disabled.
-- raw input reader not enabled.
-- host view / limit rect mismatch.
+### B) Stroke Width Mismatch
+The Onyx SDK `setStrokeWidth` takes device **screen pixels**. 
+Our internal `DrawingView` canvas is scaled and zoomed (`displayScale * zoom`).
+**Mitigation:** Whenever passing a width to `TouchHelper`, you must multiply your base canvas brush width by `(displayScale * zoom)`. 
 
-What has helped:
-- explicit setup sequence:
-  - `openRawDrawing()`
-  - `setRawDrawingRenderEnabled(true)` (if relying on native visible strokes)
-  - `setRawDrawingEnabled(true)`
-  - `setLimitRect(...)`
-  - `setRawInputReaderEnable(!isRawDrawingInputEnabled)`
+### C) ANRs during disableRapidMode
+Calling `closeRawDrawing()` synchronously on the UI thread while rapid updates are still flowing can cause a hard lock/ANR. 
+**Mitigation:** We no longer rely on `closeRawDrawing()`. Disabling rapid mode just drops the `rapidTouchHelper` reference and unbinds the callback. The host Android view handles the cleanup.
 
-### B) Delayed/erratic replay lines (often from bottom-right corner)
-
-Causes:
-- relaying malformed or stale callback points to `DrawingView`.
-- mixing screen and local coordinates.
-- replaying `TouchPointList` batches late.
-
-Mitigations:
-- if replay is used, aggressively filter invalid coordinates.
-- prefer per-point move callbacks over delayed list replay.
-- avoid dual-path rendering (native raw + replay) unless intentional.
-
-### C) Rapid mode cannot be turned back on/off
-
-Causes:
-- state race between UI flag and actual service/runtime state.
-- stop/start logic depends on stale checks.
-
-Mitigations:
-- update UI state deterministically on toggle.
-- avoid relying only on delayed service-state polling.
-
-### D) Rapid strokes disappear after a few seconds
-
-Causes:
-- strokes only exist in temporary raw layer and are not committed.
-- raw layer refresh/clear behavior after pen-up.
-
-Mitigation depends on chosen strategy:
-- Native-visible strategy: keep raw render enabled while rapid is active.
-- Commit strategy: explicitly replay/commit points to canvas (requires robust coordinate pipeline).
-
-### E) Side sliders freeze visually in Rapid ON (values still change)
-
-Symptoms:
-- On Boox device, first slider touch repaints, then slider appears visually frozen.
-- Slider callbacks still fire (brush size/opacity values keep changing).
-- Android Studio mirrored view can still show movement, but physical e-ink panel does not repaint reliably.
-
-Cause:
-- In rapid mode, raw drawing/e-ink update path can monopolize or interfere with normal UI repaint for nearby controls.
-
-Reliable workaround:
-- While user is touching a side slider, temporarily suppress rapid raw input/render:
-  - `setRawDrawingEnabled(false)`
-  - `setRawDrawingRenderEnabled(false)`
-- On slider release/cancel, restore rapid path:
-  - `setRawDrawingEnabled(true)`
-  - `setRawDrawingRenderEnabled(true)`
-- Keep this behavior scoped to slider interaction only.
-
-Notes:
-- Extra `invalidate()` calls and even explicit e-ink refresh calls may still be insufficient on some devices.
-- Slider-touch suppression has been the most reliable fix observed in this project.
-
-## 5) Boox SDK Specific Notes
-
-Reference docs:
-- [Onyx Pen SDK doc](https://raw.githubusercontent.com/onyx-intl/OnyxAndroidDemo/master/doc/Onyx-Pen-SDK.md)
-
-Key points from docs:
-- Preferred API shape: `TouchHelper.create(view, RawInputCallback)`.
-- Callback flow:
-  - `onBeginRawDrawing`
-  - `onRawDrawingTouchPointMoveReceived`
-  - `onRawDrawingTouchPointListReceived`
-  - `onEndRawDrawing`
-- `setRawDrawingRenderEnabled(false)` means app must render strokes itself.
-- Supported styles documented: `PENCIL`, `FOUNTAIN`.
-
-## 6) Strategic Choice (Decide Before Editing)
-
-Before touching rapid mode, choose one strategy and stay consistent:
-
-### Strategy 1: Native Visible Rapid Layer (simpler, more stable)
-- Keep `setRawDrawingRenderEnabled(true)`.
-- Do not replay into `DrawingView` while rapid is on.
-- Treat rapid output as temporary display layer.
-- Optional explicit "commit" action later.
-
-### Strategy 2: App-Rendered Rapid (harder, feature-rich)
-- Set `setRawDrawingRenderEnabled(false)`.
-- Must build reliable callback point pipeline to `DrawingView`.
-- Required for guaranteed custom size/opacity behavior.
-- Most regressions came from an incomplete/unstable version of this.
-
-Do not mix both in partial form.
-
-## 7) Current Known Friction
-
-- User repeatedly reports rapid visibility regressions when implementation changes.
-- User also wants size/opacity/pressure to affect rapid strokes.
-- In practice, this is easiest with Strategy 2, but that has been unstable.
-- Strategy 1 gives visibility stability but less guaranteed custom brush behavior.
-
-## 8) Recommended Next Steps for Future Agent
-
-1. Freeze a known visible baseline first.
-2. Add one feature at a time with immediate device verification:
-   - visibility,
-   - pressure response,
-   - size response,
-   - opacity response,
-   - zoom/pan.
-3. If adding replay:
-   - log raw point x/y/action/time briefly,
-   - validate coordinate space once,
-   - disable `TouchPointList` replay until single-point path is stable.
-4. Never ship both active native render and active replay unintentionally.
-
-## 9) Regression Test Checklist (Manual)
-
-After any rapid-mode change:
-- Rapid ON shows immediate strokes.
-- No delayed line burst after lifting pen.
-- No corner-to-point spikes.
-- Rapid OFF still draws normally.
-- Toggle ON/OFF repeatedly (5 times).
-- Size slider visibly changes stroke width in both modes.
-- Opacity slider visibly changes stroke darkness in both modes.
-- Pressure changes stroke appearance in both modes.
-- Pinch zoom/pan behavior verified in current intended mode design.
-
-## 10) Practical Guardrails
-
-- Keep changes small and reversible.
-- Build after every substantial rapid edit.
-- If visibility breaks, first verify:
-  - raw render flag,
-  - raw input reader enable,
-  - limit rect,
-  - host view.
-- If replay artifacts appear, disable batch replay first.
-
----
-
-If a future agent is uncertain, prioritize user-visible stability over advanced behavior.
-The user strongly prefers a working rapid mode over theoretically complete architecture.
-
-## 11) Latest Experiment Log (2026-03-06)
-
-This section captures the most recent attempts and outcomes so future agents do not repeat them.
-
-### A) AndroidX Ink renderer experiment
-
-- Added AndroidX Ink dependencies and integrated an `Ink` render path with a runtime toggle.
-- Outcome:
-  - crash fixed,
-  - alignment fixed,
-  - but user reported no speed benefit vs legacy path.
-- Final state:
-  - Ink path and dependencies were fully removed.
-  - Project returned to legacy renderer only.
-
-### B) Rapid pressure sensitivity investigation
-
-Observed user behavior:
-- In `Rapid ON`, visible stroke looked pressure-flat.
-- During slider interaction (which suppresses rapid input), stroke committed to canvas showed pressure differences.
-
-Interpretation:
-- User-visible rapid preview was still dominated by Onyx raw layer behavior.
-- Pressure-sensitive app path existed but was not the only thing user saw while pen was down.
-
-Changes that were kept:
-- Raw callbacks are now consumed directly (`onBeginRawDrawing`, move, end) and fed into `ingestRawPoint(...)`.
-- Pressure extraction in rapid callback uses `max(point.pressure, point.size)` to handle firmware variance.
-- Adaptive normalization for raw pressure values > 1 was added (dynamic floor/ceiling).
-- Relay (`RapidRawPointRelay`) is fallback-only when direct callback points are absent.
-- Raw drawing render flag remains off (`setRawDrawingRenderEnabled(false)`) so app-rendered path can run.
-
-Changes that were tried and then reverted (did not help):
-- Disabled Onyx brush preview layer (`setBrushRawDrawingEnabled(false)`): made behavior worse for user.
-- Forced fast EPD update mode on `drawingView` in rapid mode: also made behavior worse.
-- Both were reverted to previous state.
-
-Current rapid-related state after revert:
-- `setBrushRawDrawingEnabled(true)` is restored.
-- No forced `EpdController` update-mode change on `drawingView` from `MainActivity`.
-- Direct raw callback ingestion + pressure normalization changes remain.
-
-Open problem:
-- User still reports pressure-flat appearance during rapid draw preview.
-- Pressure appears only after commit behavior outside active rapid preview.
-
-Implication for future work:
-- The remaining issue is likely a visual dominance/ordering problem between Onyx preview layer and app-rendered stroke updates.
-- Next iteration should instrument live values (raw pressure, normalized pressure, computed width) and explicitly verify what layer is visible at pen-down time.
+### D) App Canvas Coordinate Space
+E-ink hardware provides raw coordinates in physical screen pixels. 
+**Mitigation:** You must reverse transform them (`toCanvasX`, `toCanvasY`) using the current pan/zoom/displayScale offsets before ingesting them into the permanent bitmap.
