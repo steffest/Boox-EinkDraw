@@ -244,7 +244,7 @@ class MainActivity : AppCompatActivity() {
 
         val popup = PopupWindow(
             content,
-            dp(104f),
+            dp(136f),
             ViewGroup.LayoutParams.WRAP_CONTENT,
             true
         ).apply {

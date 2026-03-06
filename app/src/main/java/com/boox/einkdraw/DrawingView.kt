@@ -70,6 +70,9 @@ class DrawingView @JvmOverloads constructor(
     private var rawLastAcceptedEventMs = 0L
     private var rapidTouchHelper: TouchHelper? = null
     private var rapidInputSuppressed = false
+    private var rapidCallbackPointsSeen = false
+    private var rawPressureFloor = 0f
+    private var rawPressureCeiling = 1024f
 
     var drawColorArgb: Int = Color.BLACK
         set(value) {
@@ -144,7 +147,7 @@ class DrawingView @JvmOverloads constructor(
 
         val x = toCanvasX(event.x)
         val y = toCanvasY(event.y)
-        val p = normalizedPressure(event.pressure)
+        val p = normalizedPressure(event.pressure, isRaw = false)
 
         when (action) {
             MotionEvent.ACTION_DOWN -> {
@@ -154,7 +157,6 @@ class DrawingView @JvmOverloads constructor(
                 lastPressure = p
                 lastAcceptedEventMs = event.eventTime
                 drawPoint(x, y, p)
-                invalidateCanvasArea(x, y, x, y, maxStrokePx)
             }
 
             MotionEvent.ACTION_MOVE -> {
@@ -171,7 +173,7 @@ class DrawingView @JvmOverloads constructor(
                     val tMs = event.getHistoricalEventTime(i)
                     val hx = toCanvasX(event.getHistoricalX(i))
                     val hy = toCanvasY(event.getHistoricalY(i))
-                    val hp = normalizedPressure(event.getHistoricalPressure(i))
+                    val hp = normalizedPressure(event.getHistoricalPressure(i), isRaw = false)
                     if (shouldAcceptSample(hx, hy, tMs)) {
                         drawSegment(lastCanvasX, lastCanvasY, lastPressure, hx, hy, hp)
                         lastCanvasX = hx
@@ -232,7 +234,7 @@ class DrawingView @JvmOverloads constructor(
     fun ingestRawPoint(viewX: Float, viewY: Float, rawPressure: Float, action: Int, eventTimeMs: Long) {
         val x = toCanvasX(viewX)
         val y = toCanvasY(viewY)
-        val p = normalizedPressure(rawPressure)
+        val p = normalizedPressure(rawPressure, isRaw = true)
         when (action) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
                 rawTouching = true
@@ -299,12 +301,19 @@ class DrawingView @JvmOverloads constructor(
         val helper = runCatching { TouchHelper.create(this, 2, rapidRawCallback) }.getOrNull()
             ?: return false
         rapidTouchHelper = helper
+        rapidCallbackPointsSeen = false
+        RapidRawPointRelay.setListener { x, y, pressure, action, eventTimeMs ->
+            if (!rapidCallbackPointsSeen) {
+                ingestRawPoint(x, y, pressure, action, eventTimeMs)
+            }
+        }
         configureRapidTouchHelper()
         return true
     }
 
     fun disableRapidMode() {
         rapidInputSuppressed = false
+        RapidRawPointRelay.setListener(null)
         rapidTouchHelper?.closeRawDrawing()
         rapidTouchHelper = null
     }
@@ -313,11 +322,7 @@ class DrawingView @JvmOverloads constructor(
         rapidInputSuppressed = suppressed
         val helper = rapidTouchHelper ?: return
         helper.setRawDrawingEnabled(!suppressed)
-        if (suppressed) {
-            helper.setRawDrawingRenderEnabled(false)
-        } else {
-            helper.setRawDrawingRenderEnabled(true)
-        }
+        helper.setRawDrawingRenderEnabled(false)
     }
 
     private fun drawSegment(x0: Float, y0: Float, p0: Float, x1: Float, y1: Float, p1: Float) {
@@ -380,8 +385,21 @@ class DrawingView @JvmOverloads constructor(
         return normalized.coerceIn(0f, (CANVAS_HEIGHT - 1).toFloat())
     }
 
-    private fun normalizedPressure(rawPressure: Float): Float {
-        val clamped = rawPressure.coerceIn(0.01f, 1f)
+    private fun normalizedPressure(rawPressure: Float, isRaw: Boolean): Float {
+        val normalizedRaw = if (!isRaw) {
+            rawPressure
+        } else if (rawPressure > 1f) {
+            // Raw firmware values can be much larger than 1.0; normalize against
+            // an adaptive min/max window to preserve visible pressure contrast.
+            if (rawPressureFloor <= 0f) rawPressureFloor = rawPressure
+            rawPressureFloor = min(rawPressureFloor * 1.001f, rawPressure)
+            rawPressureCeiling = max(rawPressureCeiling * 0.995f, rawPressure)
+            val span = max(8f, rawPressureCeiling - rawPressureFloor)
+            (rawPressure - rawPressureFloor) / span
+        } else {
+            rawPressure
+        }
+        val clamped = normalizedRaw.coerceIn(0.01f, 1f)
         // Aggressive curve to exaggerate pressure separation.
         return clamped.toDouble().pow(1.25).toFloat().coerceIn(0.01f, 1f)
     }
@@ -468,7 +486,7 @@ class DrawingView @JvmOverloads constructor(
         val bounds = Rect(0, 0, width, height)
         helper.setStrokeStyle(TouchHelper.STROKE_STYLE_FOUNTAIN)
         helper.openRawDrawing()
-        helper.setRawDrawingRenderEnabled(!rapidInputSuppressed)
+        helper.setRawDrawingRenderEnabled(false)
         helper.setRawDrawingEnabled(!rapidInputSuppressed)
         helper.setBrushRawDrawingEnabled(true)
         helper.setEraserRawDrawingEnabled(false)
@@ -480,9 +498,17 @@ class DrawingView @JvmOverloads constructor(
     }
 
     private val rapidRawCallback = object : RawInputCallback() {
-        override fun onBeginRawDrawing(success: Boolean, touchPoint: TouchPoint?) {}
-        override fun onEndRawDrawing(success: Boolean, touchPoint: TouchPoint?) {}
-        override fun onRawDrawingTouchPointMoveReceived(touchPoint: TouchPoint?) {}
+        override fun onBeginRawDrawing(success: Boolean, touchPoint: TouchPoint?) {
+            handleRapidTouchPoint(touchPoint, MotionEvent.ACTION_DOWN)
+        }
+
+        override fun onEndRawDrawing(success: Boolean, touchPoint: TouchPoint?) {
+            handleRapidTouchPoint(touchPoint, MotionEvent.ACTION_UP)
+        }
+
+        override fun onRawDrawingTouchPointMoveReceived(touchPoint: TouchPoint?) {
+            handleRapidTouchPoint(touchPoint, MotionEvent.ACTION_MOVE)
+        }
 
         override fun onRawDrawingTouchPointListReceived(touchPointList: TouchPointList?) {}
         override fun onBeginRawErasing(success: Boolean, touchPoint: TouchPoint?) {}
@@ -495,9 +521,31 @@ class DrawingView @JvmOverloads constructor(
         }
 
         override fun onPenUpRefresh(refreshRect: RectF?) {
-            rapidTouchHelper?.isRawDrawingRenderEnabled = !rapidInputSuppressed
+            rapidTouchHelper?.isRawDrawingRenderEnabled = false
             super.onPenUpRefresh(refreshRect)
         }
+    }
+
+    private fun handleRapidTouchPoint(point: TouchPoint?, fallbackAction: Int) {
+        if (point == null || rapidInputSuppressed) return
+        rapidCallbackPointsSeen = true
+        val action = when (point.action) {
+            MotionEvent.ACTION_DOWN,
+            MotionEvent.ACTION_MOVE,
+            MotionEvent.ACTION_UP,
+            MotionEvent.ACTION_CANCEL,
+            MotionEvent.ACTION_POINTER_DOWN,
+            MotionEvent.ACTION_POINTER_UP -> point.action
+            else -> fallbackAction
+        }
+        val pressureCandidate = max(point.pressure, point.size)
+        val pressure = if (pressureCandidate > 0f) pressureCandidate else point.pressure
+        val time = when {
+            point.time > 0L -> point.time
+            point.timestamp > 0L -> point.timestamp
+            else -> System.currentTimeMillis()
+        }
+        ingestRawPoint(point.x, point.y, pressure, action, time)
     }
 
     private fun applyRapidBrushSettings() {

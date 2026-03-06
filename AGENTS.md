@@ -204,3 +204,53 @@ After any rapid-mode change:
 
 If a future agent is uncertain, prioritize user-visible stability over advanced behavior.
 The user strongly prefers a working rapid mode over theoretically complete architecture.
+
+## 11) Latest Experiment Log (2026-03-06)
+
+This section captures the most recent attempts and outcomes so future agents do not repeat them.
+
+### A) AndroidX Ink renderer experiment
+
+- Added AndroidX Ink dependencies and integrated an `Ink` render path with a runtime toggle.
+- Outcome:
+  - crash fixed,
+  - alignment fixed,
+  - but user reported no speed benefit vs legacy path.
+- Final state:
+  - Ink path and dependencies were fully removed.
+  - Project returned to legacy renderer only.
+
+### B) Rapid pressure sensitivity investigation
+
+Observed user behavior:
+- In `Rapid ON`, visible stroke looked pressure-flat.
+- During slider interaction (which suppresses rapid input), stroke committed to canvas showed pressure differences.
+
+Interpretation:
+- User-visible rapid preview was still dominated by Onyx raw layer behavior.
+- Pressure-sensitive app path existed but was not the only thing user saw while pen was down.
+
+Changes that were kept:
+- Raw callbacks are now consumed directly (`onBeginRawDrawing`, move, end) and fed into `ingestRawPoint(...)`.
+- Pressure extraction in rapid callback uses `max(point.pressure, point.size)` to handle firmware variance.
+- Adaptive normalization for raw pressure values > 1 was added (dynamic floor/ceiling).
+- Relay (`RapidRawPointRelay`) is fallback-only when direct callback points are absent.
+- Raw drawing render flag remains off (`setRawDrawingRenderEnabled(false)`) so app-rendered path can run.
+
+Changes that were tried and then reverted (did not help):
+- Disabled Onyx brush preview layer (`setBrushRawDrawingEnabled(false)`): made behavior worse for user.
+- Forced fast EPD update mode on `drawingView` in rapid mode: also made behavior worse.
+- Both were reverted to previous state.
+
+Current rapid-related state after revert:
+- `setBrushRawDrawingEnabled(true)` is restored.
+- No forced `EpdController` update-mode change on `drawingView` from `MainActivity`.
+- Direct raw callback ingestion + pressure normalization changes remain.
+
+Open problem:
+- User still reports pressure-flat appearance during rapid draw preview.
+- Pressure appears only after commit behavior outside active rapid preview.
+
+Implication for future work:
+- The remaining issue is likely a visual dominance/ordering problem between Onyx preview layer and app-rendered stroke updates.
+- Next iteration should instrument live values (raw pressure, normalized pressure, computed width) and explicitly verify what layer is visible at pen-down time.

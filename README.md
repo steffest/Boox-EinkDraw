@@ -69,4 +69,4 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 ## Rebuild / Agent Handoff
 
 - Detailed implementation spec: [SPEC.md](SPEC.md)
-- Additional project notes: [AGENT_HANDOFF.md](AGENT_HANDOFF.md)
+- Additional project notes: [AGENT_HANDOFF.md](AGENTS.md)
