@@ -12,7 +12,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.Gravity
 import android.widget.Button
-import android.widget.GridLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.PopupWindow
@@ -24,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.onyx.android.sdk.api.device.epd.EpdController
 import com.onyx.android.sdk.api.device.epd.UpdateMode
 import java.io.IOException
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
@@ -252,13 +252,13 @@ class MainActivity : AppCompatActivity() {
             isOutsideTouchable = true
         }
 
-        val horizontalPadding = dp(6f)
-        val verticalPadding = dp(5f)
+        val horizontalPadding = dp(8f)
+        val verticalPadding = dp(7f)
         items.forEachIndexed { index, item ->
             val row = TextView(this).apply {
                 text = item.first
                 setTextColor(getColorStateList(R.color.menu_item_text_color))
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
                 includeFontPadding = false
                 isSingleLine = true
                 setPadding(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding)
@@ -366,56 +366,113 @@ class MainActivity : AppCompatActivity() {
 
         val content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            background = getDrawable(R.drawable.menu_popup_background)
-            setPadding(dp(6f), dp(6f), dp(6f), dp(6f))
+            background = getDrawable(R.drawable.color_picker_popup_bg)
+            setPadding(dp(8f), dp(6f), dp(8f), dp(8f))
         }
 
-        val preview = View(this).apply {
-            setBackgroundColor(activePaletteColorArgb)
+        val header = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
         }
-        content.addView(
-            preview,
+        val title = TextView(this).apply {
+            text = getString(R.string.pick_color)
+            setTextColor(Color.WHITE)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+        }
+        val closeButton = TextView(this).apply {
+            text = "\u2715"
+            setTextColor(Color.WHITE)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+            setPadding(dp(8f), 0, dp(8f), 0)
+            setOnClickListener { colorPickerPopup?.dismiss() }
+        }
+        header.addView(
+            title,
             LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(20f)
+                0,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                1f
             ).apply {
-                bottomMargin = dp(6f)
+                marginEnd = dp(8f)
             }
         )
-
-        val grid = GridLayout(this).apply {
-            columnCount = 8
-            rowCount = 5
-        }
-
-        visualPickerColors().forEachIndexed { index, color ->
-            val swatch = ImageButton(this).apply {
-                background = buildSwatchDrawable(color, color == activePaletteColorArgb)
-                contentDescription = "picker_color_$index"
-                setOnClickListener {
-                    preview.setBackgroundColor(color)
-                    applySelectedColor(color)
-                    refreshPickerGridSelection(grid)
-                }
-            }
-            grid.addView(
-                swatch,
-                GridLayout.LayoutParams().apply {
-                    width = dp(20f)
-                    height = dp(20f)
-                    rightMargin = dp(4f)
-                    bottomMargin = dp(4f)
-                }
-            )
-        }
-
-        content.addView(
-            grid,
+        header.addView(
+            closeButton,
             LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
         )
+        content.addView(
+            header,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                bottomMargin = dp(6f)
+            }
+        )
+
+        val wheelView = ColorWheelPickerView(this).apply {
+            setColor(activePaletteColorArgb)
+        }
+
+        content.addView(
+            wheelView,
+            LinearLayout.LayoutParams(
+                dp(150f),
+                dp(150f)
+            )
+        )
+
+        val infoRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        val preview = View(this).apply {
+            setBackgroundColor(activePaletteColorArgb)
+        }
+        val colorInfo = TextView(this).apply {
+            setTextColor(Color.WHITE)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+            setPadding(dp(8f), 0, 0, 0)
+        }
+        infoRow.addView(preview, LinearLayout.LayoutParams(dp(24f), dp(24f)))
+        infoRow.addView(
+            colorInfo,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        )
+        content.addView(
+            infoRow,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = dp(8f)
+            }
+        )
+
+        val updateInfo = { color: Int ->
+            val hsv = FloatArray(3)
+            Color.colorToHSV(color, hsv)
+            colorInfo.text = String.format(
+                Locale.US,
+                "#%06X  H:%d S:%d%% B:%d%%",
+                (0xFFFFFF and color),
+                hsv[0].toInt(),
+                (hsv[1] * 100f).toInt(),
+                (hsv[2] * 100f).toInt()
+            )
+            preview.setBackgroundColor(color)
+        }
+        updateInfo(activePaletteColorArgb)
+        wheelView.onColorChanged = { pickedColor ->
+            applySelectedColor(pickedColor)
+            updateInfo(pickedColor)
+        }
 
         colorPickerPopup = PopupWindow(
             content,
@@ -429,39 +486,5 @@ class MainActivity : AppCompatActivity() {
         }
 
         colorPickerPopup?.showAsDropDown(anchor, 0, dp(4f), Gravity.END)
-    }
-
-    private fun refreshPickerGridSelection(grid: GridLayout) {
-        for (i in 0 until grid.childCount) {
-            val child = grid.getChildAt(i) as? ImageButton ?: continue
-            val color = visualPickerColors()[i]
-            child.background = buildSwatchDrawable(color, color == activePaletteColorArgb)
-        }
-    }
-
-    private fun visualPickerColors(): List<Int> {
-        val colors = mutableListOf<Int>()
-        colors += listOf(
-            Color.BLACK,
-            Color.DKGRAY,
-            Color.GRAY,
-            Color.LTGRAY,
-            Color.WHITE,
-            Color.rgb(120, 70, 30),
-            Color.rgb(200, 170, 120),
-            Color.rgb(255, 220, 170)
-        )
-        val hues = listOf(0f, 20f, 40f, 60f, 120f, 170f, 210f, 270f, 300f, 330f)
-        val saturations = listOf(1f, 0.75f, 0.5f)
-        val values = listOf(1f, 0.8f, 0.6f)
-        for (value in values) {
-            for (saturation in saturations) {
-                for (hue in hues) {
-                    colors += Color.HSVToColor(floatArrayOf(hue, saturation, value))
-                    if (colors.size >= 40) return colors
-                }
-            }
-        }
-        return colors.take(40)
     }
 }

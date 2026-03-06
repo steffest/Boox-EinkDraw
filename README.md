@@ -1,48 +1,72 @@
-# Boox E-Ink Draw (Minimal)
+# Boox E-Ink Draw
 
-This is a minimal Android drawing app focused on speed and low visual complexity for e-ink devices:
+Fast, e-ink-focused Android drawing app for Boox tablets.
 
-- Fixed canvas: `930x1240` (portrait)
-- Draw colors: black or white
-- Pen pressure controls size and alpha (grayscale effect)
-- Ultra-fast pencil-only rendering path
-- Optional Boox raw overlay mode (`Rapid: ON`) using Onyx pen SDK
-- Import PNG (`930x1240`) and export PNG
+## Current Features
+
+- Fixed internal canvas: `930x1240` (portrait)
+- Pressure-sensitive drawing with strongly exaggerated response
+  - pressure affects stroke width and opacity
+- Pan/zoom viewport
+  - pinch to zoom, two-finger pan, reset view action
+- Color system
+  - 9 quick color dots: black, white, green, turquoise, blue, purple, red, orange, yellow
+  - visual color wheel picker popup for arbitrary RGB colors
+- Top-right hamburger menu actions
+  - `Open PNG`
+  - `Export PNG`
+  - `Clear`
+  - `Reset View`
+- PNG open/export
+  - open requires exact `930x1240`
+  - imported images are converted to grayscale
+- Boox rapid mode (`Rapid: ON`)
+  - uses Onyx raw drawing APIs for low-latency stylus behavior
+  - includes slider touch suppression while rapid mode is active
+
+## UI Overview
+
+- Top row:
+  - `Rapid: ON/OFF` toggle
+  - color dots
+  - rainbow color picker dot
+  - top-right hamburger menu
+- Left column:
+  - vertical brush size slider
+  - vertical brush opacity slider
+- Main area:
+  - drawing canvas viewport
+
+## Build Requirements
+
+- Android Gradle Plugin: `8.6.1`
+- Kotlin plugin: `1.9.25`
+- Compile SDK / Target SDK: `34`
+- Min SDK: `26`
+- Java/Kotlin target: `17`
 
 ## Build In Android Studio
 
 1. Open Android Studio.
-2. Choose **Open** and select this folder (`Android`).
+2. Choose **Open** and select this project folder.
 3. Let Gradle sync complete.
-4. Connect your Boox tablet by USB (or use wireless ADB).
-5. Press **Run** and choose the Boox device.
+4. Connect a Boox device (USB or wireless ADB).
+5. Press **Run** and choose the device.
 
-## Install On Boox (USB)
-
-1. On the Boox tablet, enable:
-   - Developer options
-   - USB debugging
-2. Plug tablet into your computer and accept the debug prompt on the tablet.
-3. In Android Studio, pick the Boox device and run the app.
-
-## Optional Command Line Build
-
-If you want command line builds, first generate/update Gradle wrapper from Android Studio:
-
-1. Open the project in Android Studio.
-2. Run the Gradle `wrapper` task once.
-3. Then use:
+## Command Line Build
 
 ```bash
-./gradlew assembleDebug
+./gradlew :app:assembleDebug
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-## Notes
+## Boox / Rapid Mode Notes
 
-- PNG import only accepts images that are exactly `930x1240`.
-- Imported images are converted to grayscale.
-- Rendering is optimized around an internal bitmap with partial invalidation to keep stroke latency low.
-- `Rapid: ON` starts a foreground overlay service and asks for "draw over other apps" permission.
 - Rapid mode is Boox-specific and may fail on non-Boox devices.
-- Onyx SDK dependencies are resolved from Boox Maven repositories (`repo.boox.com`) plus JitPack, following the official Onyx demo setup.
+- Overlay permission is required for some rapid drawing paths.
+- The app includes foreground service + special-use FGS wiring for overlay integration.
+
+## Rebuild / Agent Handoff
+
+- Detailed implementation spec: [SPEC.md](SPEC.md)
+- Additional project notes: [AGENT_HANDOFF.md](AGENT_HANDOFF.md)

@@ -76,8 +76,8 @@ class DrawingView @JvmOverloads constructor(
             field = Color.rgb(Color.red(value), Color.green(value), Color.blue(value))
             applyRapidBrushSettings()
         }
-    var minStrokePx = 1.4f
-    var maxStrokePx = 5.0f
+    var minStrokePx = 0.35f
+    var maxStrokePx = 9.5f
     var minEventIntervalMs = 4L
     var minSegmentDistancePx = 0.9f
     var minZoom = 1f
@@ -322,7 +322,8 @@ class DrawingView @JvmOverloads constructor(
 
     private fun drawSegment(x0: Float, y0: Float, p0: Float, x1: Float, y1: Float, p1: Float) {
         val avgPressure = ((p0 + p1) * 0.5f).coerceIn(0f, 1f)
-        strokePaint.strokeWidth = lerp(minStrokePx, maxStrokePx, avgPressure) * brushSizeMultiplier
+        val pressureForWidth = avgPressure.toDouble().pow(2.4).toFloat().coerceIn(0f, 1f)
+        strokePaint.strokeWidth = lerp(minStrokePx, maxStrokePx, pressureForWidth) * brushSizeMultiplier
         strokePaint.color = drawColorArgb
         strokePaint.alpha = (pressureToAlpha(avgPressure) * brushOpacityMultiplier).toInt().coerceIn(0, 255)
         drawCanvas.drawLine(x0, y0, x1, y1, strokePaint)
@@ -330,7 +331,8 @@ class DrawingView @JvmOverloads constructor(
     }
 
     private fun drawPoint(x: Float, y: Float, pressure: Float) {
-        strokePaint.strokeWidth = lerp(minStrokePx, maxStrokePx, pressure) * brushSizeMultiplier
+        val pressureForWidth = pressure.toDouble().pow(2.4).toFloat().coerceIn(0f, 1f)
+        strokePaint.strokeWidth = lerp(minStrokePx, maxStrokePx, pressureForWidth) * brushSizeMultiplier
         strokePaint.color = drawColorArgb
         strokePaint.alpha = (pressureToAlpha(pressure) * brushOpacityMultiplier).toInt().coerceIn(0, 255)
         drawCanvas.drawPoint(x, y, strokePaint)
@@ -379,13 +381,14 @@ class DrawingView @JvmOverloads constructor(
     }
 
     private fun normalizedPressure(rawPressure: Float): Float {
-        val clamped = rawPressure.coerceIn(0.05f, 1f)
-        // Slightly emphasize low/mid pressure so shading feels more responsive.
-        return clamped.toDouble().pow(0.72).toFloat().coerceIn(0.05f, 1f)
+        val clamped = rawPressure.coerceIn(0.01f, 1f)
+        // Aggressive curve to exaggerate pressure separation.
+        return clamped.toDouble().pow(1.25).toFloat().coerceIn(0.01f, 1f)
     }
 
     private fun pressureToAlpha(pressure: Float): Int {
-        return lerp(24f, 255f, pressure.coerceIn(0f, 1f)).toInt().coerceIn(24, 255)
+        val t = pressure.coerceIn(0f, 1f).toDouble().pow(2.8).toFloat()
+        return lerp(4f, 255f, t).toInt().coerceIn(4, 255)
     }
 
     private fun handleTwoFingerPan(event: MotionEvent) {
