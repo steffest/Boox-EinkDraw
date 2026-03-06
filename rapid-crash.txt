@@ -1,0 +1,1006 @@
+--------- beginning of main
+03-05 21:46:33.945 D/vendor.qti.bluetooth@1.0-ibs_handler(  867): SerialClockVote: vote for UART CLK ON
+03-05 21:46:33.947 D/vendor.qti.bluetooth@1.0-wake_lock(  867): Acquire wakelock is acquired 
+03-05 21:46:33.947 I/vendor.qti.bluetooth@1.0-ibs_handler(  867): DeviceWakeUp: Writing IBS_WAKE_IND
+03-05 21:46:33.951 I/vendor.qti.bluetooth@1.0-ibs_handler(  867): ProcessIbsCmd: Received IBS_WAKE_ACK: 0xFC
+03-05 21:46:33.951 I/vendor.qti.bluetooth@1.0-ibs_handler(  867): ProcessIbsCmd: Signal wack_cond_
+03-05 21:46:33.951 D/vendor.qti.bluetooth@1.0-ibs_handler(  867): DeviceWakeUp: Unblocked from waiting for FC, pthread_cond_timedwait ret = 0
+03-05 21:46:33.952 I/vendor.qti.bluetooth@1.0-ibs_handler(  867): ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+03-05 21:46:33.953 I/vendor.qti.bluetooth@1.0-ibs_handler(  867): ProcessIbsCmd: Writing IBS_WAKE_ACK
+03-05 21:46:33.995 W/app_process(25980): Reducing the number of considered missed Gc histogram windows from 232 to 100
+03-05 21:46:33.996 W/System  (25980): A resource was acquired at attached stack trace but never released. See java.io.Closeable for information on avoiding resource leaks.
+03-05 21:46:33.996 I/vendor.qti.bluetooth@1.0-ibs_handler(  867): ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+03-05 21:46:33.998 W/System  (25980): java.lang.Throwable: Explicit termination method 'Surface.release' not called
+03-05 21:46:33.998 W/System  (25980): 	at dalvik.system.CloseGuard.openWithCallSite(CloseGuard.java:288)
+03-05 21:46:33.998 W/System  (25980): 	at dalvik.system.CloseGuard.open(CloseGuard.java:257)
+03-05 21:46:33.998 W/System  (25980): 	at android.view.Surface.setNativeObjectLocked(Surface.java:771)
+03-05 21:46:33.998 W/System  (25980): 	at android.view.Surface.<init>(Surface.java:305)
+03-05 21:46:33.998 W/System  (25980): A resource was acquired at attached stack trace but never released. See java.io.Closeable for information on avoiding resource leaks.
+03-05 21:46:33.998 W/System  (25980): java.lang.Throwable: Explicit termination method 'Surface.release' not called
+03-05 21:46:33.998 W/System  (25980): 	at dalvik.system.CloseGuard.openWithCallSite(CloseGuard.java:288)
+03-05 21:46:33.998 W/System  (25980): 	at dalvik.system.CloseGuard.open(CloseGuard.java:257)
+03-05 21:46:33.998 W/System  (25980): 	at android.view.Surface.setNativeObjectLocked(Surface.java:771)
+03-05 21:46:33.998 W/System  (25980): 	at android.view.Surface.<init>(Surface.java:305)
+03-05 21:46:33.999 W/System  (25980): A resource was acquired at attached stack trace but never released. See java.io.Closeable for information on avoiding resource leaks.
+03-05 21:46:33.999 W/System  (25980): java.lang.Throwable: Explicit termination method 'Surface.release' not called
+03-05 21:46:33.999 W/System  (25980): 	at dalvik.system.CloseGuard.openWithCallSite(CloseGuard.java:288)
+03-05 21:46:33.999 W/System  (25980): 	at dalvik.system.CloseGuard.open(CloseGuard.java:257)
+03-05 21:46:33.999 W/System  (25980): 	at android.view.Surface.setNativeObjectLocked(Surface.java:771)
+03-05 21:46:33.999 W/System  (25980): 	at android.view.Surface.<init>(Surface.java:305)
+03-05 21:46:33.999 W/System  (25980): A resource was acquired at attached stack trace but never released. See java.io.Closeable for information on avoiding resource leaks.
+03-05 21:46:34.000 W/System  (25980): java.lang.Throwable: Explicit termination method 'Surface.release' not called
+03-05 21:46:34.000 W/System  (25980): 	at dalvik.system.CloseGuard.openWithCallSite(CloseGuard.java:288)
+03-05 21:46:34.000 W/System  (25980): 	at dalvik.system.CloseGuard.open(CloseGuard.java:257)
+03-05 21:46:34.000 W/System  (25980): 	at android.view.Surface.setNativeObjectLocked(Surface.java:771)
+03-05 21:46:34.000 W/System  (25980): 	at android.view.Surface.<init>(Surface.java:305)
+03-05 21:46:34.000 W/System  (25980): A resource was acquired at attached stack trace but never released. See java.io.Closeable for information on avoiding resource leaks.
+03-05 21:46:34.001 W/System  (25980): java.lang.Throwable: Explicit termination method 'Surface.release' not called
+03-05 21:46:34.001 W/System  (25980): 	at dalvik.system.CloseGuard.openWithCallSite(CloseGuard.java:288)
+03-05 21:46:34.001 W/System  (25980): 	at dalvik.system.CloseGuard.open(CloseGuard.java:257)
+03-05 21:46:34.001 W/System  (25980): 	at android.view.Surface.setNativeObjectLocked(Surface.java:771)
+03-05 21:46:34.001 W/System  (25980): 	at android.view.Surface.<init>(Surface.java:305)
+03-05 21:46:34.001 W/System  (25980): A resource was acquired at attached stack trace but never released. See java.io.Closeable for information on avoiding resource leaks.
+03-05 21:46:34.001 W/System  (25980): java.lang.Throwable: Explicit termination method 'Surface.release' not called
+03-05 21:46:34.001 W/System  (25980): 	at dalvik.system.CloseGuard.openWithCallSite(CloseGuard.java:288)
+03-05 21:46:34.001 W/System  (25980): 	at dalvik.system.CloseGuard.open(CloseGuard.java:257)
+03-05 21:46:34.001 W/System  (25980): 	at android.view.Surface.setNativeObjectLocked(Surface.java:771)
+03-05 21:46:34.001 W/System  (25980): 	at android.view.Surface.<init>(Surface.java:305)
+03-05 21:46:34.002 W/System  (25980): A resource was acquired at attached stack trace but never released. See java.io.Closeable for information on avoiding resource leaks.
+03-05 21:46:34.002 W/System  (25980): java.lang.Throwable: Explicit termination method 'Surface.release' not called
+03-05 21:46:34.002 W/System  (25980): 	at dalvik.system.CloseGuard.openWithCallSite(CloseGuard.java:288)
+03-05 21:46:34.002 W/System  (25980): 	at dalvik.system.CloseGuard.open(CloseGuard.java:257)
+03-05 21:46:34.002 W/System  (25980): 	at android.view.Surface.setNativeObjectLocked(Surface.java:771)
+03-05 21:46:34.002 W/System  (25980): 	at android.view.Surface.<init>(Surface.java:305)
+03-05 21:46:34.002 W/System  (25980): A resource was acquired at attached stack trace but never released. See java.io.Closeable for information on avoiding resource leaks.
+03-05 21:46:34.002 W/System  (25980): java.lang.Throwable: Explicit termination method 'Surface.release' not called
+03-05 21:46:34.002 W/System  (25980): 	at dalvik.system.CloseGuard.openWithCallSite(CloseGuard.java:288)
+03-05 21:46:34.002 W/System  (25980): 	at dalvik.system.CloseGuard.open(CloseGuard.java:257)
+03-05 21:46:34.002 W/System  (25980): 	at android.view.Surface.setNativeObjectLocked(Surface.java:771)
+03-05 21:46:34.002 W/System  (25980): 	at android.view.Surface.<init>(Surface.java:305)
+03-05 21:46:34.956 I/vendor.qti.bluetooth@1.0-ibs_handler(  867): DeviceSleep: TX Awake, Sending SLEEP_IND
+03-05 21:46:34.956 D/vendor.qti.bluetooth@1.0-ibs_handler(  867): SerialClockVote: vote for UART CLK OFF
+03-05 21:46:35.107 D/vendor.qti.bluetooth@1.0-wake_lock(  867): Release wakelock is released 
+03-05 21:46:39.136 I/MouseCursorController( 1519): Pointer Action: fade, transition=IMMEDIATE, pointerAlpha=0.000000
+03-05 21:46:39.137 I/MouseCursorController( 1519): handle updatePointerLocked(): pointerAlpha=0.000000, pointerVisible=0
+03-05 21:46:39.137 I/MouseCursorController( 1519): hide sprite
+03-05 21:46:39.137 I/Sprites ( 1519): SpriteImpl::setAlpha(0.000000), origin alpha=0.000000
+--------- beginning of system
+03-05 21:46:39.141 V/DisplayPowerController[0]( 1519): Brightness [0.39763778] reason changing to: 'manual', previous reason: 'manual [ dim ]'.
+03-05 21:46:39.141 I/DisplayPowerController[0]( 1519): BrightnessEvent: disp=0, physDisp=local:4630946716506123905, brt=0.39763778, initBrt=0.05, rcmdBrt=NaN, preBrt=NaN, lux=0.0, preLux=0.0, hbmMax=1.0, hbmMode=off, rbcStrength=50, powerFactor=1.0, thrmMax=1.0, wasShortTermModelActive=false, flags=, reason=manual, autoBrightness=false
+03-05 21:46:39.141 I/DisplayPowerController[0]( 1519): BrightnessEvent: disp=0, physDisp=local:4630946716506123905, brt=0.39763778, initBrt=0.39763778, rcmdBrt=NaN, preBrt=NaN, lux=0.0, preLux=0.0, hbmMax=1.0, hbmMode=off, rbcStrength=50, powerFactor=1.0, thrmMax=1.0, wasShortTermModelActive=false, flags=, reason=manual, autoBrightness=false
+03-05 21:46:39.142 E/DisplayDeviceConfig( 1519): requesting nits when no mapping exists.
+03-05 21:46:39.142 E/DisplayDeviceConfig( 1519): requesting nits when no mapping exists.
+03-05 21:46:39.146 W/PowerManager( 1519): WakeLock tag:UndimDetectorWakeLock from [android] is forbidden
+03-05 21:46:39.154 D/AndroidRuntime( 6631): Shutting down VM
+--------- beginning of crash
+03-05 21:46:39.171 E/AndroidRuntime( 6631): FATAL EXCEPTION: main
+03-05 21:46:39.171 E/AndroidRuntime( 6631): Process: com.boox.einkdraw, PID: 6631
+03-05 21:46:39.171 E/AndroidRuntime( 6631): java.lang.NullPointerException: Attempt to invoke virtual method 'void com.onyx.android.sdk.pen.RawInputCallback.onPenActive(com.onyx.android.sdk.data.note.TouchPoint)' on a null object reference
+03-05 21:46:39.171 E/AndroidRuntime( 6631): 	at com.onyx.android.sdk.pen.touch.SFTouchRender$b.a(SourceFile:3)
+03-05 21:46:39.171 E/AndroidRuntime( 6631): 	at com.onyx.android.sdk.pen.touch.SFTouchRender$b.$r8$lambda$XE6y1oMOkb3rFQ9PThmG5mAoG9g(Unknown Source:0)
+03-05 21:46:39.171 E/AndroidRuntime( 6631): 	at com.onyx.android.sdk.pen.touch.SFTouchRender$b$$ExternalSyntheticLambda7.run(D8$$SyntheticClass:0)
+03-05 21:46:39.171 E/AndroidRuntime( 6631): 	at android.os.Handler.handleCallback(Handler.java:942)
+03-05 21:46:39.171 E/AndroidRuntime( 6631): 	at android.os.Handler.dispatchMessage(Handler.java:99)
+03-05 21:46:39.171 E/AndroidRuntime( 6631): 	at android.os.Looper.loopOnce(Looper.java:201)
+03-05 21:46:39.171 E/AndroidRuntime( 6631): 	at android.os.Looper.loop(Looper.java:288)
+03-05 21:46:39.171 E/AndroidRuntime( 6631): 	at android.app.ActivityThread.main(ActivityThread.java:8048)
+03-05 21:46:39.171 E/AndroidRuntime( 6631): 	at java.lang.reflect.Method.invoke(Native Method)
+03-05 21:46:39.171 E/AndroidRuntime( 6631): 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:548)
+03-05 21:46:39.171 E/AndroidRuntime( 6631): 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:942)
+03-05 21:46:39.176 I/DropBoxManagerService( 1519): add tag=data_app_crash isTagEnabled=true flags=0x2
+03-05 21:46:39.179 I/Process ( 6631): Sending signal. PID: 6631 SIG: 9
+03-05 21:46:39.187 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=android.intent.action.DROPBOX_ENTRY_ADDED flg=0x10 (has extras) } to com.google.android.gms/.stats.service.DropBoxEntryAddedReceiver
+03-05 21:46:39.191 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:39.191 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:39.191 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:39.211 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:39.211 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:39.211 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:39.233 I/ActivityManager( 1519): Process com.boox.einkdraw (pid 6631) has died: prcp IMPF
+03-05 21:46:39.233 I/WindowManager( 1519): WIN DEATH: Window{3c3ecd3 u0 com.boox.einkdraw}
+03-05 21:46:39.234 W/InputManager-JNI( 1519): Input channel object '3c3ecd3 com.boox.einkdraw (client)' was disposed without first being removed with the input manager!
+03-05 21:46:39.234 I/libprocessgroup( 1519): Successfully killed process cgroup uid 10137 pid 6631 in 0ms
+03-05 21:46:39.238 D/debugOrientation( 1519): ActivityRecord{155d4ce u0 com.onyx/.tablet.main.ui.TabletMainActivity} t1285}  computeOrientation :-1 user set rotation -1
+03-05 21:46:39.238 W/WindowManager( 1519): Cannot find window which accessibility connection is added to
+03-05 21:46:39.239 W/ActivityManager( 1519): Scheduling restart of crashed service com.boox.einkdraw/.BooxRapidOverlayService in 1800000ms for start-requested
+03-05 21:46:39.242 I/Zygote  (  726): Process 6631 exited due to signal 9 (Killed)
+03-05 21:46:39.243 W/NotificationHistory( 1519): Attempted to remove channel for locked/gone/disabled user 0
+03-05 21:46:39.244 W/ActivityManager( 1519): setHasOverlayUi called on unknown pid: 6631
+03-05 21:46:39.244 E/BpTransactionCompletedListener(  955): Failed to transact (-32)
+03-05 21:46:39.244 W/ActivityManager( 1519): setHasOverlayUi called on unknown pid: 6631
+03-05 21:46:39.245 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps6x1WidgetProvider
+03-05 21:46:39.245 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps4x2WidgetProvider
+03-05 21:46:39.245 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps2x2WidgetProvider
+03-05 21:46:39.245 D/EventBus( 8562): No subscribers registered for event class com.onyx.common.applications.event.UpdateNotificationCountEvent
+03-05 21:46:39.245 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps4x1WidgetProvider
+03-05 21:46:39.245 D/EventBus( 8562): No subscribers registered for event class org.greenrobot.eventbus.NoSubscriberEvent
+03-05 21:46:39.327 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.328 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.328 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.328 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.329 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.329 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:39.329 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.329 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.329 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.329 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.329 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.329 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.330 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.330 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.330 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.330 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.330 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.330 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.330 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.330 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.331 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.331 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.331 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.331 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.332 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.332 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.332 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.332 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.332 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.332 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.332 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.333 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.333 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.333 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.333 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.333 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.333 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.333 I/InputDispatcher( 1519): Dropped event because it is stale.
+03-05 21:46:39.419 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:39.419 I/ItemViewFactory( 8562): open app item with post:APP,launchName:com.boox.einkdraw
+03-05 21:46:39.420 I/OpenAppAction( 8562): check EACTutorial app for:com.boox.einkdraw
+03-05 21:46:39.424 I/Benchmark( 8562): getAppConfig ---> 2ms
+03-05 21:46:39.427 I/OpenAppAction( 8562): start unfreeze app for:com.boox.einkdraw
+03-05 21:46:39.429 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:39.429 D/ApplicationFreezeHelper( 8562): package com.boox.einkdraw is already enabled
+03-05 21:46:39.429 D/UnFreezeApplicationRequest( 8562): com.boox.einkdraw is enable
+03-05 21:46:39.430 I/OpenAppAction( 8562): end open app for:com.boox.einkdraw,fetchIntent:false
+03-05 21:46:39.430 I/ActivityTaskManager( 1519): START u0 {act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 pkg=com.boox.einkdraw cmp=com.boox.einkdraw/.MainActivity} from uid 1000
+03-05 21:46:39.431 D/CompatibilityChangeReporter( 1519): Compat change id reported: 265464455; UID 10137; state: DISABLED
+03-05 21:46:39.431 D/CompatibilityChangeReporter( 1519): Compat change id reported: 265452344; UID 10137; state: DISABLED
+03-05 21:46:39.431 D/CompatibilityChangeReporter( 1519): Compat change id reported: 266124927; UID 10137; state: DISABLED
+03-05 21:46:39.431 D/CompatibilityChangeReporter( 1519): Compat change id reported: 265451093; UID 10137; state: DISABLED
+03-05 21:46:39.431 D/CompatibilityChangeReporter( 1519): Compat change id reported: 265456536; UID 10137; state: DISABLED
+03-05 21:46:39.431 D/CompatibilityChangeReporter( 1519): Compat change id reported: 255940284; UID 10137; state: DISABLED
+03-05 21:46:39.431 D/CompatibilityChangeReporter( 1519): Compat change id reported: 236283604; UID 10137; state: DISABLED
+03-05 21:46:39.431 D/CompatibilityChangeReporter( 1519): Compat change id reported: 263959004; UID 10137; state: DISABLED
+03-05 21:46:39.432 D/CompatibilityChangeReporter( 1519): Compat change id reported: 264304459; UID 10137; state: DISABLED
+03-05 21:46:39.432 D/CompatibilityChangeReporter( 1519): Compat change id reported: 264301586; UID 10137; state: DISABLED
+03-05 21:46:39.432 D/CompatibilityChangeReporter( 1519): Compat change id reported: 254631730; UID 10137; state: DISABLED
+03-05 21:46:39.432 D/CompatibilityChangeReporter( 1519): Compat change id reported: 273509367; UID 10137; state: DISABLED
+03-05 21:46:39.432 D/CompatibilityChangeReporter( 1519): Compat change id reported: 263259275; UID 10137; state: DISABLED
+03-05 21:46:39.433 D/CompatibilityChangeReporter( 1519): Compat change id reported: 184838306; UID 10137; state: DISABLED
+03-05 21:46:39.433 D/CompatibilityChangeReporter( 1519): Compat change id reported: 185004937; UID 10137; state: DISABLED
+03-05 21:46:39.433 D/CompatibilityChangeReporter( 1519): Compat change id reported: 181136395; UID 10137; state: DISABLED
+03-05 21:46:39.434 D/CompatibilityChangeReporter( 1519): Compat change id reported: 174042936; UID 10137; state: DISABLED
+03-05 21:46:39.434 D/CompatibilityChangeReporter( 1519): Compat change id reported: 174042980; UID 10137; state: DISABLED
+03-05 21:46:39.434 D/CompatibilityChangeReporter( 1519): Compat change id reported: 194480991; UID 10137; state: ENABLED
+03-05 21:46:39.436 E/ANDR-PERF-JNI( 1519): com_qualcomm_qtiperformance_native_perf_io_prefetch_start
+03-05 21:46:39.436 E/CellBroadcastUtils( 1519): getDefaultCellBroadcastReceiverPackageName: no package found
+03-05 21:46:39.439 D/CompatibilityChangeReporter( 1519): Compat change id reported: 197654537; UID 10137; state: ENABLED
+03-05 21:46:39.439 I/ActivityNotifier( 1519): DynamicDDS service disabled
+03-05 21:46:39.440 D/CompatibilityChangeReporter( 1519): Compat change id reported: 205907456; UID 10137; state: ENABLED
+03-05 21:46:39.440 D/ActivityTrigger( 1519): ActivityTrigger activityPauseTrigger 
+03-05 21:46:39.444 D/NotificationShadeWindowController( 1835): NotificationShadeWindowControllerImpl visible:false  forceWindowCollapsedfalse  (isKeyguardShowingAndNotOccluded:false  panelVisible:false  keyguardFadingAway:false  bouncerShowing:false  headsUpNotificationShowing:false  scrimsVisibility:false)   backgroundBlurRadius > 0:false  launchingActivityFromNotification:false
+03-05 21:46:39.446 D/CompatibilityChangeReporter( 1519): Compat change id reported: 194833441; UID 10137; state: ENABLED
+03-05 21:46:39.447 W/Parcel  ( 1835): Expecting binder but got null!
+03-05 21:46:39.447 I/TabletMainActivity( 8562): onTopResumedActivityChanged: false
+03-05 21:46:39.450 I/TabletMainActivity( 8562): onPause--------------
+03-05 21:46:39.457 E/ANDR-IOP(  893): io prefetch is disabled
+03-05 21:46:39.465 D/EventBus( 8562): No subscribers registered for event class com.onyx.common.applications.event.UpdateNotificationCountEvent
+03-05 21:46:39.465 D/CompatibilityChangeReporter( 1519): Compat change id reported: 168419799; UID 10137; state: DISABLED
+03-05 21:46:39.465 D/EventBus( 8562): No subscribers registered for event class org.greenrobot.eventbus.NoSubscriberEvent
+03-05 21:46:39.465 D/CompatibilityChangeReporter( 1519): Compat change id reported: 273564678; UID 10137; state: DISABLED
+03-05 21:46:39.466 D/debugOrientation( 1519): ActivityRecord{78ecca3 u0 com.boox.einkdraw/.MainActivity} t1381}  computeOrientation :-1 user set rotation -1
+03-05 21:46:39.468 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:39.468 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:39.468 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:39.469 D/CoreBackPreview( 1519): Window{4378fff u0 Splash Screen com.boox.einkdraw}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@8a38c15, mPriority=0}
+03-05 21:46:39.473 D/CompatibilityChangeReporter( 1519): Compat change id reported: 135634846; UID 10137; state: DISABLED
+03-05 21:46:39.473 D/CompatibilityChangeReporter( 1519): Compat change id reported: 177438394; UID 10137; state: DISABLED
+03-05 21:46:39.473 D/CompatibilityChangeReporter( 1519): Compat change id reported: 135772972; UID 10137; state: DISABLED
+03-05 21:46:39.473 D/CompatibilityChangeReporter( 1519): Compat change id reported: 135754954; UID 10137; state: ENABLED
+03-05 21:46:39.474 D/CompatibilityChangeReporter( 1519): Compat change id reported: 143937733; UID 10137; state: ENABLED
+03-05 21:46:39.475 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:39.476 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:39.476 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:39.485 D/debugOrientation( 1519): ActivityRecord{78ecca3 u0 com.boox.einkdraw/.MainActivity} t1381}  computeOrientation :-1 user set rotation -1
+03-05 21:46:39.488 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:39.488 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:39.488 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:39.489 E/OpenGLRenderer( 1835): Unable to match the desired swap behavior.
+03-05 21:46:39.494 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:39.496 D/EventBus( 8562): No subscribers registered for event class com.onyx.common.applications.event.UpdateNotificationCountEvent
+03-05 21:46:39.496 D/Zygote  (  726): Forked child process 6681
+03-05 21:46:39.496 D/EventBus( 8562): No subscribers registered for event class org.greenrobot.eventbus.NoSubscriberEvent
+03-05 21:46:39.501 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:39.501 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:39.501 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:39.505 I/ActivityManager( 1519): Start proc 6681:com.boox.einkdraw/u0a137 for next-top-activity {com.boox.einkdraw/com.boox.einkdraw.MainActivity}
+03-05 21:46:39.507 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps6x1WidgetProvider
+03-05 21:46:39.520 I/m.boox.einkdraw( 6681): Late-enabling -Xcheck:jni
+03-05 21:46:39.528 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:39.539 W/ActivityManager( 1519): Stopping service due to app idle: u0a137 -19s988ms com.boox.einkdraw/.BooxRapidOverlayService
+03-05 21:46:39.543 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps4x2WidgetProvider
+03-05 21:46:39.544 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps2x2WidgetProvider
+03-05 21:46:39.546 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps4x1WidgetProvider
+03-05 21:46:39.548 D/debugOrientation( 1519): ActivityRecord{78ecca3 u0 com.boox.einkdraw/.MainActivity} t1381}  computeOrientation :-1 user set rotation -1
+03-05 21:46:39.561 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:39.575 I/adbd    (18941): jdwp connection from 6681
+03-05 21:46:39.593 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:39.595 D/debugOrientation( 1519): ActivityRecord{78ecca3 u0 com.boox.einkdraw/.MainActivity} t1381}  computeOrientation :-1 user set rotation -1
+03-05 21:46:39.609 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:39.609 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:39.609 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:39.618 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:39.638 D/C2SoftVpxEnc(25101): bytes generated 4868
+03-05 21:46:39.639 D/debugOrientation( 1519): ActivityRecord{78ecca3 u0 com.boox.einkdraw/.MainActivity} t1381}  computeOrientation :-1 user set rotation -1
+03-05 21:46:39.639 D/debugOrientation( 1519): ActivityRecord{78ecca3 u0 com.boox.einkdraw/.MainActivity} t1381}  computeOrientation :-1 user set rotation -1
+03-05 21:46:39.640 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:39.640 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:39.640 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:39.639 W/re-initialized>( 6681): type=1400 audit(0.0:9349): avc: granted { execute } for path="/data/data/com.boox.einkdraw/code_cache/startup_agents/a82ed9e3-agent.so" dev="dm-13" ino=59819 scontext=u:r:untrusted_app:s0:c137,c256,c512,c768 tcontext=u:object_r:app_data_file:s0:c137,c256,c512,c768 tclass=file app=com.boox.einkdraw
+03-05 21:46:39.645 V/studio.deploy( 6681): Startup agent attached to VM
+03-05 21:46:39.646 V/studio.deploy( 6681): No existing instrumentation found. Loading instrumentation from instruments-2fd5708c.jar
+03-05 21:46:39.651 W/m.boox.einkdraw( 6681): DexFile /data/data/com.boox.einkdraw/code_cache/.studio/instruments-2fd5708c.jar is in boot class path but is not in a known location
+03-05 21:46:39.652 V/studio.deploy( 6681): Applying transforms with cached classes
+03-05 21:46:39.658 W/m.boox.einkdraw( 6681): Redefining intrinsic method java.lang.Thread java.lang.Thread.currentThread(). This may cause the unexpected use of the original definition of java.lang.Thread java.lang.Thread.currentThread()in methods that have already been compiled.
+03-05 21:46:39.658 W/m.boox.einkdraw( 6681): Redefining intrinsic method boolean java.lang.Thread.interrupted(). This may cause the unexpected use of the original definition of boolean java.lang.Thread.interrupted()in methods that have already been compiled.
+03-05 21:46:39.658 I/studio.deploy( 6681): Registering DispatchJNI
+03-05 21:46:39.659 I/studio.deploy( 6681): Found com/android/tools/deploy/interpreter/JNI
+03-05 21:46:39.682 D/CompatibilityChangeReporter( 6681): Compat change id reported: 171979766; UID 10137; state: ENABLED
+03-05 21:46:39.704 I/SDM     (  887): update_to_display[1/0] -- marker[36628] waveform_mode = 2, update_mode = 1, Rect[0 0 2480 1860], flags = 1000
+03-05 21:46:39.708 W/ziparchive( 6681): Unable to open '/data/data/com.boox.einkdraw/code_cache/.overlay/base.apk/classes3.dm': No such file or directory
+03-05 21:46:39.708 W/ziparchive( 6681): Unable to open '/data/data/com.boox.einkdraw/code_cache/.overlay/base.apk/classes4.dm': No such file or directory
+03-05 21:46:39.709 W/ziparchive( 6681): Unable to open '/data/app/~~6iRw9V_sUiN6UqoOq5Bs2g==/com.boox.einkdraw-eUyBX-mfVO4TvFdNUhbTQA==/base.dm': No such file or directory
+03-05 21:46:39.709 W/ziparchive( 6681): Unable to open '/data/app/~~6iRw9V_sUiN6UqoOq5Bs2g==/com.boox.einkdraw-eUyBX-mfVO4TvFdNUhbTQA==/base.dm': No such file or directory
+03-05 21:46:39.721 D/C2SoftVpxEnc(25101): bytes generated 707
+03-05 21:46:39.821 D/C2SoftVpxEnc(25101): bytes generated 376
+03-05 21:46:39.865 I/Perf    ( 6681): Connecting to perf service.
+03-05 21:46:39.870 V/GraphicsEnvironment( 6681): ANGLE Developer option for 'com.boox.einkdraw' set to: 'default'
+03-05 21:46:39.870 V/GraphicsEnvironment( 6681): ANGLE GameManagerService for com.boox.einkdraw: false
+03-05 21:46:39.870 V/GraphicsEnvironment( 6681): Updatable production driver is not supported on the device.
+03-05 21:46:39.874 D/NetworkSecurityConfig( 6681): Using Network Security Config from resource network_security_config debugBuild: true
+03-05 21:46:39.876 D/NetworkSecurityConfig( 6681): Using Network Security Config from resource network_security_config debugBuild: true
+03-05 21:46:39.895 D/CompatibilityChangeReporter( 1519): Compat change id reported: 161145287; UID 10137; state: DISABLED
+03-05 21:46:39.922 D/C2SoftVpxEnc(25101): bytes generated 325
+03-05 21:46:39.944 D/AppCompatDelegate( 6681): Checking for metadata for AppLocalesMetadataHolderService : Service not found
+03-05 21:46:39.990 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:39.990 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.boox.einkdraw, isAutoFreeze: false, isEACEnabled: true
+03-05 21:46:39.991 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:39.991 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: org.chromium.chrome, isAutoFreeze: false, isEACEnabled: true
+03-05 21:46:39.993 I/Benchmark( 8562): getAppConfig ---> 2ms
+03-05 21:46:39.993 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.android.vending, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:39.994 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:39.994 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.android.chrome, isAutoFreeze: false, isEACEnabled: true
+03-05 21:46:39.996 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:39.996 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:39.996 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:39.999 D/CompatibilityChangeReporter( 6681): Compat change id reported: 210923482; UID 10137; state: ENABLED
+03-05 21:46:40.003 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:40.003 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:40.003 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:40.012 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:40.012 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:40.012 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:40.023 D/C2SoftVpxEnc(25101): bytes generated 313
+03-05 21:46:40.024 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:40.024 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:40.024 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:40.029 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:40.029 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:40.029 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:40.034 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:40.034 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.boox.einkdraw, isAutoFreeze: false, isEACEnabled: true
+03-05 21:46:40.035 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:40.035 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: org.chromium.chrome, isAutoFreeze: false, isEACEnabled: true
+03-05 21:46:40.037 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:40.037 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.android.vending, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:40.038 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:40.038 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.android.chrome, isAutoFreeze: false, isEACEnabled: true
+03-05 21:46:40.041 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:40.041 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:40.042 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:40.048 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:40.048 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:40.048 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:40.052 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:40.053 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:40.053 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:40.056 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:40.056 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.boox.einkdraw, isAutoFreeze: false, isEACEnabled: true
+03-05 21:46:40.057 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:40.057 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: org.chromium.chrome, isAutoFreeze: false, isEACEnabled: true
+03-05 21:46:40.058 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:40.058 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.android.vending, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:40.059 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:40.059 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.android.chrome, isAutoFreeze: false, isEACEnabled: true
+03-05 21:46:40.072 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:40.072 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.boox.einkdraw, isAutoFreeze: false, isEACEnabled: true
+03-05 21:46:40.073 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:40.073 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:40.073 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:40.073 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:40.073 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: org.chromium.chrome, isAutoFreeze: false, isEACEnabled: true
+03-05 21:46:40.074 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:40.074 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.android.vending, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:40.075 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:40.075 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.android.chrome, isAutoFreeze: false, isEACEnabled: true
+03-05 21:46:40.079 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:40.079 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:40.079 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:40.084 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:40.084 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:40.084 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:40.088 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:40.088 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:40.088 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:40.091 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:40.091 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:40.091 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:40.094 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:40.094 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:40.094 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:40.098 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:40.098 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:40.098 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:40.100 D/CompatibilityChangeReporter( 6681): Compat change id reported: 237531167; UID 10137; state: DISABLED
+03-05 21:46:40.102 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:40.102 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:40.102 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:40.108 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:40.108 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:40.108 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:40.110 W/Parcel  ( 6681): Expecting binder but got null!
+03-05 21:46:40.113 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:40.113 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:40.113 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:40.114 D/CoreBackPreview( 1519): Window{7a154fb u0 com.boox.einkdraw/com.boox.einkdraw.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@efcef71, mPriority=0}
+03-05 21:46:40.116 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:40.116 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:40.116 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:40.117 V/ActivityThread( 6681): reportTopResumedActivityChanged - > onActivityTopResumed
+03-05 21:46:40.119 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:40.119 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:40.119 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:40.134 E/EpdcManager(  955): DT 128
+03-05 21:46:40.137 E/HWEpdcManager(  955): ### EE 1
+03-05 21:46:40.141 D/C2SoftVpxEnc(25101): bytes generated 312
+03-05 21:46:40.141 E/HWEpdcManager(  955): ### EUS, s 4 c 0
+03-05 21:46:40.142 E/HWEpdcManager(  955): ET 5
+03-05 21:46:40.144 E/HWEpdcManager(  955): ### AF 10
+03-05 21:46:40.145 D/debugOrientation( 1519): ActivityRecord{78ecca3 u0 com.boox.einkdraw/.MainActivity} t1381}  computeOrientation :-1 user set rotation -1
+03-05 21:46:40.153 I/AdrenoGLES-0( 6681): QUALCOMM build                   : 0a31cc5b53, I80d2918b26
+03-05 21:46:40.153 I/AdrenoGLES-0( 6681): Build Date                       : 09/27/23
+03-05 21:46:40.153 I/AdrenoGLES-0( 6681): OpenGL ES Shader Compiler Version: EV031.32.02.17
+03-05 21:46:40.153 I/AdrenoGLES-0( 6681): Local Branch                     : 
+03-05 21:46:40.153 I/AdrenoGLES-0( 6681): Remote Branch                    : 
+03-05 21:46:40.153 I/AdrenoGLES-0( 6681): Remote Branch                    : 
+03-05 21:46:40.153 I/AdrenoGLES-0( 6681): Reconstruct Branch               : 
+03-05 21:46:40.153 I/AdrenoGLES-0( 6681): Build Config                     : S P 10.0.7 AArch64
+03-05 21:46:40.153 I/AdrenoGLES-0( 6681): Driver Path                      : /vendor/lib64/egl/libGLESv2_adreno.so
+03-05 21:46:40.154 D/EventBus( 8562): No subscribers registered for event class com.onyx.android.sdk.eac.event.EACTopComponentChangedEvent
+03-05 21:46:40.154 D/EventBus( 8562): No subscribers registered for event class org.greenrobot.eventbus.NoSubscriberEvent
+03-05 21:46:40.154 D/EventBus(27896): No subscribers registered for event class com.onyx.gallery.event.EACTopComponentChangedEvent
+03-05 21:46:40.154 D/EventBus(27896): No subscribers registered for event class org.greenrobot.eventbus.NoSubscriberEvent
+03-05 21:46:40.155 D/EventBus( 2736): No subscribers registered for event class com.onyx.android.sdk.eac.event.EACTopComponentChangedEvent
+03-05 21:46:40.155 D/EventBus( 2736): No subscribers registered for event class org.greenrobot.eventbus.NoSubscriberEvent
+03-05 21:46:40.159 D/C2SoftVpxEnc(25101): bytes generated 313
+03-05 21:46:40.165 I/AdrenoGLES-0( 6681): PFP: 0x016ee197, ME: 0x00000000
+03-05 21:46:40.182 I/SDM     (  887): HWCDisplay::GetColorModeCount: Supported color mode count = 1
+03-05 21:46:40.182 I/SDM     (  887): HWCDisplay::GetColorModes: Color mode = 0 is supported
+03-05 21:46:40.183 D/C2SoftVpxEnc(25101): bytes generated 312
+03-05 21:46:40.184 E/OpenGLRenderer( 6681): Unable to match the desired swap behavior.
+03-05 21:46:40.188 I/servicemanager(  575): Could not find android.hardware.graphics.allocator.IAllocator/default in the VINTF manifest.
+03-05 21:46:40.203 D/C2SoftVpxEnc(25101): bytes generated 313
+03-05 21:46:40.227 W/ziparchive( 1519): Unable to open '/data/app/~~6iRw9V_sUiN6UqoOq5Bs2g==/com.boox.einkdraw-eUyBX-mfVO4TvFdNUhbTQA==/base.dm': No such file or directory
+03-05 21:46:40.228 D/NotificationShadeWindowController( 1835): NotificationShadeWindowControllerImpl visible:false  forceWindowCollapsedfalse  (isKeyguardShowingAndNotOccluded:false  panelVisible:false  keyguardFadingAway:false  bouncerShowing:false  headsUpNotificationShowing:false  scrimsVisibility:false)   backgroundBlurRadius > 0:false  launchingActivityFromNotification:false
+03-05 21:46:40.231 I/ActivityTaskManager( 1519): Displayed com.boox.einkdraw/.MainActivity: +794ms
+03-05 21:46:40.233 D/debugOrientation( 1519): ActivityRecord{78ecca3 u0 com.boox.einkdraw/.MainActivity} t1381}  computeOrientation :-1 user set rotation -1
+03-05 21:46:40.237 D/CompatibilityChangeReporter( 1519): Compat change id reported: 214016041; UID 10137; state: ENABLED
+03-05 21:46:40.241 D/CoreBackPreview( 1519): Window{4378fff u0 Splash Screen com.boox.einkdraw EXITING}: Setting back callback null
+03-05 21:46:40.244 W/InputManager-JNI( 1519): Input channel object '4378fff Splash Screen com.boox.einkdraw (client)' was disposed without first being removed with the input manager!
+03-05 21:46:40.248 W/MainKeyboardView( 3327): Cannot find android.R.id.content view to add PreviewPlacerView
+03-05 21:46:40.248 I/ActivityNotifier( 1519): DynamicDDS service disabled
+03-05 21:46:40.252 I/TabletMainActivity( 8562): onStop--------------
+03-05 21:46:40.252 D/EventBus( 8562): No subscribers registered for event class com.onyx.android.sdk.kui.event.FileSelectorDialogDismissEvent
+03-05 21:46:40.252 D/EventBus( 8562): No subscribers registered for event class org.greenrobot.eventbus.NoSubscriberEvent
+03-05 21:46:40.285 D/debugOrientation( 1519): ActivityRecord{78ecca3 u0 com.boox.einkdraw/.MainActivity} t1381}  computeOrientation :-1 user set rotation -1
+03-05 21:46:40.288 I/SDM     (  887): update_to_display[1/0] -- marker[36634] waveform_mode = 2, update_mode = 1, Rect[0 0 2480 1860], flags = 20
+03-05 21:46:40.291 D/C2SoftVpxEnc(25101): bytes generated 312
+03-05 21:46:40.312 D/C2SoftVpxEnc(25101): bytes generated 10301
+03-05 21:46:40.337 D/C2SoftVpxEnc(25101): bytes generated 955
+03-05 21:46:40.355 D/C2SoftVpxEnc(25101): bytes generated 440
+03-05 21:46:40.445 D/C2SoftVpxEnc(25101): bytes generated 359
+03-05 21:46:40.449 W/MainKeyboardView( 3327): Cannot find android.R.id.content view to add PreviewPlacerView
+03-05 21:46:40.547 D/C2SoftVpxEnc(25101): bytes generated 337
+03-05 21:46:40.605 I/BtGatt.ScanManager(31493): msg.what = 6
+03-05 21:46:40.608 I/FontLog ( 6767): (REDACTED) Received query %s, URI %s
+03-05 21:46:40.608 I/FontLog ( 6767): (REDACTED) Query [%s] resolved to %s
+03-05 21:46:40.609 I/FontLog ( 6767): (REDACTED) Fetch %s end status %s
+03-05 21:46:40.613 I/FontLog ( 6767): (REDACTED) Pulling font file for id = %d, cache size = %d
+03-05 21:46:40.617 I/FontLog ( 6767): (REDACTED) Pulling font file for id = %d, cache size = %d
+03-05 21:46:40.648 D/C2SoftVpxEnc(25101): bytes generated 331
+03-05 21:46:40.750 D/C2SoftVpxEnc(25101): bytes generated 331
+03-05 21:46:40.851 D/C2SoftVpxEnc(25101): bytes generated 329
+03-05 21:46:40.952 D/C2SoftVpxEnc(25101): bytes generated 329
+03-05 21:46:41.057 D/C2SoftVpxEnc(25101): bytes generated 329
+03-05 21:46:41.159 D/C2SoftVpxEnc(25101): bytes generated 329
+03-05 21:46:41.211 W/ThreadPoolForeg( 6767): type=1400 audit(0.0:9350): avc: denied { write } for name="traced_producer" dev="tmpfs" ino=20703 scontext=u:r:gmscore_app:s0:c512,c768 tcontext=u:object_r:traced_producer_socket:s0 tclass=sock_file permissive=0 app=com.google.android.gms
+03-05 21:46:41.254 I/NearbyMediums( 6767): No BLE Fast/GATT advertisements found in the latest cycle.
+03-05 21:46:41.254 I/NearbyMediums( 6767): Current Tracked Scanning Clients are : {NearbyConnections.EnvironmentMonitor, NearbySharing, NearbyConnections.TxAdvertisement}
+03-05 21:46:41.261 D/C2SoftVpxEnc(25101): bytes generated 329
+03-05 21:46:41.363 D/C2SoftVpxEnc(25101): bytes generated 329
+03-05 21:46:41.828 I/MouseCursorController( 1519): Pointer Action: fade, transition=IMMEDIATE, pointerAlpha=0.000000
+03-05 21:46:41.828 I/MouseCursorController( 1519): handle updatePointerLocked(): pointerAlpha=0.000000, pointerVisible=0
+03-05 21:46:41.828 I/MouseCursorController( 1519): hide sprite
+03-05 21:46:41.828 I/Sprites ( 1519): SpriteImpl::setAlpha(0.000000), origin alpha=0.000000
+03-05 21:46:42.035 W/ThreadPoolForeg( 2521): type=1400 audit(0.0:9351): avc: denied { write } for name="traced_producer" dev="tmpfs" ino=20703 scontext=u:r:gmscore_app:s0:c512,c768 tcontext=u:object_r:traced_producer_socket:s0 tclass=sock_file permissive=0 app=com.google.android.gms
+03-05 21:46:42.163 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:42.164 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:42.164 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:42.165 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:42.165 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:42.167 W/AOSP-MdnsDiscoveryManag( 6767): Error while decoding multicast packet (27869): 1 [CONTEXT service_id=168 ]
+03-05 21:46:42.168 W/AOSP-MdnsDiscoveryManag( 6767): Error while decoding multicast packet (27870): 1 [CONTEXT service_id=168 ]
+03-05 21:46:42.186 W/AOSP-MdnsDiscoveryManag( 6767): Error while decoding multicast packet (27871): 1 [CONTEXT service_id=168 ]
+03-05 21:46:42.187 W/AOSP-MdnsDiscoveryManag( 6767): Error while decoding multicast packet (27872): 1 [CONTEXT service_id=168 ]
+03-05 21:46:42.189 W/AOSP-MdnsDiscoveryManag( 6767): Error while decoding multicast packet (27875): 1 [CONTEXT service_id=168 ]
+03-05 21:46:42.190 W/AOSP-MdnsDiscoveryManag( 6767): Error while decoding multicast packet (27876): 1 [CONTEXT service_id=168 ]
+03-05 21:46:42.192 W/AOSP-MdnsDiscoveryManag( 6767): Error while decoding multicast packet (27877): 1 [CONTEXT service_id=168 ]
+03-05 21:46:42.195 W/AOSP-MdnsDiscoveryManag( 6767): Error while decoding multicast packet (27878): 1 [CONTEXT service_id=168 ]
+03-05 21:46:42.197 W/AOSP-MdnsDiscoveryManag( 6767): Error while decoding multicast packet (27879): 1 [CONTEXT service_id=168 ]
+03-05 21:46:42.200 W/AOSP-MdnsDiscoveryManag( 6767): Error while decoding multicast packet (27880): 1 [CONTEXT service_id=168 ]
+03-05 21:46:42.203 W/AOSP-MdnsDiscoveryManag( 6767): Error while decoding multicast packet (27893): 1 [CONTEXT service_id=168 ]
+03-05 21:46:42.204 W/AOSP-MdnsDiscoveryManag( 6767): Error while decoding multicast packet (27894): 1 [CONTEXT service_id=168 ]
+03-05 21:46:42.302 W/AOSP-MdnsDiscoveryManag( 6767): Error while decoding multicast packet (27911): 1 [CONTEXT service_id=168 ]
+03-05 21:46:42.303 W/AOSP-MdnsDiscoveryManag( 6767): Error while decoding multicast packet (27912): 1 [CONTEXT service_id=168 ]
+03-05 21:46:42.303 W/AOSP-MdnsDiscoveryManag( 6767): Error while decoding multicast packet (27913): 1 [CONTEXT service_id=168 ]
+03-05 21:46:42.329 W/ANDR-PERF-LM(  895): FeatureState: readState() 151: warning: appName is NULL, returning default State
+03-05 21:46:42.330 W/ANDR-PERF-LM(  895): FeatureState: readState() 151: warning: appName is NULL, returning default State
+03-05 21:46:42.330 W/ANDR-PERF-LM(  895): MetaMeter: handleSecondaryAsync() 151: PreKill MetaMeterThread start(). No MeterMgr Available to handle this Secondary/Data Async. !!!! 
+03-05 21:46:42.465 D/C2SoftVpxEnc(25101): bytes generated 589
+03-05 21:46:42.488 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:42.488 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:42.488 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:42.492 D/C2SoftVpxEnc(25101): bytes generated 1127
+03-05 21:46:42.515 D/CompatibilityChangeReporter( 6681): Compat change id reported: 160794467; UID 10137; state: ENABLED
+03-05 21:46:42.533 D/C2SoftVpxEnc(25101): bytes generated 1002
+03-05 21:46:42.534 W/Parcel  ( 6681): Expecting binder but got null!
+03-05 21:46:42.538 D/debugOrientation( 1519): ActivityRecord{78ecca3 u0 com.boox.einkdraw/.MainActivity} t1381}  computeOrientation :-1 user set rotation -1
+03-05 21:46:42.543 D/CoreBackPreview( 1519): Window{40921ea u0 com.boox.einkdraw}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@415c378, mPriority=0}
+03-05 21:46:42.560 D/C2SoftVpxEnc(25101): bytes generated 540
+03-05 21:46:42.587 D/C2SoftVpxEnc(25101): bytes generated 1707
+03-05 21:46:42.598 D/debugOrientation( 1519): ActivityRecord{78ecca3 u0 com.boox.einkdraw/.MainActivity} t1381}  computeOrientation :-1 user set rotation -1
+03-05 21:46:42.602 E/OpenGLRenderer( 6681): Unable to match the desired swap behavior.
+03-05 21:46:42.604 D/C2SoftVpxEnc(25101): bytes generated 398
+03-05 21:46:42.609 E/SurfaceFlinger(  955): Pid 6681 State change to: start
+03-05 21:46:42.609 E/SurfaceFlinger(  955): State changed!
+03-05 21:46:42.610 I/RawInputReader$a( 6681): submitJob nativeRawReader pool-3-thread-1-91
+03-05 21:46:42.614 E/lib_touch_reader( 6681): could not open /dev/input/event1, No such file or directory
+03-05 21:46:42.615 E/lib_touch_reader( 6681): could not get device name for /dev/input/event3, No such file or directory
+03-05 21:46:42.616 I/lib_touch_reader( 6681): find path /dev/input/event6 result name onyx_emp_Wacom I2C Digitizer
+03-05 21:46:42.627 E/SurfaceSyncer( 6681): Failed to find sync for id=0
+03-05 21:46:42.629 D/C2SoftVpxEnc(25101): bytes generated 329
+03-05 21:46:42.630 D/CCodecBufferChannel(25980): [c2.android.vp8.encoder#100] DEBUG: elapsed: n=4 [in=0 pipeline=0 out=0]
+03-05 21:46:42.630 D/PipelineWatcher(25980): DEBUG: elapsed 0 / 4
+03-05 21:46:42.653 D/C2SoftVpxEnc(25101): bytes generated 320
+03-05 21:46:42.677 D/C2SoftVpxEnc(25101): bytes generated 316
+03-05 21:46:42.694 D/C2SoftVpxEnc(25101): bytes generated 316
+03-05 21:46:42.818 D/C2SoftVpxEnc(25101): bytes generated 316
+03-05 21:46:42.849 W/NotificationHistory( 1519): Attempted to add notif for locked/gone/disabled user 0
+03-05 21:46:42.869 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps6x1WidgetProvider
+03-05 21:46:42.869 D/EventBus( 8562): No subscribers registered for event class com.onyx.common.applications.event.UpdateNotificationCountEvent
+03-05 21:46:42.869 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps4x2WidgetProvider
+03-05 21:46:42.870 D/EventBus( 8562): No subscribers registered for event class org.greenrobot.eventbus.NoSubscriberEvent
+03-05 21:46:42.870 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps2x2WidgetProvider
+03-05 21:46:42.870 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps4x1WidgetProvider
+03-05 21:46:42.902 D/LocalImageResolver( 1835): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+03-05 21:46:42.906 D/LocalImageResolver( 1835): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+03-05 21:46:42.907 D/LocalImageResolver( 1835): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+03-05 21:46:42.921 D/C2SoftVpxEnc(25101): bytes generated 316
+03-05 21:46:42.928 D/LocalImageResolver( 1835): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+03-05 21:46:42.936 D/LocalImageResolver( 1835): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+03-05 21:46:42.941 D/LocalImageResolver( 1835): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+03-05 21:46:42.953 D/C2SoftVpxEnc(25101): bytes generated 316
+03-05 21:46:43.068 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps6x1WidgetProvider
+03-05 21:46:43.069 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps4x2WidgetProvider
+03-05 21:46:43.069 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps2x2WidgetProvider
+03-05 21:46:43.069 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps4x1WidgetProvider
+03-05 21:46:43.070 D/EventBus( 8562): No subscribers registered for event class com.onyx.common.applications.event.UpdateNotificationCountEvent
+03-05 21:46:43.070 D/EventBus( 8562): No subscribers registered for event class org.greenrobot.eventbus.NoSubscriberEvent
+03-05 21:46:43.078 D/C2SoftVpxEnc(25101): bytes generated 316
+03-05 21:46:43.101 D/C2SoftVpxEnc(25101): bytes generated 316
+03-05 21:46:43.169 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:43.170 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:43.170 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:43.171 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:43.172 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:43.176 W/AOSP-MdnsDiscoveryManag( 6767): Error while decoding multicast packet (27934): 1 [CONTEXT service_id=168 ]
+03-05 21:46:43.177 W/AOSP-MdnsDiscoveryManag( 6767): Error while decoding multicast packet (27935): 1 [CONTEXT service_id=168 ]
+03-05 21:46:43.218 D/C2SoftVpxEnc(25101): bytes generated 316
+03-05 21:46:43.306 D/LocalImageResolver( 1835): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+03-05 21:46:43.310 D/LocalImageResolver( 1835): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+03-05 21:46:43.317 D/LocalImageResolver( 1835): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+03-05 21:46:43.321 D/C2SoftVpxEnc(25101): bytes generated 316
+03-05 21:46:43.421 D/C2SoftVpxEnc(25101): bytes generated 316
+03-05 21:46:43.523 D/C2SoftVpxEnc(25101): bytes generated 316
+03-05 21:46:43.541 I/MouseCursorController( 1519): Pointer Action: fade, transition=IMMEDIATE, pointerAlpha=0.000000
+03-05 21:46:43.541 I/MouseCursorController( 1519): handle updatePointerLocked(): pointerAlpha=0.000000, pointerVisible=0
+03-05 21:46:43.541 I/MouseCursorController( 1519): hide sprite
+03-05 21:46:43.541 I/Sprites ( 1519): SpriteImpl::setAlpha(0.000000), origin alpha=0.000000
+03-05 21:46:43.549 D/AndroidRuntime( 6681): Shutting down VM
+03-05 21:46:43.558 E/AndroidRuntime( 6681): FATAL EXCEPTION: main
+03-05 21:46:43.558 E/AndroidRuntime( 6681): Process: com.boox.einkdraw, PID: 6681
+03-05 21:46:43.558 E/AndroidRuntime( 6681): java.lang.NullPointerException: Attempt to invoke virtual method 'void com.onyx.android.sdk.pen.RawInputCallback.onPenActive(com.onyx.android.sdk.data.note.TouchPoint)' on a null object reference
+03-05 21:46:43.558 E/AndroidRuntime( 6681): 	at com.onyx.android.sdk.pen.touch.SFTouchRender$b.a(SourceFile:3)
+03-05 21:46:43.558 E/AndroidRuntime( 6681): 	at com.onyx.android.sdk.pen.touch.SFTouchRender$b.$r8$lambda$XE6y1oMOkb3rFQ9PThmG5mAoG9g(Unknown Source:0)
+03-05 21:46:43.558 E/AndroidRuntime( 6681): 	at com.onyx.android.sdk.pen.touch.SFTouchRender$b$$ExternalSyntheticLambda7.run(D8$$SyntheticClass:0)
+03-05 21:46:43.558 E/AndroidRuntime( 6681): 	at android.os.Handler.handleCallback(Handler.java:942)
+03-05 21:46:43.558 E/AndroidRuntime( 6681): 	at android.os.Handler.dispatchMessage(Handler.java:99)
+03-05 21:46:43.558 E/AndroidRuntime( 6681): 	at android.os.Looper.loopOnce(Looper.java:201)
+03-05 21:46:43.558 E/AndroidRuntime( 6681): 	at android.os.Looper.loop(Looper.java:288)
+03-05 21:46:43.558 E/AndroidRuntime( 6681): 	at android.app.ActivityThread.main(ActivityThread.java:8048)
+03-05 21:46:43.558 E/AndroidRuntime( 6681): 	at java.lang.reflect.Method.invoke(Native Method)
+03-05 21:46:43.558 E/AndroidRuntime( 6681): 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:548)
+03-05 21:46:43.558 E/AndroidRuntime( 6681): 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:942)
+03-05 21:46:43.562 I/DropBoxManagerService( 1519): add tag=data_app_crash isTagEnabled=true flags=0x2
+03-05 21:46:43.564 W/ActivityTaskManager( 1519):   Force finishing activity com.boox.einkdraw/.MainActivity
+03-05 21:46:43.588 D/ActivityTrigger( 1519): ActivityTrigger activityPauseTrigger 
+03-05 21:46:43.600 I/Process ( 6681): Sending signal. PID: 6681 SIG: 9
+03-05 21:46:43.601 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=android.intent.action.DROPBOX_ENTRY_ADDED flg=0x10 (has extras) } to com.google.android.gms/.stats.service.DropBoxEntryAddedReceiver
+03-05 21:46:43.633 I/Zygote  (  726): Process 6681 exited due to signal 9 (Killed)
+03-05 21:46:43.633 I/ActivityManager( 1519): Process com.boox.einkdraw (pid 6681) has died: fg +50 TOP 
+03-05 21:46:43.633 D/C2SoftVpxEnc(25101): bytes generated 316
+03-05 21:46:43.635 I/WindowManager( 1519): WIN DEATH: Window{7a154fb u0 com.boox.einkdraw/com.boox.einkdraw.MainActivity}
+03-05 21:46:43.635 W/InputManager-JNI( 1519): Input channel object '7a154fb com.boox.einkdraw/com.boox.einkdraw.MainActivity (client)' was disposed without first being removed with the input manager!
+03-05 21:46:43.647 I/libprocessgroup( 1519): Successfully killed process cgroup uid 10137 pid 6681 in 0ms
+03-05 21:46:43.650 V/WindowManager( 1519): Unknown focus tokens, dropping reportFocusChanged
+03-05 21:46:43.650 I/WindowManager( 1519): WIN DEATH: Window{40921ea u0 com.boox.einkdraw}
+03-05 21:46:43.652 W/InputManager-JNI( 1519): Input channel object '40921ea com.boox.einkdraw (client)' was disposed without first being removed with the input manager!
+03-05 21:46:43.654 D/C2SoftVpxEnc(25101): bytes generated 188
+03-05 21:46:43.658 D/debugOrientation( 1519): ActivityRecord{155d4ce u0 com.onyx/.tablet.main.ui.TabletMainActivity} t1285}  computeOrientation :-1 user set rotation -1
+03-05 21:46:43.660 W/ActivityManager( 1519): Scheduling restart of crashed service com.boox.einkdraw/.BooxRapidOverlayService in 1000ms for start-requested
+03-05 21:46:43.673 D/C2SoftVpxEnc(25101): bytes generated 185
+03-05 21:46:43.675 D/debugOrientation( 1519): ActivityRecord{155d4ce u0 com.onyx/.tablet.main.ui.TabletMainActivity} t1285}  computeOrientation :-1 user set rotation -1
+03-05 21:46:43.675 D/debugOrientation( 1519): ActivityRecord{155d4ce u0 com.onyx/.tablet.main.ui.TabletMainActivity} t1285}  computeOrientation :-1 user set rotation -1
+03-05 21:46:43.678 I/TabletMainActivity( 8562): onStart--------------
+03-05 21:46:43.684 E/BpTransactionCompletedListener(  955): Failed to transact (-32)
+03-05 21:46:43.691 D/C2SoftVpxEnc(25101): bytes generated 185
+03-05 21:46:43.707 I/BtGatt.ScanManager(31493): msg.what = 6
+03-05 21:46:43.710 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:43.710 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:43.710 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:43.713 W/NotificationHistory( 1519): Attempted to remove channel for locked/gone/disabled user 0
+03-05 21:46:43.713 W/ActivityManager( 1519): setHasOverlayUi called on unknown pid: 6681
+03-05 21:46:43.715 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps6x1WidgetProvider
+03-05 21:46:43.716 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps4x2WidgetProvider
+03-05 21:46:43.717 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps2x2WidgetProvider
+03-05 21:46:43.717 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps4x1WidgetProvider
+03-05 21:46:43.718 I/TabletMainActivity( 8562): onResume--------------
+03-05 21:46:43.719 E/EpdcManager(  955): CU 0
+03-05 21:46:43.723 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.727 I/Benchmark( 8562): getAppConfig ---> 3ms
+03-05 21:46:43.727 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.onyx.mail, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:43.727 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.730 D/debugOrientation( 1519): ActivityRecord{155d4ce u0 com.onyx/.tablet.main.ui.TabletMainActivity} t1285}  computeOrientation :-1 user set rotation -1
+03-05 21:46:43.730 I/Benchmark( 8562): getAppConfig ---> 3ms
+03-05 21:46:43.730 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.onyx.calculator, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:43.730 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.733 E/OpenGLRenderer( 8562): Unable to match the desired swap behavior.
+03-05 21:46:43.739 W/WindowManager( 1519): Failed to deliver inset state change to w=Window{7a154fb u0 com.boox.einkdraw/com.boox.einkdraw.MainActivity EXITING}
+03-05 21:46:43.739 W/WindowManager( 1519): android.os.DeadObjectException
+03-05 21:46:43.739 W/WindowManager( 1519): 	at android.os.BinderProxy.transactNative(Native Method)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at android.os.BinderProxy.transact(BinderProxy.java:584)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at android.view.IWindow$Stub$Proxy.insetsControlChanged(IWindow.java:473)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at com.android.server.wm.WindowState.notifyInsetsControlChanged(WindowState.java:4060)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at com.android.server.wm.InsetsStateController.lambda$notifyPendingInsetsControlChanged$4(InsetsStateController.java:351)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at com.android.server.wm.InsetsStateController.$r8$lambda$An2IoiA3BeA5IWc6QwBOjKArM80(Unknown Source:0)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at com.android.server.wm.InsetsStateController$$ExternalSyntheticLambda3.run(Unknown Source:2)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at com.android.server.wm.WindowAnimator.executeAfterPrepareSurfacesRunnables(WindowAnimator.java:345)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at com.android.server.wm.WindowAnimator.animate(WindowAnimator.java:226)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at com.android.server.wm.WindowAnimator.lambda$new$1(WindowAnimator.java:106)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at com.android.server.wm.WindowAnimator.$r8$lambda$fo2Nk5bb9hY3lvmHsTnTEwtZMbI(Unknown Source:0)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at com.android.server.wm.WindowAnimator$$ExternalSyntheticLambda1.doFrame(Unknown Source:2)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at android.view.Choreographer$CallbackRecord.run(Choreographer.java:1317)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at android.view.Choreographer$CallbackRecord.run(Choreographer.java:1327)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at android.view.Choreographer.doCallbacks(Choreographer.java:985)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at android.view.Choreographer.doFrame(Choreographer.java:911)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at android.view.Choreographer$FrameDisplayEventReceiver.run(Choreographer.java:1302)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at android.os.Handler.handleCallback(Handler.java:942)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at android.os.Handler.dispatchMessage(Handler.java:99)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at android.os.Looper.loopOnce(Looper.java:201)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at android.os.Looper.loop(Looper.java:288)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at android.os.HandlerThread.run(HandlerThread.java:67)
+03-05 21:46:43.739 W/WindowManager( 1519): 	at com.android.server.ServiceThread.run(ServiceThread.java:44)
+03-05 21:46:43.752 I/Benchmark( 8562): getAppConfig ---> 22ms
+03-05 21:46:43.752 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: flipboard.app, isAutoFreeze: true, isEACEnabled: true
+03-05 21:46:43.752 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.756 I/Benchmark( 8562): getAppConfig ---> 4ms
+03-05 21:46:43.756 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.ttxapps.dropsync, isAutoFreeze: true, isEACEnabled: true
+03-05 21:46:43.756 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.761 I/Benchmark( 8562): getAppConfig ---> 5ms
+03-05 21:46:43.761 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.onyx.floatingbutton, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:43.762 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.769 D/C2SoftVpxEnc(25101): bytes generated 317
+03-05 21:46:43.770 D/EventBus( 8562): No subscribers registered for event class com.onyx.common.applications.event.UpdateNotificationCountEvent
+03-05 21:46:43.770 D/EventBus( 8562): No subscribers registered for event class org.greenrobot.eventbus.NoSubscriberEvent
+03-05 21:46:43.774 I/Benchmark( 8562): getAppConfig ---> 11ms
+03-05 21:46:43.774 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.aige.hipaint, isAutoFreeze: false, isEACEnabled: true
+03-05 21:46:43.774 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.780 I/Benchmark( 8562): getAppConfig ---> 5ms
+03-05 21:46:43.780 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: org.chromium.chrome, isAutoFreeze: false, isEACEnabled: true
+03-05 21:46:43.780 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.786 I/Benchmark( 8562): getAppConfig ---> 6ms
+03-05 21:46:43.786 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.dropbox.android, isAutoFreeze: true, isEACEnabled: true
+03-05 21:46:43.786 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.791 I/Benchmark( 8562): getAppConfig ---> 5ms
+03-05 21:46:43.792 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.onyx, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:43.792 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.795 D/C2SoftVpxEnc(25101): bytes generated 314
+03-05 21:46:43.802 W/WindowManager( 1519): Exception thrown during dispatchAppVisibility Window{7a154fb u0 com.boox.einkdraw/com.boox.einkdraw.MainActivity EXITING}
+03-05 21:46:43.802 W/WindowManager( 1519): android.os.DeadObjectException
+03-05 21:46:43.802 W/WindowManager( 1519): 	at android.os.BinderProxy.transactNative(Native Method)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at android.os.BinderProxy.transact(BinderProxy.java:584)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at android.view.IWindow$Stub$Proxy.dispatchAppVisibility(IWindow.java:536)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at com.android.server.wm.WindowState.sendAppVisibilityToClients(WindowState.java:3518)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at com.android.server.wm.WindowContainer.sendAppVisibilityToClients(WindowContainer.java:1234)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at com.android.server.wm.WindowToken.setClientVisible(WindowToken.java:392)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at com.android.server.wm.ActivityRecord.setClientVisible(ActivityRecord.java:6964)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at com.android.server.wm.ActivityRecord.onAnimationFinished(ActivityRecord.java:7795)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at com.android.server.wm.ActivityRecord.postApplyAnimation(ActivityRecord.java:5547)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at com.android.server.wm.ActivityRecord.commitVisibility(ActivityRecord.java:5507)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at com.android.server.wm.ActivityRecord.commitVisibility(ActivityRecord.java:5511)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at com.android.server.wm.AppTransitionController.handleClosingApps(AppTransitionController.java:1194)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at com.android.server.wm.AppTransitionController.handleAppTransitionReady(AppTransitionController.java:304)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at com.android.server.wm.RootWindowContainer.checkAppTransitionReady(RootWindowContainer.java:978)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at com.android.server.wm.RootWindowContainer.performSurfacePlacementNoTrace(RootWindowContainer.java:842)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at com.android.server.wm.RootWindowContainer.performSurfacePlacement(RootWindowContainer.java:785)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at com.android.server.wm.WindowSurfacePlacer.performSurfacePlacementLoop(WindowSurfacePlacer.java:177)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at com.android.server.wm.WindowSurfacePlacer.performSurfacePlacement(WindowSurfacePlacer.java:126)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at com.android.server.wm.WindowSurfacePlacer.performSurfacePlacement(WindowSurfacePlacer.java:115)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at com.android.server.wm.WindowSurfacePlacer$Traverser.run(WindowSurfacePlacer.java:57)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at android.os.Handler.handleCallback(Handler.java:942)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at android.os.Handler.dispatchMessage(Handler.java:99)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at android.os.Looper.loopOnce(Looper.java:201)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at android.os.Looper.loop(Looper.java:288)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at android.os.HandlerThread.run(HandlerThread.java:67)
+03-05 21:46:43.802 W/WindowManager( 1519): 	at com.android.server.ServiceThread.run(ServiceThread.java:44)
+03-05 21:46:43.803 I/Process ( 1519): Sending signal. PID: 6681 SIG: 9
+03-05 21:46:43.808 I/Benchmark( 8562): getAppConfig ---> 16ms
+03-05 21:46:43.808 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.onyx.aiassistant, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:43.808 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.810 D/debugOrientation( 1519): ActivityRecord{155d4ce u0 com.onyx/.tablet.main.ui.TabletMainActivity} t1285}  computeOrientation :-1 user set rotation -1
+03-05 21:46:43.814 D/C2SoftVpxEnc(25101): bytes generated 314
+03-05 21:46:43.814 I/Benchmark( 8562): getAppConfig ---> 6ms
+03-05 21:46:43.815 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.alphainventor.filemanager, isAutoFreeze: true, isEACEnabled: true
+03-05 21:46:43.815 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.815 E/ClientCache(  955): failed to get buffer, invalid process token
+03-05 21:46:43.818 E/BpTransactionCompletedListener(  955): Failed to transact (-32)
+03-05 21:46:43.822 I/Benchmark( 8562): getAppConfig ---> 6ms
+03-05 21:46:43.822 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.saksham.developer.developeroptions, isAutoFreeze: true, isEACEnabled: true
+03-05 21:46:43.822 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.828 I/Benchmark( 8562): getAppConfig ---> 6ms
+03-05 21:46:43.828 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.onyx, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:43.828 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.832 D/C2SoftVpxEnc(25101): bytes generated 314
+03-05 21:46:43.841 I/Benchmark( 8562): getAppConfig ---> 13ms
+03-05 21:46:43.841 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.onyx, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:43.842 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.846 W/ActivityManager( 1519): setHasOverlayUi called on unknown pid: 6681
+03-05 21:46:43.847 W/MainKeyboardView( 3327): Cannot find android.R.id.content view to add PreviewPlacerView
+03-05 21:46:43.848 I/Benchmark( 8562): getAppConfig ---> 6ms
+03-05 21:46:43.848 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.google.android.apps.docs.editors.docs, isAutoFreeze: true, isEACEnabled: true
+03-05 21:46:43.848 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.850 I/Benchmark( 8562): getAppConfig ---> 2ms
+03-05 21:46:43.850 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.onyx, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:43.850 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.853 I/Benchmark( 8562): getAppConfig ---> 3ms
+03-05 21:46:43.853 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.onyx.clock, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:43.853 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.856 I/Benchmark( 8562): getAppConfig ---> 3ms
+03-05 21:46:43.858 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.brakefield.painter, isAutoFreeze: true, isEACEnabled: true
+03-05 21:46:43.858 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.862 I/Benchmark( 8562): getAppConfig ---> 4ms
+03-05 21:46:43.862 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: org.chromium.webapk.ab0ff7c94cf435b03_v2, isAutoFreeze: true, isEACEnabled: true
+03-05 21:46:43.862 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.864 I/Benchmark( 8562): getAppConfig ---> 2ms
+03-05 21:46:43.864 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.boox.einkdraw, isAutoFreeze: false, isEACEnabled: true
+03-05 21:46:43.864 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.865 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:43.866 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.onyx, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:43.866 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.867 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:43.867 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.microsoft.rdc.androidx, isAutoFreeze: true, isEACEnabled: true
+03-05 21:46:43.867 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.869 I/Benchmark( 8562): getAppConfig ---> 2ms
+03-05 21:46:43.869 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.android.vending, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:43.869 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.870 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:43.871 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.onyx, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:43.871 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.872 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:43.872 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.google.chromeremotedesktop, isAutoFreeze: true, isEACEnabled: true
+03-05 21:46:43.872 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.875 I/Benchmark( 8562): getAppConfig ---> 3ms
+03-05 21:46:43.875 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.google.android.apps.nbu.files, isAutoFreeze: true, isEACEnabled: true
+03-05 21:46:43.875 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.877 I/Benchmark( 8562): getAppConfig ---> 2ms
+03-05 21:46:43.877 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.android.chrome, isAutoFreeze: false, isEACEnabled: true
+03-05 21:46:43.877 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.878 D/C2SoftVpxEnc(25101): bytes generated 70592
+03-05 21:46:43.879 I/Benchmark( 8562): getAppConfig ---> 2ms
+03-05 21:46:43.879 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.onyx.gallery, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:43.879 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.887 I/Benchmark( 8562): getAppConfig ---> 8ms
+03-05 21:46:43.887 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.openai.chatgpt, isAutoFreeze: true, isEACEnabled: true
+03-05 21:46:43.887 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.891 I/Benchmark( 8562): getAppConfig ---> 4ms
+03-05 21:46:43.891 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.onyx.dict, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:43.891 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.892 I/Benchmark( 8562): getAppConfig ---> 1ms
+03-05 21:46:43.892 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.faultexception.reader, isAutoFreeze: true, isEACEnabled: true
+03-05 21:46:43.892 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.897 I/Benchmark( 8562): getAppConfig ---> 5ms
+03-05 21:46:43.897 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.kairos.duet, isAutoFreeze: false, isEACEnabled: true
+03-05 21:46:43.897 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.899 I/Benchmark( 8562): getAppConfig ---> 2ms
+03-05 21:46:43.899 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.onyx.voicerecorder, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:43.899 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.900 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps6x1WidgetProvider
+03-05 21:46:43.901 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps4x2WidgetProvider
+03-05 21:46:43.901 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps2x2WidgetProvider
+03-05 21:46:43.902 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps4x1WidgetProvider
+03-05 21:46:43.902 I/Benchmark( 8562): getAppConfig ---> 2ms
+03-05 21:46:43.902 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.onyx.easytransfer, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:43.902 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.902 D/C2SoftVpxEnc(25101): bytes generated 4704
+03-05 21:46:43.904 I/Benchmark( 8562): getAppConfig ---> 2ms
+03-05 21:46:43.904 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.sergeylappo.booxrapiddraw, isAutoFreeze: true, isEACEnabled: true
+03-05 21:46:43.904 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.906 I/Benchmark( 8562): getAppConfig ---> 2ms
+03-05 21:46:43.906 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.onyx.mail, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:43.906 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.906 D/EventBus( 8562): No subscribers registered for event class com.onyx.common.applications.event.UpdateNotificationCountEvent
+03-05 21:46:43.906 D/EventBus( 8562): No subscribers registered for event class org.greenrobot.eventbus.NoSubscriberEvent
+03-05 21:46:43.909 I/Benchmark( 8562): getAppConfig ---> 3ms
+03-05 21:46:43.909 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.discord, isAutoFreeze: true, isEACEnabled: true
+03-05 21:46:43.909 I/RxEACUtils( 8562): updateAppDataEACInfo from service
+03-05 21:46:43.911 I/Benchmark( 8562): getAppConfig ---> 2ms
+03-05 21:46:43.911 I/RxEACUtils( 8562): updateAppDataEACInfo pkgName: com.onyx.musicplayer, isAutoFreeze: false, isEACEnabled: false
+03-05 21:46:43.921 D/C2SoftVpxEnc(25101): bytes generated 385
+03-05 21:46:43.937 I/ndroid.systemui( 1835): NativeAlloc concurrent copying GC freed 122239(5211KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 12MB/25MB, paused 450us,42us total 333.996ms
+03-05 21:46:43.957 I/system_server( 1519): NativeAlloc concurrent copying GC freed 196540(8900KB) AllocSpace objects, 12(432KB) LOS objects, 49% free, 24MB/48MB, paused 408us,274us total 290.950ms
+03-05 21:46:43.989 D/C2SoftVpxEnc(25101): bytes generated 1849
+03-05 21:46:43.990 W/System  ( 1519): A resource failed to call release. 
+03-05 21:46:43.992 W/System  ( 1519): A resource failed to call HardwareBuffer.close. 
+03-05 21:46:44.042 D/C2SoftVpxEnc(25101): bytes generated 1159
+03-05 21:46:44.047 W/MainKeyboardView( 3327): Cannot find android.R.id.content view to add PreviewPlacerView
+03-05 21:46:44.066 W/ActivityTaskManager( 1519): Activity top resumed state loss timeout for ActivityRecord{78ecca3 u0 com.boox.einkdraw/.MainActivity} t-1 f}}
+03-05 21:46:44.067 V/ActivityThread( 8562): reportTopResumedActivityChanged - > onActivityTopResumed
+03-05 21:46:44.068 I/TabletMainActivity( 8562): onTopResumedActivityChanged: true
+03-05 21:46:44.073 E/SurfaceFlinger(  955): Pid 8562 State change to: stop
+03-05 21:46:44.083 E/EpdcManager(  955): DT 128
+03-05 21:46:44.083 E/SurfaceFlinger(  955): State changed!
+03-05 21:46:44.084 E/HWEpdcManager(  955): ### EE 1
+03-05 21:46:44.087 E/HWEpdcManager(  955): ### EUS, s 2 c 0
+03-05 21:46:44.092 E/HWEpdcManager(  955): ET 0
+03-05 21:46:44.094 E/HWEpdcManager(  955): ### AF 10
+03-05 21:46:44.102 D/EventBus( 2736): No subscribers registered for event class com.onyx.android.sdk.eac.event.EACTopComponentChangedEvent
+03-05 21:46:44.103 D/EventBus( 2736): No subscribers registered for event class org.greenrobot.eventbus.NoSubscriberEvent
+03-05 21:46:44.103 D/EventBus( 8562): No subscribers registered for event class com.onyx.android.sdk.eac.event.EACTopComponentChangedEvent
+03-05 21:46:44.103 D/EventBus( 8562): No subscribers registered for event class org.greenrobot.eventbus.NoSubscriberEvent
+03-05 21:46:44.104 D/EventBus(27896): No subscribers registered for event class com.onyx.gallery.event.EACTopComponentChangedEvent
+03-05 21:46:44.104 D/EventBus(27896): No subscribers registered for event class org.greenrobot.eventbus.NoSubscriberEvent
+03-05 21:46:44.105 D/C2SoftVpxEnc(25101): bytes generated 1058
+03-05 21:46:44.174 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:44.174 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:44.174 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:44.175 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:44.176 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:44.178 W/AOSP-MdnsDiscoveryManag( 6767): Error while decoding multicast packet (27946): 1 [CONTEXT service_id=168 ]
+03-05 21:46:44.179 W/AOSP-MdnsDiscoveryManag( 6767): Error while decoding multicast packet (27947): 1 [CONTEXT service_id=168 ]
+03-05 21:46:44.190 D/C2SoftVpxEnc(25101): bytes generated 937
+03-05 21:46:44.227 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.227 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.227 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.231 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.231 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.231 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.237 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.237 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.237 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.238 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:44.239 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:44.241 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.241 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.241 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.245 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.245 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.245 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.251 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.251 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.251 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.254 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.254 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.254 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.257 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.257 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.257 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.260 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.260 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.260 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.262 I/NoteGridWidgetProvider( 8562): onReceive: com.onyx.common.applications.appwidget.widget.NoteGridWidgetProvider@b7812b2
+03-05 21:46:44.262 I/NoteGridWidgetProvider( 8562): action---com.onyx.widget.action.UPDATE
+03-05 21:46:44.263 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.263 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.263 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.264 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.264 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.264 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.268 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.268 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.268 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.270 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.270 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.270 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.271 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.271 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.271 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.274 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.274 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.274 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.284 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.284 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.285 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.288 D/C2SoftVpxEnc(25101): bytes generated 930
+03-05 21:46:44.291 I/NoteListWidgetProvider( 8562): onReceive: com.onyx.common.applications.appwidget.widget.NoteListWidgetProvider@5fba244
+03-05 21:46:44.291 I/NoteListWidgetProvider( 8562): action---com.onyx.widget.action.UPDATE
+03-05 21:46:44.294 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.294 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.294 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.299 W/Glide   ( 8562): Load failed for null with size [0x0]
+03-05 21:46:44.299 W/Glide   ( 8562): class com.bumptech.glide.load.engine.GlideException: Received null model
+03-05 21:46:44.325 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.325 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.325 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.341 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:44.341 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:44.342 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:44.342 I/AOSP-MdnsDiscoveryManag( 6767): (REDACTED) %s
+03-05 21:46:44.391 D/C2SoftVpxEnc(25101): bytes generated 927
+03-05 21:46:44.402 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.402 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.402 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.414 D/C2SoftVpxEnc(25101): bytes generated 927
+03-05 21:46:44.454 E/SDM     (  887): onyx_epdc_update_to_display invalid 304 1876 368 1860
+03-05 21:46:44.494 D/C2SoftVpxEnc(25101): bytes generated 925
+03-05 21:46:44.515 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:44.636 D/C2SoftVpxEnc(25101): bytes generated 925
+03-05 21:46:44.669 D/CompatibilityChangeReporter( 1519): Compat change id reported: 135634846; UID 10137; state: DISABLED
+03-05 21:46:44.670 D/CompatibilityChangeReporter( 1519): Compat change id reported: 177438394; UID 10137; state: DISABLED
+03-05 21:46:44.670 D/CompatibilityChangeReporter( 1519): Compat change id reported: 135772972; UID 10137; state: DISABLED
+03-05 21:46:44.671 D/CompatibilityChangeReporter( 1519): Compat change id reported: 135754954; UID 10137; state: ENABLED
+03-05 21:46:44.673 D/CompatibilityChangeReporter( 1519): Compat change id reported: 143937733; UID 10137; state: ENABLED
+03-05 21:46:44.697 D/Zygote  (  726): Forked child process 6743
+03-05 21:46:44.699 I/ActivityManager( 1519): Start proc 6743:com.boox.einkdraw/u0a137 for service {com.boox.einkdraw/com.boox.einkdraw.BooxRapidOverlayService}
+03-05 21:46:44.737 I/m.boox.einkdraw( 6743): Late-enabling -Xcheck:jni
+03-05 21:46:44.738 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:44.776 I/adbd    (18941): jdwp connection from 6743
+03-05 21:46:44.789 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.789 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.789 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.818 D/CompatibilityInfo( 1519): mCompatibilityFlags - 4
+03-05 21:46:44.818 D/CompatibilityInfo( 1519): applicationDensity - 300
+03-05 21:46:44.818 D/CompatibilityInfo( 1519): applicationScale - 1.0
+03-05 21:46:44.819 W/re-initialized>( 6743): type=1400 audit(0.0:9352): avc: granted { execute } for path="/data/data/com.boox.einkdraw/code_cache/startup_agents/a82ed9e3-agent.so" dev="dm-13" ino=59819 scontext=u:r:untrusted_app:s0:c137,c256,c512,c768 tcontext=u:object_r:app_data_file:s0:c137,c256,c512,c768 tclass=file app=com.boox.einkdraw
+03-05 21:46:44.825 D/C2SoftVpxEnc(25101): bytes generated 925
+03-05 21:46:44.826 V/studio.deploy( 6743): Startup agent attached to VM
+03-05 21:46:44.826 V/studio.deploy( 6743): No existing instrumentation found. Loading instrumentation from instruments-2fd5708c.jar
+03-05 21:46:44.839 W/m.boox.einkdraw( 6743): DexFile /data/data/com.boox.einkdraw/code_cache/.studio/instruments-2fd5708c.jar is in boot class path but is not in a known location
+03-05 21:46:44.842 V/studio.deploy( 6743): Applying transforms with cached classes
+03-05 21:46:44.859 W/m.boox.einkdraw( 6743): Redefining intrinsic method java.lang.Thread java.lang.Thread.currentThread(). This may cause the unexpected use of the original definition of java.lang.Thread java.lang.Thread.currentThread()in methods that have already been compiled.
+03-05 21:46:44.859 W/m.boox.einkdraw( 6743): Redefining intrinsic method boolean java.lang.Thread.interrupted(). This may cause the unexpected use of the original definition of boolean java.lang.Thread.interrupted()in methods that have already been compiled.
+03-05 21:46:44.862 I/studio.deploy( 6743): Registering DispatchJNI
+03-05 21:46:44.862 I/studio.deploy( 6743): Found com/android/tools/deploy/interpreter/JNI
+03-05 21:46:44.941 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:44.973 I/EInkHelper( 6743): initImpl takes: 79 ms!
+03-05 21:46:44.977 D/CompatibilityChangeReporter( 6743): Compat change id reported: 171979766; UID 10137; state: ENABLED
+03-05 21:46:45.042 D/C2SoftVpxEnc(25101): bytes generated 925
+03-05 21:46:45.053 W/ziparchive( 6743): Unable to open '/data/data/com.boox.einkdraw/code_cache/.overlay/base.apk/classes3.dm': No such file or directory
+03-05 21:46:45.053 W/ziparchive( 6743): Unable to open '/data/data/com.boox.einkdraw/code_cache/.overlay/base.apk/classes4.dm': No such file or directory
+03-05 21:46:45.055 W/ziparchive( 6743): Unable to open '/data/app/~~6iRw9V_sUiN6UqoOq5Bs2g==/com.boox.einkdraw-eUyBX-mfVO4TvFdNUhbTQA==/base.dm': No such file or directory
+03-05 21:46:45.055 W/ziparchive( 6743): Unable to open '/data/app/~~6iRw9V_sUiN6UqoOq5Bs2g==/com.boox.einkdraw-eUyBX-mfVO4TvFdNUhbTQA==/base.dm': No such file or directory
+03-05 21:46:45.142 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:45.243 D/C2SoftVpxEnc(25101): bytes generated 925
+03-05 21:46:45.350 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:45.454 D/C2SoftVpxEnc(25101): bytes generated 925
+03-05 21:46:45.483 I/Perf    ( 6743): Connecting to perf service.
+03-05 21:46:45.493 V/GraphicsEnvironment( 6743): ANGLE Developer option for 'com.boox.einkdraw' set to: 'default'
+03-05 21:46:45.494 V/GraphicsEnvironment( 6743): ANGLE GameManagerService for com.boox.einkdraw: false
+03-05 21:46:45.495 V/GraphicsEnvironment( 6743): Updatable production driver is not supported on the device.
+03-05 21:46:45.505 D/NetworkSecurityConfig( 6743): Using Network Security Config from resource network_security_config debugBuild: true
+03-05 21:46:45.508 D/NetworkSecurityConfig( 6743): Using Network Security Config from resource network_security_config debugBuild: true
+03-05 21:46:45.555 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:45.573 D/CompatibilityChangeReporter( 1519): Compat change id reported: 161145287; UID 10137; state: DISABLED
+03-05 21:46:45.614 D/CompatibilityChangeReporter( 6743): Compat change id reported: 160794467; UID 10137; state: ENABLED
+03-05 21:46:45.634 W/ActivityManager( 1519): Service.startForeground() not allowed due to bg restriction: service com.boox.einkdraw/.BooxRapidOverlayService
+03-05 21:46:45.663 D/CompatibilityChangeReporter( 6743): Compat change id reported: 237531167; UID 10137; state: DISABLED
+03-05 21:46:45.675 W/Parcel  ( 6743): Expecting binder but got null!
+03-05 21:46:45.682 D/debugOrientation( 1519): ActivityRecord{155d4ce u0 com.onyx/.tablet.main.ui.TabletMainActivity} t1285}  computeOrientation :-1 user set rotation -1
+03-05 21:46:45.690 D/CoreBackPreview( 1519): Window{9edb012 u0 com.boox.einkdraw}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@1a821e0, mPriority=0}
+03-05 21:46:45.781 D/C2SoftVpxEnc(25101): bytes generated 925
+03-05 21:46:45.789 D/debugOrientation( 1519): ActivityRecord{155d4ce u0 com.onyx/.tablet.main.ui.TabletMainActivity} t1285}  computeOrientation :-1 user set rotation -1
+03-05 21:46:45.807 I/AdrenoGLES-0( 6743): QUALCOMM build                   : 0a31cc5b53, I80d2918b26
+03-05 21:46:45.807 I/AdrenoGLES-0( 6743): Build Date                       : 09/27/23
+03-05 21:46:45.807 I/AdrenoGLES-0( 6743): OpenGL ES Shader Compiler Version: EV031.32.02.17
+03-05 21:46:45.807 I/AdrenoGLES-0( 6743): Local Branch                     : 
+03-05 21:46:45.807 I/AdrenoGLES-0( 6743): Remote Branch                    : 
+03-05 21:46:45.807 I/AdrenoGLES-0( 6743): Remote Branch                    : 
+03-05 21:46:45.807 I/AdrenoGLES-0( 6743): Reconstruct Branch               : 
+03-05 21:46:45.807 I/AdrenoGLES-0( 6743): Build Config                     : S P 10.0.7 AArch64
+03-05 21:46:45.807 I/AdrenoGLES-0( 6743): Driver Path                      : /vendor/lib64/egl/libGLESv2_adreno.so
+03-05 21:46:45.817 I/RawInputReader$a( 6743): submitJob nativeRawReader pool-3-thread-1-88
+03-05 21:46:45.818 E/SurfaceFlinger(  955): Pid 6743 State change to: start
+03-05 21:46:45.818 E/SurfaceFlinger(  955): Setup finished.
+03-05 21:46:45.822 E/lib_touch_reader( 6743): could not open /dev/input/event1, No such file or directory
+03-05 21:46:45.823 E/lib_touch_reader( 6743): could not get device name for /dev/input/event3, No such file or directory
+03-05 21:46:45.824 I/lib_touch_reader( 6743): find path /dev/input/event6 result name onyx_emp_Wacom I2C Digitizer
+03-05 21:46:45.826 I/AdrenoGLES-0( 6743): PFP: 0x016ee197, ME: 0x00000000
+03-05 21:46:45.828 E/SurfaceFlinger(  955): State changed!
+03-05 21:46:45.858 I/SDM     (  887): HWCDisplay::GetColorModeCount: Supported color mode count = 1
+03-05 21:46:45.858 I/SDM     (  887): HWCDisplay::GetColorModes: Color mode = 0 is supported
+03-05 21:46:45.861 E/OpenGLRenderer( 6743): Unable to match the desired swap behavior.
+03-05 21:46:45.862 E/SurfaceSyncer( 6743): Failed to find sync for id=0
+03-05 21:46:45.863 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:45.868 I/servicemanager(  575): Could not find android.hardware.graphics.allocator.IAllocator/default in the VINTF manifest.
+03-05 21:46:45.891 D/C2SoftVpxEnc(25101): bytes generated 925
+03-05 21:46:45.925 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:45.948 D/C2SoftVpxEnc(25101): bytes generated 925
+03-05 21:46:45.954 D/CCodecBufferChannel(25980): [c2.android.vp8.encoder#100] DEBUG: elapsed: n=4 [in=0 pipeline=0 out=0]
+03-05 21:46:45.955 D/PipelineWatcher(25980): DEBUG: elapsed 0 / 4
+03-05 21:46:46.058 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:46.105 W/NotificationHistory( 1519): Attempted to add notif for locked/gone/disabled user 0
+03-05 21:46:46.122 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps6x1WidgetProvider
+03-05 21:46:46.122 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps4x2WidgetProvider
+03-05 21:46:46.123 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps2x2WidgetProvider
+03-05 21:46:46.123 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps4x1WidgetProvider
+03-05 21:46:46.123 D/EventBus( 8562): No subscribers registered for event class com.onyx.common.applications.event.UpdateNotificationCountEvent
+03-05 21:46:46.123 D/EventBus( 8562): No subscribers registered for event class org.greenrobot.eventbus.NoSubscriberEvent
+03-05 21:46:46.161 D/C2SoftVpxEnc(25101): bytes generated 925
+03-05 21:46:46.178 D/LocalImageResolver( 1835): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+03-05 21:46:46.180 D/LocalImageResolver( 1835): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+03-05 21:46:46.183 D/LocalImageResolver( 1835): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+03-05 21:46:46.202 D/LocalImageResolver( 1835): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+03-05 21:46:46.218 D/LocalImageResolver( 1835): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+03-05 21:46:46.226 D/LocalImageResolver( 1835): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+03-05 21:46:46.247 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:46.331 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps6x1WidgetProvider
+03-05 21:46:46.331 D/EventBus( 8562): No subscribers registered for event class com.onyx.common.applications.event.UpdateNotificationCountEvent
+03-05 21:46:46.331 D/EventBus( 8562): No subscribers registered for event class org.greenrobot.eventbus.NoSubscriberEvent
+03-05 21:46:46.331 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps4x2WidgetProvider
+03-05 21:46:46.331 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps2x2WidgetProvider
+03-05 21:46:46.331 W/BroadcastQueue( 1519): Background execution not allowed: receiving Intent { act=com.onyx.action.LAUNCHER_BADGE flg=0x10 (has extras) } to com.onyx/.common.applications.appwidget.widget.RecentApps4x1WidgetProvider
+03-05 21:46:46.344 D/C2SoftVpxEnc(25101): bytes generated 925
+03-05 21:46:46.369 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:46.460 D/C2SoftVpxEnc(25101): bytes generated 925
+03-05 21:46:46.550 D/LocalImageResolver( 1835): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+03-05 21:46:46.552 D/LocalImageResolver( 1835): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+03-05 21:46:46.556 D/LocalImageResolver( 1835): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+03-05 21:46:46.560 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:46.661 D/C2SoftVpxEnc(25101): bytes generated 925
+03-05 21:46:46.763 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:46.773 V/DisplayPowerController[0]( 1519): Brightness [0.05] reason changing to: 'manual [ dim ]', previous reason: 'manual'.
+03-05 21:46:46.773 I/DisplayPowerController[0]( 1519): BrightnessEvent: disp=0, physDisp=local:4630946716506123905, brt=0.05, initBrt=0.39763778, rcmdBrt=NaN, preBrt=NaN, lux=0.0, preLux=0.0, hbmMax=1.0, hbmMode=off, rbcStrength=50, powerFactor=1.0, thrmMax=1.0, wasShortTermModelActive=false, flags=, reason=manual [ dim ], autoBrightness=false
+03-05 21:46:46.774 E/DisplayDeviceConfig( 1519): requesting nits when no mapping exists.
+03-05 21:46:46.774 I/DisplayPowerController[0]( 1519): BrightnessEvent: disp=0, physDisp=local:4630946716506123905, brt=0.05, initBrt=0.05, rcmdBrt=NaN, preBrt=NaN, lux=0.0, preLux=0.0, hbmMax=1.0, hbmMode=off, rbcStrength=50, powerFactor=1.0, thrmMax=1.0, wasShortTermModelActive=false, flags=, reason=manual [ dim ], autoBrightness=false
+03-05 21:46:46.775 E/DisplayDeviceConfig( 1519): requesting nits when no mapping exists.
+03-05 21:46:46.864 D/C2SoftVpxEnc(25101): bytes generated 925
+03-05 21:46:46.970 D/C2SoftVpxEnc(25101): bytes generated 926
+03-05 21:46:47.074 D/C2SoftVpxEnc(25101): bytes generated 925
