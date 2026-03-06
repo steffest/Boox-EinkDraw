@@ -8,52 +8,45 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/buttonColor"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/color_black" />
-
-        <Button
             android:id="@+id/buttonRapidMode"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_weight="1"
             android:text="@string/rapid_mode_off" />
 
-        <Button
-            android:id="@+id/buttonOpen"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_weight="1"
-            android:text="@string/open_png" />
-
-        <Button
-            android:id="@+id/buttonExport"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_weight="1"
-            android:text="@string/export_png" />
-
-        <Button
-            android:id="@+id/buttonClear"
+        <LinearLayout
+            android:id="@+id/colorPalette"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="@string/clear" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal" />
 
-        <Button
-            android:id="@+id/buttonResetView"
-            android:layout_width="wrap_content"
+        <ImageButton
+            android:id="@+id/buttonColorPicker"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/rainbow_dot"
+            android:contentDescription="@string/color_picker"
+            android:foreground="?attr/selectableItemBackgroundBorderless" />
+
+        <Space
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <ImageButton
+            android:id="@+id/buttonMenu"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_marginStart="8dp"
-            android:text="@string/reset_view" />
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/actions_menu"
+            android:src="@android:drawable/ic_menu_sort_by_size" />
     </LinearLayout>
 
     <LinearLayout
@@ -64,7 +57,7 @@
         android:orientation="horizontal">
 
         <LinearLayout
-            android:layout_width="44dp"
+            android:layout_width="56dp"
             android:layout_height="match_parent"
             android:orientation="vertical">
 

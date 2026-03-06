@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Boox E-Ink Draw</string>
-    <string name="open_png">Open PNG</string>
+    <string name="open_png">Read PNG</string>
     <string name="export_png">Export PNG</string>
     <string name="clear">Clear</string>
     <string name="reset_view">Reset View</string>
@@ -21,4 +21,10 @@
     <string name="error_save_png">Could not save PNG</string>
     <string name="error_wrong_size">PNG must be 930x1240</string>
     <string name="saved_ok">Saved PNG</string>
+    <string name="actions_menu">Actions menu</string>
+    <string name="color_picker">Color picker</string>
+    <string name="pick_color">Pick color</string>
+    <string name="red_channel">Red</string>
+    <string name="green_channel">Green</string>
+    <string name="blue_channel">Blue</string>
 </resources>

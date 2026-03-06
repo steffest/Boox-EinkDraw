@@ -69,10 +69,11 @@ class DrawingView @JvmOverloads constructor(
     private var rawLastPressure = 1f
     private var rawLastAcceptedEventMs = 0L
     private var rapidTouchHelper: TouchHelper? = null
+    private var rapidInputSuppressed = false
 
-    var drawColor: DrawColor = DrawColor.BLACK
+    var drawColorArgb: Int = Color.BLACK
         set(value) {
-            field = value
+            field = Color.rgb(Color.red(value), Color.green(value), Color.blue(value))
             applyRapidBrushSettings()
         }
     var minStrokePx = 1.4f
@@ -303,14 +304,26 @@ class DrawingView @JvmOverloads constructor(
     }
 
     fun disableRapidMode() {
+        rapidInputSuppressed = false
         rapidTouchHelper?.closeRawDrawing()
         rapidTouchHelper = null
+    }
+
+    fun setRapidInputSuppressed(suppressed: Boolean) {
+        rapidInputSuppressed = suppressed
+        val helper = rapidTouchHelper ?: return
+        helper.setRawDrawingEnabled(!suppressed)
+        if (suppressed) {
+            helper.setRawDrawingRenderEnabled(false)
+        } else {
+            helper.setRawDrawingRenderEnabled(true)
+        }
     }
 
     private fun drawSegment(x0: Float, y0: Float, p0: Float, x1: Float, y1: Float, p1: Float) {
         val avgPressure = ((p0 + p1) * 0.5f).coerceIn(0f, 1f)
         strokePaint.strokeWidth = lerp(minStrokePx, maxStrokePx, avgPressure) * brushSizeMultiplier
-        strokePaint.color = activeColorArgb()
+        strokePaint.color = drawColorArgb
         strokePaint.alpha = (pressureToAlpha(avgPressure) * brushOpacityMultiplier).toInt().coerceIn(0, 255)
         drawCanvas.drawLine(x0, y0, x1, y1, strokePaint)
         invalidateCanvasArea(x0, y0, x1, y1, strokePaint.strokeWidth)
@@ -318,7 +331,7 @@ class DrawingView @JvmOverloads constructor(
 
     private fun drawPoint(x: Float, y: Float, pressure: Float) {
         strokePaint.strokeWidth = lerp(minStrokePx, maxStrokePx, pressure) * brushSizeMultiplier
-        strokePaint.color = activeColorArgb()
+        strokePaint.color = drawColorArgb
         strokePaint.alpha = (pressureToAlpha(pressure) * brushOpacityMultiplier).toInt().coerceIn(0, 255)
         drawCanvas.drawPoint(x, y, strokePaint)
     }
@@ -369,13 +382,6 @@ class DrawingView @JvmOverloads constructor(
         val clamped = rawPressure.coerceIn(0.05f, 1f)
         // Slightly emphasize low/mid pressure so shading feels more responsive.
         return clamped.toDouble().pow(0.72).toFloat().coerceIn(0.05f, 1f)
-    }
-
-    private fun activeColorArgb(): Int {
-        return when (drawColor) {
-            DrawColor.BLACK -> Color.BLACK
-            DrawColor.WHITE -> Color.WHITE
-        }
     }
 
     private fun pressureToAlpha(pressure: Float): Int {
@@ -459,8 +465,8 @@ class DrawingView @JvmOverloads constructor(
         val bounds = Rect(0, 0, width, height)
         helper.setStrokeStyle(TouchHelper.STROKE_STYLE_FOUNTAIN)
         helper.openRawDrawing()
-        helper.setRawDrawingRenderEnabled(true)
-        helper.setRawDrawingEnabled(true)
+        helper.setRawDrawingRenderEnabled(!rapidInputSuppressed)
+        helper.setRawDrawingEnabled(!rapidInputSuppressed)
         helper.setBrushRawDrawingEnabled(true)
         helper.setEraserRawDrawingEnabled(false)
         helper.setFilterRepeatMovePoint(false)
@@ -482,11 +488,11 @@ class DrawingView @JvmOverloads constructor(
         override fun onRawErasingTouchPointListReceived(touchPointList: TouchPointList?) {}
 
         override fun onPenActive(point: TouchPoint?) {
-            rapidTouchHelper?.setRawDrawingEnabled(true)
+            rapidTouchHelper?.setRawDrawingEnabled(!rapidInputSuppressed)
         }
 
         override fun onPenUpRefresh(refreshRect: RectF?) {
-            rapidTouchHelper?.isRawDrawingRenderEnabled = true
+            rapidTouchHelper?.isRawDrawingRenderEnabled = !rapidInputSuppressed
             super.onPenUpRefresh(refreshRect)
         }
     }
@@ -494,15 +500,17 @@ class DrawingView @JvmOverloads constructor(
     private fun applyRapidBrushSettings() {
         val helper = rapidTouchHelper ?: return
         val width = (1.8f * brushSizeMultiplier).coerceIn(0.15f, 32f)
-        val rapidColor = when (drawColor) {
-            DrawColor.BLACK -> {
-                val gray = (255f * (1f - brushOpacityMultiplier.coerceIn(0f, 1f))).toInt().coerceIn(0, 255)
-                Color.rgb(gray, gray, gray)
-            }
-            DrawColor.WHITE -> Color.WHITE
-        }
+        val rapidColor = blendWithWhite(drawColorArgb, brushOpacityMultiplier.coerceIn(0f, 1f))
         helper.setStrokeWidth(width)
         helper.setStrokeColor(rapidColor)
+    }
+
+    private fun blendWithWhite(color: Int, amount: Float): Int {
+        val t = amount.coerceIn(0f, 1f)
+        val r = lerp(255f, Color.red(color).toFloat(), t).toInt().coerceIn(0, 255)
+        val g = lerp(255f, Color.green(color).toFloat(), t).toInt().coerceIn(0, 255)
+        val b = lerp(255f, Color.blue(color).toFloat(), t).toInt().coerceIn(0, 255)
+        return Color.rgb(r, g, b)
     }
 
     private fun lerp(a: Float, b: Float, t: Float): Float = a + (b - a) * t

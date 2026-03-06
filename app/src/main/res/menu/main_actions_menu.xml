@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_read_png"
+        android:title="@string/open_png" />
+
+    <item
+        android:id="@+id/action_export_png"
+        android:title="@string/export_png" />
+
+    <item
+        android:id="@+id/action_clear"
+        android:title="@string/clear" />
+
+    <item
+        android:id="@+id/action_reset_view"
+        android:title="@string/reset_view" />
+</menu>
