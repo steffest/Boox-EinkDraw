@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <string-array name="wifi_status">
+    <item/>
+    <item>Memindai\u2026</item>
+    <item>Menghubungkan\u2026</item>
+    <item>Mengautentikasi\u2026</item>
+    <item>Sedang memperoleh alamat IP\u2026</item>
+    <item>Terhubung</item>
+    <item>Tergantung</item>
+    <item>Memutuskan sambungan\u2026</item>
+    <item>Terputus</item>
+    <item>Gagal</item>
+  </string-array>
+    <string-array name="wifi_status_with_ssid">
+    <item/>
+    <item>Memindai\u2026</item>
+    <item>Menghubungkan ke <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Otentikasi dengan <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Memperoleh alamat IP dari <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Terhubung ke <ns1:g id="network_name">%1$s</ns1:g></item>
+    <item>Tergantung</item>
+    <item>Memutuskan sambungan dari <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Terputus</item>
+    <item>Gagal</item>
+  </string-array>
+    <string name="Wireless_lan">Wireless LAN</string>
+    <string name="closed">Tertutup</string>
+    <string name="current_available_wifi_count">Wi-Fi yang tersedia saat ini: %1$d</string>
+    <string name="no_credential">Tidak Ada Kredensial</string>
+    <string name="open_wifi">Aktifkan WiFi untuk memeriksa jaringan yang tersedia</string>
+    <string name="paste">Tempel</string>
+    <string name="unavailable">Tidak tersedia</string>
+    <string name="wifi_connect">Hubungkan</string>
+    <string name="wifi_connected">Terhubung</string>
+    <string name="wifi_disabled_generic">Dinonaktifkan</string>
+    <string name="wifi_disabled_network_failure">Koneksi jaringan yang lemah dinonaktifkan</string>
+    <string name="wifi_disabled_no_internet_temporary">Wi-Fi terhubung tetapi internet tidak dapat diakses.</string>
+    <string name="wifi_disabled_password_failure">Kesalahan Otentikasi</string>
+    <string name="wifi_disabled_wrong_password">Silakan periksa kata sandi dan coba lagi</string>
+    <string name="wifi_disabled_wrong_password_tips">Koneksi gagal. Silakan coba lagi.</string>
+    <string name="wifi_edit">Ubah</string>
+    <string name="wifi_encryption">Enkripsi</string>
+    <string name="wifi_forget">Lupakan</string>
+    <string name="wifi_ip_address">Alamat IP</string>
+    <string name="wifi_network">Jaringan Wi-Fi</string>
+    <string name="wifi_open">Buka</string>
+    <string name="wifi_password">Kata Sandi</string>
+    <string name="wifi_remembered">Disimpan</string>
+    <string name="wifi_rescan">Pindai ulang</string>
+    <string name="wifi_secured_first_item">"Diamankan dengan <ns1:g id=" WIFI_SECURITY_SHORT ">%1$s</ns1:g>"</string>
+    <string name="wifi_secured_second_item">"， Diamankan dengan <ns1:g id=" WIFI_SECURITY_SHORT ">%1$s</ns1:g>"</string>
+    <string name="wifi_security">Keamanan</string>
+    <string name="wifi_security_none">Tidak ada</string>
+    <string name="wifi_show_advanced">Tampilkan opsi lanjutan</string>
+    <string name="wifi_show_password">Tampilkan kata sandi</string>
+    <string name="wifi_signal">Kekuatan sinyal</string>
+    <string name="wifi_signal_excellent">"Sangat Baik"</string>
+    <string name="wifi_signal_fair">"Sedang"</string>
+    <string name="wifi_signal_good">"Baik"</string>
+    <string name="wifi_signal_none">"Tidak ada"</string>
+    <string name="wifi_signal_poor">"Lemah"</string>
+    <string name="wifi_speed">Menghubungkan kecepatan</string>
+    <string name="wifi_status">Info Status</string>
+    <string name="wifi_wps_available_first_item">Jaringan Terproteksi yang Tersedia</string>
+    <string name="wifi_wps_available_second_item">"（Jaringan Terproteksi yang Tersedia）"</string>
+</resources>

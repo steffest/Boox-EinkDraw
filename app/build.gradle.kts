@@ -55,6 +55,10 @@ dependencies {
     implementation(files("libs/onyxsdk-base-1.8.4.aar"))
     implementation(files("libs/onyxsdk-pen-1.5.2.aar"))
     implementation(files("libs/onyxsdk-device-1.3.3.aar"))
+    // Native pen engine classes extracted from device knote2 APK (classes7.dex)
+    // Provides NeoPenConfig, NeoPenUtils, NeoMarkerPen, NeoPenNative etc. which are
+    // missing from the stub onyxsdk-pen-1.5.2.aar but required at runtime by the wrappers.
+    implementation(files("libs/onyxsdk-pen-native-classes.jar"))
     
     // RxJava 2 dependencies required by Onyx SDK
     implementation("io.reactivex.rxjava2:rxjava:2.2.21")

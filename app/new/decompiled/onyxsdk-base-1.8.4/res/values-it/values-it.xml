@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <string-array name="wifi_status">
+    <item/>
+    <item>Scanning\u2026</item>
+    <item>Connecting\u2026</item>
+    <item>Authenticating\u2026</item>
+    <item>Obtaining IP address\u2026</item>
+    <item>Connected</item>
+    <item>Suspended</item>
+    <item>Disconnecting\u2026</item>
+    <item>Disconnected</item>
+    <item>Unsuccessful</item>
+  </string-array>
+    <string-array name="wifi_status_with_ssid">
+    <item/>
+    <item>Scansione in corso\u2026</item>
+    <item>Connessione in corso a <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Autenticazione in corso con <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Ottengo l\’indirizzo IP da <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Connesso a <ns1:g id="network_name">%1$s</ns1:g></item>
+    <item/>
+    <item>Disconnessione in corso da </item>
+    <item/>
+    <item>Non riuscito</item>
+  </string-array>
+    <string name="Wireless_lan">	
+LAN senza fili</string>
+    <string name="closed">Chiuso</string>
+    <string name="current_available_wifi_count">Reti Wi-Fi attualmente disponibili: %1$d</string>
+    <string name="no_credential">Nessuna credenziale</string>
+    <string name="open_wifi">	
+Per vedere le reti disponibili, attiva il Wi-Fi</string>
+    <string name="paste">Incolla</string>
+    <string name="unavailable">Non disponibile </string>
+    <string name="wifi_connect">Connetti</string>
+    <string name="wifi_connected">Connesso</string>
+    <string name="wifi_disabled_generic">Disattivata</string>
+    <string name="wifi_disabled_network_failure">Connessione internet debole disabilitata</string>
+    <string name="wifi_disabled_no_internet_temporary">Il Wi-Fi è collegato ma internet non è accessibile.</string>
+    <string name="wifi_disabled_password_failure">C\'è un problema con l\'autenticazione</string>
+    <string name="wifi_disabled_wrong_password">Per favore controlla la password e riprova</string>
+    <string name="wifi_disabled_wrong_password_tips">Connessione fallita, riprova</string>
+    <string name="wifi_edit">Modifica</string>
+    <string name="wifi_encryption">Encryption</string>
+    <string name="wifi_forget">Dimentica</string>
+    <string name="wifi_ip_address">Indirizzo IP</string>
+    <string name="wifi_network">rete Wi-Fi</string>
+    <string name="wifi_open">Open</string>
+    <string name="wifi_password">Password</string>
+    <string name="wifi_remembered">Già salvata</string>
+    <string name="wifi_rescan">Scansione</string>
+    <string name="wifi_secured_first_item">"protetto da <ns1:g id="WIFI_SECURITY_SHORT">%1$s</ns1:g>"</string>
+    <string name="wifi_secured_second_item">"，protetto da<ns1:g id="WIFI_SECURITY_SHORT">%1$s</ns1:g>"</string>
+    <string name="wifi_security">Sicurezza</string>
+    <string name="wifi_security_none">	
+Nessuna</string>
+    <string name="wifi_show_advanced">Mostra opzioni avanzate</string>
+    <string name="wifi_show_password">Mostra password</string>
+    <string name="wifi_signal">Potenza del segnale</string>
+    <string name="wifi_signal_excellent">"Fortissima"</string>
+    <string name="wifi_signal_fair">"Normale"</string>
+    <string name="wifi_signal_good">"Forte"</string>
+    <string name="wifi_signal_none">"None"</string>
+    <string name="wifi_signal_poor">"Debole"</string>
+    <string name="wifi_speed">Velocità di connessione</string>
+    <string name="wifi_status">Messaggio di stato</string>
+    <string name="wifi_wps_available_first_item">	
+Rete protetta disponibile</string>
+    <string name="wifi_wps_available_second_item">"(Rete protetta disponibile)"</string>
+</resources>

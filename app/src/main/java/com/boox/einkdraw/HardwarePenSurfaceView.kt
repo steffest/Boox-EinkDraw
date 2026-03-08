@@ -54,6 +54,13 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
     private var inkBitmap: Bitmap? = null
     private var inkCanvas: Canvas? = null
 
+    // ─── Snapshot of completed strokes ────────────────────────────────────────
+    // Updated after every completed stroke so rebuildWithCurrentStroke can
+    // restore the canvas with a fast blit instead of re-running native renderers.
+
+    private var snapshotBitmap: Bitmap? = null
+    private var snapshotCanvas: Canvas? = null
+
     // ─── Stroke history ───────────────────────────────────────────────────────
 
     private val completedStrokes = ArrayList<RecordedStroke>(512)
@@ -99,14 +106,13 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
     fun clearCanvas() {
         completedStrokes.clear()
         strokePoints.clear()
-        rebuildBitmap()
+        inkCanvas?.drawColor(Color.WHITE)
+        snapshotCanvas?.drawColor(Color.WHITE)
         invalidateSurface()
     }
 
-    fun exportBitmap(): Bitmap? {
-        rebuildBitmap()
-        return inkBitmap?.copy(Bitmap.Config.ARGB_8888, false)
-    }
+    fun exportBitmap(): Bitmap? =
+        inkBitmap?.copy(Bitmap.Config.ARGB_8888, false)
 
     // ─── View lifecycle ───────────────────────────────────────────────────────
 
@@ -120,6 +126,12 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         canvas.drawColor(Color.WHITE)
         inkBitmap?.let { canvas.drawBitmap(it, 0f, 0f, null) }
+        // Refresh e-ink hardware AFTER the bitmap has been drawn to the canvas,
+        // so the controller reads the updated framebuffer (not the previous one).
+        runCatching {
+            EpdController.invalidate(this, UpdateMode.HAND_WRITING_REPAINT_MODE)
+            EpdController.refreshScreen(rootView, UpdateMode.HAND_WRITING_REPAINT_MODE)
+        }
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -139,6 +151,9 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         inkBitmap?.recycle()
         inkBitmap = null
         inkCanvas = null
+        snapshotBitmap?.recycle()
+        snapshotBitmap = null
+        snapshotCanvas = null
         super.onDetachedFromWindow()
     }
 
@@ -152,6 +167,17 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         inkBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888).also { bmp ->
             inkCanvas = Canvas(bmp).apply { drawColor(Color.WHITE) }
         }
+        snapshotBitmap?.recycle()
+        snapshotBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888).also { bmp ->
+            snapshotCanvas = Canvas(bmp).apply { drawColor(Color.WHITE) }
+        }
+    }
+
+    /** Save the current ink canvas state as the authoritative snapshot of completed strokes. */
+    private fun updateSnapshot() {
+        val src = inkBitmap ?: return
+        val sc  = snapshotCanvas ?: return
+        sc.drawBitmap(src, 0f, 0f, null)
     }
 
     // ─── TouchHelper management ───────────────────────────────────────────────
@@ -177,8 +203,14 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
             runCatching {
                 // 1. Width
                 helper.setStrokeWidth(widthPx)
-                // 2. Solid colour — transparency breaks the pencil shader
-                helper.setStrokeColor(Color.BLACK)
+                // 2. Hardware Preview Color — Apply correct alpha for translucent/textured brushes
+                val hardwareColor = when (style) {
+                    HardwarePenStyle.MARKER -> Color.argb(128, 0, 0, 0)
+                    HardwarePenStyle.CHARCOAL -> Color.argb(160, 0, 0, 0)
+                    HardwarePenStyle.CHARCOAL_V2 -> Color.argb(160, 0, 0, 0)
+                    else -> Color.BLACK
+                }
+                helper.setStrokeColor(hardwareColor)
                 // 3. Limit rect
                 helper.setLimitRect(Rect(0, 0, w, h), emptyList())
                 // 4. Open (resets chip)
@@ -204,44 +236,25 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         }
     }
 
-    /** Full bitmap rebuild from the completed stroke list. */
-    private fun rebuildBitmap() {
-        val c = inkCanvas ?: return
-        c.drawColor(Color.WHITE)
-        val maxP = maxPressure()
-        for (stroke in completedStrokes) {
-            OnyxStrokeRenderer.render(stroke.style, stroke.points, stroke.widthPx, c, maxP)
-        }
-    }
-
-    /** Rebuild including the in-flight stroke (used after an authority list conflict). */
+    /**
+     * Restore the ink canvas to the last-known-good snapshot (completed strokes only).
+     * This is a fast blit — no native rendering calls — safe to invoke from authority-list
+     * callbacks that may fire multiple times per gesture.
+     */
     private fun rebuildWithCurrentStroke() {
         val c = inkCanvas ?: return
+        val snap = snapshotBitmap
+        // Always clear first so the blit is a clean replace, not a composite
         c.drawColor(Color.WHITE)
-        val maxP = maxPressure()
-        for (stroke in completedStrokes) {
-            OnyxStrokeRenderer.render(stroke.style, stroke.points, stroke.widthPx, c, maxP)
+        if (snap != null && !snap.isRecycled) {
+            c.drawBitmap(snap, 0f, 0f, null)
         }
-        if (strokePoints.isNotEmpty()) {
-            OnyxStrokeRenderer.render(strokeStyle, strokePoints, strokeWidthPx, c, maxP)
-        }
-    }
-
-    /** Render only the new tail of the in-flight stroke since [fromIndex]. */
-    private fun renderDeltaFrom(fromIndex: Int) {
-        val c = inkCanvas ?: return
-        if (strokePoints.isEmpty()) return
-        val start = (fromIndex - 1).coerceAtLeast(0)
-        val slice = strokePoints.subList(start, strokePoints.size).map { TouchPoint(it) }
-        OnyxStrokeRenderer.render(strokeStyle, slice, strokeWidthPx, c, maxPressure())
     }
 
     private fun invalidateSurface() {
-        postInvalidateOnAnimation()
-        runCatching {
-            EpdController.invalidate(this, UpdateMode.HAND_WRITING_REPAINT_MODE)
-            EpdController.refreshScreen(rootView, UpdateMode.HAND_WRITING_REPAINT_MODE)
-        }
+        // Trigger onDraw; the EpdController refresh happens inside onDraw after the
+        // bitmap has been composited, ensuring the hardware sees the updated framebuffer.
+        invalidate()
     }
 
     // ─── Point helpers ────────────────────────────────────────────────────────
@@ -273,14 +286,12 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         if (prefixOk && pts.size >= strokePoints.size) {
             val before = strokePoints.size
             for (i in before until pts.size) appendPoint(pts[i])
-            if (!needsFullRebuild && strokePoints.size > before) renderDeltaFrom(before)
         } else {
             strokePoints.clear()
             pts.forEach { appendPoint(it) }
             needsFullRebuild = true
             rebuildWithCurrentStroke()
         }
-        postInvalidateOnAnimation()
     }
 
     private fun isStylus(event: MotionEvent): Boolean {
@@ -301,17 +312,10 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
             receivedAuthorityList = false
             pendingPenUpRefresh = false
             appendPoint(pt)
-            if (strokePoints.isNotEmpty()) renderDeltaFrom(0)
-            postInvalidateOnAnimation()
         }
 
         override fun onRawDrawingTouchPointMoveReceived(pt: TouchPoint?) {
-            val before = strokePoints.size
             appendPoint(pt)
-            if (!needsFullRebuild && strokePoints.size > before) {
-                renderDeltaFrom(before)
-                postInvalidateOnAnimation()
-            }
         }
 
         override fun onRawDrawingTouchPointListReceived(list: TouchPointList?) {
@@ -326,10 +330,19 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
             Log.d(TAG, "onEndRawDrawing points=${strokePoints.size} gotList=$receivedAuthorityList")
             if (!receivedAuthorityList) {
                 appendPoint(pt)
-                if (strokePoints.isNotEmpty()) renderDeltaFrom((strokePoints.size - 1).coerceAtLeast(0))
             }
-            if (strokePoints.isNotEmpty()) {
-                completedStrokes.add(RecordedStroke(strokeStyle, strokeWidthPx, ArrayList(strokePoints)))
+            if (strokePoints.size >= 2) {
+                val copy = ArrayList(strokePoints)
+                completedStrokes.add(RecordedStroke(strokeStyle, strokeWidthPx, copy))
+                Log.d(TAG, "render: style=$strokeStyle inkCanvas=${inkCanvas != null} pts=${copy.size}")
+                runCatching {
+                    inkCanvas?.let {
+                        OnyxStrokeRenderer.render(strokeStyle, copy, strokeWidthPx, it, maxPressure())
+                    }
+                }.onFailure { e ->
+                    Log.e(TAG, "render threw: ${e.javaClass.simpleName}: ${e.message}", e)
+                }
+                updateSnapshot()
             }
             strokePoints.clear()
             receivedAuthorityList = false

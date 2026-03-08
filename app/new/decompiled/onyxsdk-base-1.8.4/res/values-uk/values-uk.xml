@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <string-array name="wifi_status">
+    <item/>
+    <item>Сканування \u2026</item>
+    <item>Підключення\u2026</item>
+    <item>Автентифікація\u2026</item>
+    <item>Отримання IP-адреси\u2026</item>
+    <item>Підключено</item>
+    <item>Призупинено</item>
+    <item>Відключення\u2026</item>
+    <item>Відключено</item>
+    <item>Невдало</item>
+  </string-array>
+    <string-array name="wifi_status_with_ssid">
+    <item/>
+    <item>Сканування \u2026</item>
+    <item>Connecting to <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Authenticating with  <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Obtaining IP address from <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Connected to <ns1:g id="network_name">%1$s</ns1:g></item>
+    <item>Призупинено</item>
+    <item>Disconnecting from  <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Відключено</item>
+    <item>Невдало</item>
+  </string-array>
+    <string name="Wireless_lan">Бездротова мережа</string>
+    <string name="closed">Закрито</string>
+    <string name="current_available_wifi_count">На даний момент доступний Wi-Fi: %1$d </string>
+    <string name="no_credential">Немає облікових даних</string>
+    <string name="open_wifi">Увімкніть Wi-Fi, щоб перевірити доступні мережі</string>
+    <string name="paste">Вставити</string>
+    <string name="unavailable">Недоступний</string>
+    <string name="wifi_connect">Підключити</string>
+    <string name="wifi_connected">Підключенио</string>
+    <string name="wifi_disabled_generic">Вимкнуто</string>
+    <string name="wifi_disabled_network_failure">Слабке підключення до мережі вимкнено</string>
+    <string name="wifi_disabled_no_internet_temporary">Wi-Fi підключено, але інтернет недоступний.</string>
+    <string name="wifi_disabled_password_failure">Помилка автентифікації</string>
+    <string name="wifi_disabled_wrong_password">Перевірте пароль і повторіть спробу. </string>
+    <string name="wifi_disabled_wrong_password_tips">Помилка підключення. Будь ласка, спробуйте ще раз.</string>
+    <string name="wifi_edit">Редагувати</string>
+    <string name="wifi_encryption">Шифрування</string>
+    <string name="wifi_forget">Забути</string>
+    <string name="wifi_ip_address">IP-адреса</string>
+    <string name="wifi_network">Мережі Wi-Fi</string>
+    <string name="wifi_open">Відкрити</string>
+    <string name="wifi_password">Пароль</string>
+    <string name="wifi_remembered">Збережено</string>
+    <string name="wifi_rescan">Повторне сканування</string>
+    <string name="wifi_secured_first_item">"Захищено за допомогою <ns1:g id="wifi_security_short">%1$s</ns1:g>"    </string>
+    <string name="wifi_secured_second_item">",Захищено за допомогою <ns1:g id="wifi_security_short">%1$s</ns1:g>"    </string>
+    <string name="wifi_security">Безпека</string>
+    <string name="wifi_security_none">Немає</string>
+    <string name="wifi_show_advanced">Показати додаткові параметри</string>
+    <string name="wifi_show_password">Показати пароль</string>
+    <string name="wifi_signal">Рівень сигналу</string>
+    <string name="wifi_signal_excellent">"Відмінний"</string>
+    <string name="wifi_signal_fair">"Задовільний"</string>
+    <string name="wifi_signal_good">"Хороший"</string>
+    <string name="wifi_signal_none">"Немає"</string>
+    <string name="wifi_signal_poor">"слабкий"</string>
+    <string name="wifi_speed">Швидкість підключення</string>
+    <string name="wifi_status">Інформація про статус</string>
+    <string name="wifi_wps_available_first_item">Доступні захищені мережі</string>
+    <string name="wifi_wps_available_second_item">" (Доступні захищені мережі)"</string>
+</resources>

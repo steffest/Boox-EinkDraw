@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <string-array name="wifi_status">
+    <item/>
+    <item>Mengimbas\u2026</item>
+    <item>Menyambung\u2026</item>
+    <item>Mengesahkan\u2026</item>
+    <item>Mendapatkan alamat IP\u2026</item>
+    <item>Bersambung</item>
+    <item>Digantung</item>
+    <item>Memutuskan sambungan\u2026</item>
+    <item>Terputus sambungan</item>
+    <item>tak berjaya</item>
+  </string-array>
+    <string-array name="wifi_status_with_ssid">
+    <item/>
+    <item>Mengimbas\u2026</item>
+    <item>Connecting to <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Authenticating with  <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Obtaining IP address from <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Connected to <ns1:g id="network_name">%1$s</ns1:g></item>
+    <item>Digantung</item>
+    <item>Disconnecting from  <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Terputus sambungan</item>
+    <item>Unsuccessful</item>
+  </string-array>
+    <string name="Wireless_lan">LAN tanpa wayar</string>
+    <string name="closed">Tutup</string>
+    <string name="current_available_wifi_count">Wi-F tersedia pada masa ini: %1$d </string>
+    <string name="no_credential">Tiada Tauliah</string>
+    <string name="open_wifi">Hidupkan Wi-Fi untuk menyemak rangkaian yang tersedia</string>
+    <string name="paste">tampal</string>
+    <string name="unavailable">Tidak tersedia</string>
+    <string name="wifi_connect">Sambung</string>
+    <string name="wifi_connected">Bersambung</string>
+    <string name="wifi_disabled_generic">Dilumpuhkan</string>
+    <string name="wifi_disabled_network_failure">Sambungan rangkaian yang lemah dilumpuhkan</string>
+    <string name="wifi_disabled_no_internet_temporary">Wi-Fi disambungkan tetapi internet tidak boleh diakses.</string>
+    <string name="wifi_disabled_password_failure">Ralat Pengesahan</string>
+    <string name="wifi_disabled_wrong_password">Sila semak kata laluan dan cuba lagi.</string>
+    <string name="wifi_disabled_wrong_password_tips">Sambungan gagal. Sila cuba lagi.</string>
+    <string name="wifi_edit">sunting</string>
+    <string name="wifi_encryption">Penyulitan</string>
+    <string name="wifi_forget">lupa</string>
+    <string name="wifi_ip_address">alamat IP</string>
+    <string name="wifi_network">Rangkaian Wi-Fi</string>
+    <string name="wifi_open">Buka</string>
+    <string name="wifi_password">kata laluan</string>
+    <string name="wifi_remembered">Disimpan</string>
+    <string name="wifi_rescan">Imbas semula</string>
+    <string name="wifi_secured_first_item">"，Dijamin dengan <ns1:g id="wifi_security_short">%1$s</ns1:g>"</string>
+    <string name="wifi_secured_second_item">"，Dijamin dengan <ns1:g id="wifi_security_short">%1$s</ns1:g>"</string>
+    <string name="wifi_security">keselamatan</string>
+    <string name="wifi_security_none">Tiada</string>
+    <string name="wifi_show_advanced">Tunjukkan pilihan lanjutan</string>
+    <string name="wifi_show_password">tunjuk kata laluan</string>
+    <string name="wifi_signal">Kekuatan isyarat</string>
+    <string name="wifi_signal_excellent">Bagus</string>
+    <string name="wifi_signal_fair">Wajar</string>
+    <string name="wifi_signal_good">Baik</string>
+    <string name="wifi_signal_none">Tiada</string>
+    <string name="wifi_signal_poor">Lemah</string>
+    <string name="wifi_speed">Kelajuan sambungan</string>
+    <string name="wifi_status">info status</string>
+    <string name="wifi_wps_available_first_item">Rangkaian Terlindung yang Tersedia</string>
+    <string name="wifi_wps_available_second_item">" （Rangkaian Dilindungi Tersedia）"</string>
+</resources>

@@ -8,9 +8,6 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
 import com.onyx.android.sdk.data.note.TouchPoint
-import com.onyx.android.sdk.pen.NeoBrushPenWrapper
-import com.onyx.android.sdk.pen.NeoCharcoalPenV2Wrapper
-import com.onyx.android.sdk.pen.NeoCharcoalPenWrapper
 import com.onyx.android.sdk.pen.NeoFountainPenWrapper
 import com.onyx.android.sdk.pen.NeoMarkerPenWrapper
 import kotlin.math.PI
@@ -39,6 +36,8 @@ import kotlin.math.sqrt
  */
 object OnyxStrokeRenderer {
 
+    // ─── Charcoal V2 rendering ────────────────────────────────────────────────
+
     fun render(
         style: HardwarePenStyle,
         points: List<TouchPoint>,
@@ -52,9 +51,9 @@ object OnyxStrokeRenderer {
             HardwarePenStyle.FOUNTAIN -> renderFountain(points, widthPx, canvas)
             HardwarePenStyle.MARKER -> renderMarker(points, widthPx, canvas, maxPressure)
             HardwarePenStyle.NEO_BRUSH -> renderNeoBrush(points, widthPx, canvas)
-            HardwarePenStyle.CHARCOAL -> renderCharcoal(points, widthPx, canvas, v2 = false)
+            HardwarePenStyle.CHARCOAL -> renderCharcoal(points, widthPx, canvas, v2 = false, maxPressure = maxPressure)
             HardwarePenStyle.DASH -> renderDash(points, widthPx, canvas)
-            HardwarePenStyle.CHARCOAL_V2 -> renderCharcoal(points, widthPx, canvas, v2 = true)
+            HardwarePenStyle.CHARCOAL_V2 -> renderCharcoal(points, widthPx, canvas, v2 = true, maxPressure = maxPressure)
             HardwarePenStyle.SQUARE_PEN -> renderSquarePen(points, widthPx, canvas)
         }
     }
@@ -64,64 +63,13 @@ object OnyxStrokeRenderer {
     private fun renderPencil(points: List<TouchPoint>, widthPx: Float, canvas: Canvas) {
         val paint = Paint().apply {
             color = Color.BLACK
-            alpha = 255
-            strokeWidth = 1f
+            strokeWidth = widthPx
             style = Paint.Style.STROKE
             strokeCap = Paint.Cap.ROUND
-            isAntiAlias = false
+            strokeJoin = Paint.Join.ROUND
+            isAntiAlias = true
         }
-        val stats = signalStats(points)
-        if (points.size == 1) {
-            val p = points[0]
-            val sig = normalizedSignal(p, stats)
-            stippleDot(p.x, p.y, pressureToRadius(widthPx, sig, HardwarePenStyle.PENCIL), sig, 0, canvas, paint)
-            return
-        }
-        var prev = points[0]
-        for (i in 1 until points.size) {
-            val curr = points[i]
-            val ps = normalizedSignal(prev, stats)
-            val cs = normalizedSignal(curr, stats)
-            stippleSegment(
-                prev, curr,
-                pressureToRadius(widthPx, ps, HardwarePenStyle.PENCIL),
-                pressureToRadius(widthPx, cs, HardwarePenStyle.PENCIL),
-                ps, cs, i, canvas, paint
-            )
-            prev = curr
-        }
-    }
-
-    private fun stippleSegment(
-        start: TouchPoint, end: TouchPoint,
-        startR: Float, endR: Float,
-        startSig: Float, endSig: Float,
-        seed: Int, canvas: Canvas, paint: Paint,
-    ) {
-        val dx = end.x - start.x; val dy = end.y - start.y
-        val dist = sqrt(dx * dx + dy * dy)
-        if (dist <= 0.001f) { stippleDot(start.x, start.y, startR, startSig, seed, canvas, paint); return }
-        val steps = max(1, ceil(dist / 1.8f).toInt())
-        for (s in 0..steps) {
-            val t = s.toFloat() / steps
-            stippleDot(
-                start.x + dx * t, start.y + dy * t,
-                lerp(startR, endR, t), lerp(startSig, endSig, t),
-                seed * 4096 + s, canvas, paint
-            )
-        }
-    }
-
-    private fun stippleDot(cx: Float, cy: Float, radius: Float, signal: Float, seed: Int, canvas: Canvas, paint: Paint) {
-        val density = lerp(0.008f, 0.048f, signal)
-        val count = max(1, (radius * radius * density * PI.toFloat()).toInt())
-        var drawn = 0; var attempt = 0
-        while (drawn < count && attempt < count * 3) {
-            val rx = hashUnit(seed, attempt * 2) * 2f - 1f
-            val ry = hashUnit(seed, attempt * 2 + 1) * 2f - 1f
-            if (rx * rx + ry * ry <= 1f) { canvas.drawPoint(cx + rx * radius, cy + ry * radius, paint); drawn++ }
-            attempt++
-        }
+        drawPolyline(points, canvas, paint)
     }
 
     // ─── FOUNTAIN: NeoFountainPenWrapper ──────────────────────────────────────
@@ -137,7 +85,7 @@ object OnyxStrokeRenderer {
             } else {
                 NeoFountainPenWrapper.computeStrokePoints(pts, min, max)
             }
-            NeoFountainPenWrapper.drawStroke(canvas, paint, result, min, max, 1f, false)
+            com.onyx.android.sdk.pen.PenUtils.drawStrokeByPointSize(canvas, paint, result, false)
         } catch (_: Throwable) {
             fallbackPressureStroke(points, widthPx, canvas)
         }
@@ -146,105 +94,112 @@ object OnyxStrokeRenderer {
     // ─── MARKER: NeoMarkerPenWrapper, 50 % alpha offscreen composite ──────────
 
     private fun renderMarker(points: List<TouchPoint>, widthPx: Float, canvas: Canvas, maxPressure: Float) {
-        if (points.size < 2) {
-            val paint = solidPaint().apply { alpha = 128; style = Paint.Style.FILL }
-            points.firstOrNull()?.let { canvas.drawCircle(it.x, it.y, widthPx / 2f, paint) }
-            return
+        android.util.Log.d("MarkerTest", "renderMarker: ${points.size} pts width=$widthPx")
+        if (points.isEmpty()) return
+        val pts = points.toArrayList()
+        val paint = solidPaint().apply {
+            strokeWidth = widthPx; isAntiAlias = true
+            style = Paint.Style.FILL_AND_STROKE
+            strokeCap = Paint.Cap.ROUND; strokeJoin = Paint.Join.ROUND
         }
-        val bounds = pointBounds(points, widthPx)
-        if (bounds.width() <= 0 || bounds.height() <= 0) return
-
-        val layer = Bitmap.createBitmap(bounds.width(), bounds.height(), Bitmap.Config.ARGB_8888)
-        val layerCanvas = Canvas(layer)
-        val paint = solidPaint().apply { strokeWidth = widthPx }
-        val translated = points.map { p -> TouchPoint(p).also { it.x -= bounds.left; it.y -= bounds.top } }
-
         try {
-            val result = NeoMarkerPenWrapper.computeStrokePoints(translated.toArrayList(), widthPx, maxPressure)
-            NeoMarkerPenWrapper.drawStroke(layerCanvas, paint, result, widthPx, false)
-        } catch (_: Throwable) {
-            fallbackPressureStroke(translated, widthPx, layerCanvas)
+            // Try the native wrapper — libneo_pen.so is now bundled in jniLibs/arm64-v8a
+            val result = NeoMarkerPenWrapper.computeStrokePoints(pts, widthPx, maxPressure)
+            android.util.Log.d("MarkerTest", "native OK: ${result?.size} result pts")
+            NeoMarkerPenWrapper.drawStroke(canvas, paint, result, widthPx, false)
+        } catch (e: Throwable) {
+            // Native still fails for some reason — use pure-Kotlin replica
+            android.util.Log.w("MarkerTest", "native failed (${e.javaClass.simpleName}), using fallback")
+            renderMarkerFallback(pts, widthPx, paint, canvas)
         }
+    }
 
-        canvas.drawBitmap(layer, bounds.left.toFloat(), bounds.top.toFloat(), Paint().apply { alpha = 128 })
-        layer.recycle()
+    /** Pure-Kotlin replica of NeoMarkerPenWrapper.drawStroke — no native library needed. */
+    private fun renderMarkerFallback(pts: ArrayList<TouchPoint>, widthPx: Float, paint: Paint, canvas: Canvas) {
+        // Set TouchPoint.size based on pressure (what the native engine computes)
+        val stats = signalStats(pts)
+        for (p in pts) {
+            p.size = widthPx * (0.4f + 0.6f * normalizedSignal(p, stats))
+        }
+        // Draw into offscreen bitmap at 100% opacity
+        val bmp = android.graphics.Bitmap.createBitmap(canvas.width, canvas.height, android.graphics.Bitmap.Config.ARGB_8888)
+        val bmpCanvas = Canvas(bmp)
+        com.onyx.android.sdk.pen.PenUtils.drawStrokeByPointSize(bmpCanvas, paint, pts, false)
+        // Compute bounding rect and inset by half stroke-width (same as NeoMarkerPenWrapper)
+        var rect: android.graphics.Rect? = null
+        for (p in pts) {
+            if (rect == null) rect = android.graphics.Rect(p.x.toInt(), p.y.toInt(), p.x.toInt(), p.y.toInt())
+            else rect.union(p.x.toInt(), p.y.toInt())
+        }
+        if (rect == null) { bmp.recycle(); return }
+        rect.inset(-(widthPx / 2f).toInt(), -(widthPx / 2f).toInt())
+        // Composite at alpha=128 (50%) — exactly like NeoMarkerPenWrapper.drawStroke
+        val savedAlpha = paint.alpha
+        paint.alpha = 128
+        canvas.drawBitmap(bmp, rect, rect, paint)
+        paint.alpha = savedAlpha
+        bmp.recycle()
+        android.util.Log.d("MarkerTest", "fallback done")
     }
 
     // ─── NEO_BRUSH: NeoBrushPenWrapper ───────────────────────────────────────
 
     private fun renderNeoBrush(points: List<TouchPoint>, widthPx: Float, canvas: Canvas) {
-        val paint = solidPaint()
-        val min = widthPx * 0.06f
-        val max = widthPx * 2.2f
-        val pts = points.toArrayList()
-        try {
-            val result = NeoBrushPenWrapper.computeStrokePoints(pts, min, max)
-            NeoBrushPenWrapper.drawStroke(canvas, paint, result, min, max, false)
-        } catch (_: Throwable) {
-            fallbackPressureStroke(points, widthPx, canvas)
-        }
+        fallbackPressureStroke(points, widthPx, canvas)
     }
 
-    // ─── CHARCOAL / CHARCOAL_V2: ring + dot cloud texture ────────────────────
+    // ─── CHARCOAL / CHARCOAL_V2 ──────────────────────────────────────────────
+    //
+    // Uses NeoCharcoalPenV2Wrapper.drawNormalStroke (create + destroy per stroke).
+    // A GC hint before each call encourages the JVM to collect Bitmap / PenResult
+    // objects from the previous stroke before allocating new native stamps, preventing
+    // heap exhaustion across many strokes.
+    // V1 uses the Kotlin cloud-texture fallback.
 
-    private fun renderCharcoal(points: List<TouchPoint>, widthPx: Float, canvas: Canvas, v2: Boolean) {
-        // Try the native Onyx charcoal wrappers first; fall back to the pure-Java cloud texture.
-        val pts = points.toArrayList()
-        val nativeOk: Boolean
-
-        if (!v2) {
-            nativeOk = runCatching {
-                NeoCharcoalPenWrapper.drawNormalStroke(
-                    buildCharcoalArgs(pts, widthPx, canvas, v2 = false)
-                )
-                true
-            }.getOrDefault(false)
-        } else {
-            nativeOk = runCatching {
-                NeoCharcoalPenV2Wrapper.drawNormalStroke(
-                    buildCharcoalArgs(pts, widthPx, canvas, v2 = true)
-                )
-                true
-            }.getOrDefault(false)
-        }
-
-        if (!nativeOk) charcoalCloudTexture(points, widthPx, canvas, v2)
-    }
-
-    private fun buildCharcoalArgs(
-        pts: ArrayList<TouchPoint>,
+    private fun renderCharcoal(
+        points: List<TouchPoint>,
         widthPx: Float,
         canvas: Canvas,
         v2: Boolean,
-    ): com.onyx.android.sdk.pen.PenRenderArgs {
-        val texture = if (v2) 2 else 1
-        val penType = if (v2) 5 else 4
+        maxPressure: Float,
+    ) {
+        if (!v2) { charcoalCloudTexture(points, widthPx, canvas, false); return }
+        if (points.size < 2) { charcoalCloudTexture(points, widthPx, canvas, true); return }
+
+        // Encourage GC to collect stamp objects from the previous stroke's render.
+        System.gc()
 
         val createArgs = com.onyx.android.sdk.data.note.ShapeCreateArgs()
-            .setMaxPressure(4096f)
-            .setPenAttrs(com.onyx.android.sdk.data.note.PenAttrs().setTexture(texture))
-            .setTiltConfig(com.onyx.android.sdk.data.note.TiltConfig().setTiltEnabled(false))
+            .setMaxPressure(maxPressure)
 
-        return com.onyx.android.sdk.pen.PenRenderArgs()
+        val args = com.onyx.android.sdk.pen.PenRenderArgs()
             .setCanvas(canvas)
-            .setPaint(solidPaint().apply { strokeWidth = widthPx })
-            .setPoints(pts)
-            .setPenType(penType)
-            .setColor(Color.BLACK)
+            .setPoints(ArrayList(points))
             .setStrokeWidth(widthPx)
-            .setCreateArgs(createArgs)
-            .setTiltEnabled(false)
+            .setColor(Color.BLACK)
             .setScreenMatrix(android.graphics.Matrix())
-            .setRenderMatrix(android.graphics.Matrix())
-            .setContentRect(android.graphics.RectF(0f, 0f, canvas.width.toFloat(), canvas.height.toFloat()))
+            .setTiltEnabled(false)
             .setErase(false)
+            .setCreateArgs(createArgs)
+
+        runCatching {
+            com.onyx.android.sdk.pen.NeoCharcoalPenV2Wrapper.drawNormalStroke(args)
+        }.onFailure { e ->
+            android.util.Log.w("CharcoalTest", "drawNormalStroke failed: ${e.message}")
+            charcoalCloudTexture(points, widthPx, canvas, true)
+        }
+
+        android.util.Log.d("CharcoalTest", "drawNormalStroke pts=${points.size}")
     }
 
     /** Pure-Java fallback: ring + dot cloud stamps along the stroke path. */
     private fun charcoalCloudTexture(points: List<TouchPoint>, widthPx: Float, canvas: Canvas, v2: Boolean) {
         val paint = Paint().apply {
-            color = Color.BLACK; strokeWidth = 1f
-            style = Paint.Style.STROKE; isAntiAlias = false
+            color = Color.BLACK
+            alpha = 160 // Proper charcoal opacity layer
+            strokeWidth = 1f
+            style = Paint.Style.STROKE
+            isAntiAlias = false
         }
         val stats = signalStats(points)
         if (points.size == 1) {

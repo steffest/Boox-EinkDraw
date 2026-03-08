@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <string-array name="wifi_status">
+    <item/>
+    <item>Recherche\u2026</item>
+    <item/>
+    <item>Authentification\u2026</item>
+    <item/>
+    <item>Récupération de l\'adresse IP\u2026</item>
+    <item/>
+    <item>Déconnexion\u2026</item>
+    <item/>
+    <item>Échec</item>
+  </string-array>
+    <string-array name="wifi_status_with_ssid">
+    <item/>
+    <item>Recherche\u2026</item>
+    <item>Connexion à <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Authentification sur <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Récupération de l\'adresse IP de <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Connecté à <ns1:g id="network_name">%1$s</ns1:g></item>
+    <item/>
+    <item>Déconnexion de <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item/>
+    <item>Échec</item>
+  </string-array>
+    <string name="Wireless_lan">WLAN </string>
+    <string name="closed">Fermé</string>
+    <string name="current_available_wifi_count">Réseaux Wi-Fi disponibles : %1$d </string>
+    <string name="no_credential">No Credential</string>
+    <string name="open_wifi">Veuillez activer le Wi-Fi pour voir les réseaux disponibles </string>
+    <string name="paste">Paste</string>
+    <string name="unavailable">Non disponible </string>
+    <string name="wifi_connect">Connecté</string>
+    <string name="wifi_connected">Connecté</string>
+    <string name="wifi_disabled_generic">Désactivé</string>
+    <string name="wifi_disabled_network_failure">Connexion au réseau à faible signal désactivé</string>
+    <string name="wifi_disabled_no_internet_temporary">Wi-Fi is connected but the internet is not accessible.</string>
+    <string name="wifi_disabled_password_failure">Erreur d\'authentification</string>
+    <string name="wifi_disabled_wrong_password">Please check the password and try again. </string>
+    <string name="wifi_disabled_wrong_password_tips">Connection failed. Please try again.</string>
+    <string name="wifi_edit">Edit</string>
+    <string name="wifi_encryption">Encryption</string>
+    <string name="wifi_forget">Oublier</string>
+    <string name="wifi_ip_address">Adresse IP </string>
+    <string name="wifi_network">Réseau Wi-Fi </string>
+    <string name="wifi_open">Open</string>
+    <string name="wifi_password">Mot de passe</string>
+    <string name="wifi_remembered">Enregistrés</string>
+    <string name="wifi_rescan">Rechercher à nouveau</string>
+    <string name="wifi_secured_first_item">Sécurisé par <ns1:g id="wifi_security_short">%1$s</ns1:g></string>
+    <string name="wifi_secured_second_item">, sécurisé par <ns1:g id="wifi_security_short">%1$s</ns1:g></string>
+    <string name="wifi_security">Sécurité </string>
+    <string name="wifi_security_none">Aucun</string>
+    <string name="wifi_show_advanced">Afficher les options avancées</string>
+    <string name="wifi_show_password">Afficher le mot de passe</string>
+    <string name="wifi_signal">Force du signal</string>
+    <string name="wifi_signal_excellent">"Le plus puissant"</string>
+    <string name="wifi_signal_fair">"Normal"</string>
+    <string name="wifi_signal_good">"Puissant"</string>
+    <string name="wifi_signal_none">None</string>
+    <string name="wifi_signal_poor">"Faible"</string>
+    <string name="wifi_speed">Vitesse de connexion </string>
+    <string name="wifi_status">Message d\'état </string>
+    <string name="wifi_wps_available_first_item">Réseau sécurisé disponible</string>
+    <string name="wifi_wps_available_second_item">\u0020(réseau sécurisé disponible)</string>
+</resources>

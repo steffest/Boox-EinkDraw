@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <string-array name="wifi_status">
+    <item/>
+    <item>Taranıyor\u2026</item>
+    <item>Bağlanıyor\u2026</item>
+    <item>Kimlik Doğrulaması Yapılıyor\u2026</item>
+    <item>IP Adresi Alınıyor\u2026</item>
+    <item>Bağlandı</item>
+    <item>Beklemede</item>
+    <item>Bağlantı Devre Dışı Bırakılıyor\u2026</item>
+    <item>Bağlantı Kesildi</item>
+    <item>Başarısız</item>
+  </string-array>
+    <string-array name="wifi_status_with_ssid">
+    <item/>
+    <item>Taranıyor\u2026</item>
+    <item>undefined\u2026 adresine bağlanılıyor…</item>
+    <item>undefined\u2026 ile kimlik doğrulaması yapılıyor…</item>
+    <item>undefined\u2026 adresinden IP alınıyor…</item>
+    <item>undefined ile bağlantı kuruldu</item>
+    <item>Beklemede</item>
+    <item>undefined adresinden bağlantı koparılıyor\u2026</item>
+    <item>Bağlantı kesildi</item>
+    <item>Başarısız</item>
+  </string-array>
+    <string name="Wireless_lan">Kablosuz LAN</string>
+    <string name="closed">Kapalı</string>
+    <string name="current_available_wifi_count">Kullanılabilir Wi-Fi: %1$d</string>
+    <string name="no_credential">Kimlik Bilgisi Yok</string>
+    <string name="open_wifi">Mevcut ağları kontrol etmek için Wi-Fi\'yi aç</string>
+    <string name="paste">Yapıştır</string>
+    <string name="unavailable">Kullanılamıyor</string>
+    <string name="wifi_connect">Bağlan</string>
+    <string name="wifi_connected">Bağlandı</string>
+    <string name="wifi_disabled_generic">Devre Dışı Bırakıldı</string>
+    <string name="wifi_disabled_network_failure">Zayıf ağ bağlantısı devre dışı</string>
+    <string name="wifi_disabled_no_internet_temporary">Wi-Fi bağlı, ancak internete erişilemiyor.</string>
+    <string name="wifi_disabled_password_failure">Kimlik Doğrulama Hatası</string>
+    <string name="wifi_disabled_wrong_password">Lütfen şifreyi kontrol edip tekrar deneyin</string>
+    <string name="wifi_disabled_wrong_password_tips">Bağlantı başarısız. Lütfen tekrar deneyin.</string>
+    <string name="wifi_edit">Düzenle</string>
+    <string name="wifi_encryption">Şifreleme</string>
+    <string name="wifi_forget">Unut</string>
+    <string name="wifi_ip_address">IP Adresi</string>
+    <string name="wifi_network">Kablosuz Ağ</string>
+    <string name="wifi_open">Açık</string>
+    <string name="wifi_password">Şifre</string>
+    <string name="wifi_remembered">Kaydedildi</string>
+    <string name="wifi_rescan">Yeniden Tara</string>
+    <string name="wifi_secured_first_item">" <ns1:g id="wifi_security_short">%1$s</ns1:g> ile güvenlik altına alındı"</string>
+    <string name="wifi_secured_second_item">"， <ns1:g id="wifi_security_short">%1$s</ns1:g> ile güvenlik altına alındı"</string>
+    <string name="wifi_security">Güvenlik</string>
+    <string name="wifi_security_none">Hiçbiri</string>
+    <string name="wifi_show_advanced">Gelişmiş Seçenekleri Göster</string>
+    <string name="wifi_show_password">Şifreyi Göster</string>
+    <string name="wifi_signal">Sinyal Gücü</string>
+    <string name="wifi_signal_excellent">"Mükemmel"</string>
+    <string name="wifi_signal_fair">"Normal"</string>
+    <string name="wifi_signal_good">"İyi"</string>
+    <string name="wifi_signal_none">"Yok"</string>
+    <string name="wifi_signal_poor">"Zayıf"</string>
+    <string name="wifi_speed">Bağlantı Hızı</string>
+    <string name="wifi_status">Durum</string>
+    <string name="wifi_wps_available_first_item">Kullanılabilir Güvenli Ağlar</string>
+    <string name="wifi_wps_available_second_item">"（Kullanılabilir Güvenli Ağlar）"</string>
+</resources>

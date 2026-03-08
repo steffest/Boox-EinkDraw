@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <string-array name="wifi_status">
+    <item/>
+    <item>Skeniranje\u2026</item>
+    <item>Povezivanje\u2026</item>
+    <item>Provjera autentičnosti\u2026</item>
+    <item>Pribavljanje IP adrese\u2026</item>
+    <item>Povezan</item>
+    <item>Zaustavljen</item>
+    <item>Prekid veze\u2026</item>
+    <item>Isključen</item>
+    <item>Neuspješan</item>
+  </string-array>
+    <string-array name="wifi_status_with_ssid">
+    <item/>
+    <item>Skeniranje\u2026</item>
+    <item>Connecting to <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Authenticating with  <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Obtaining IP address from <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Connected to <ns1:g id="network_name">%1$s</ns1:g></item>
+    <item>Suspendirano</item>
+    <item>Disconnecting from  <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Prekinuto</item>
+    <item>Neuspješno</item>
+  </string-array>
+    <string name="Wireless_lan">Bežična lokalna mreža</string>
+    <string name="closed">Zatvoreno</string>
+    <string name="current_available_wifi_count">Trenutno dostupan Wi-Fi: %1$d </string>
+    <string name="no_credential">Bez vjerodajnice</string>
+    <string name="open_wifi">Uključite Wi-Fi da biste provjerili dostupne mreže</string>
+    <string name="paste">Zalijepi</string>
+    <string name="unavailable">Nedostupan</string>
+    <string name="wifi_connect">Spoji</string>
+    <string name="wifi_connected">Povezan</string>
+    <string name="wifi_disabled_generic">Onemogućen</string>
+    <string name="wifi_disabled_network_failure">Slaba mrežna veza je onemogućena</string>
+    <string name="wifi_disabled_no_internet_temporary">Wi-Fi je povezan, ali internet nije dostupan.</string>
+    <string name="wifi_disabled_password_failure">Pogreška provjere autentičnosti</string>
+    <string name="wifi_disabled_wrong_password">Provjerite lozinku i pokušajte ponovno. </string>
+    <string name="wifi_disabled_wrong_password_tips">Povezivanje nije uspjelo. Pokušajte ponovo.</string>
+    <string name="wifi_edit">Uredi</string>
+    <string name="wifi_encryption">Šifriranje</string>
+    <string name="wifi_forget">Zaboravi</string>
+    <string name="wifi_ip_address">IP adresa</string>
+    <string name="wifi_network">Wi-Fi mreže</string>
+    <string name="wifi_open">Otvoren</string>
+    <string name="wifi_password">Lozinka</string>
+    <string name="wifi_remembered">Pohranjeno</string>
+    <string name="wifi_rescan">Ponovno skeniraj</string>
+    <string name="wifi_secured_first_item">"Osigurano s <ns1:g id="wifi_security_short">%1$s</ns1:g>"    </string>
+    <string name="wifi_secured_second_item">", Osigurano s <ns1:g id="wifi_security_short">%1$s</ns1:g>"    </string>
+    <string name="wifi_security">Sigurnost</string>
+    <string name="wifi_security_none">Nijedan</string>
+    <string name="wifi_show_advanced">Pokaži dodatne mogućnosti</string>
+    <string name="wifi_show_password">Pokaži lozinku</string>
+    <string name="wifi_signal">Jačina signala</string>
+    <string name="wifi_signal_excellent">"Izvrsno"</string>
+    <string name="wifi_signal_fair">"Solidno"</string>
+    <string name="wifi_signal_good">"Dobro"</string>
+    <string name="wifi_signal_none">"Ništa"</string>
+    <string name="wifi_signal_poor">"Slabo"</string>
+    <string name="wifi_speed">Brzina povezivanja</string>
+    <string name="wifi_status">Informacije o stanju</string>
+    <string name="wifi_wps_available_first_item">Dostupne zaštićene mreže</string>
+    <string name="wifi_wps_available_second_item">" (Dostupne zaštićene mreže)"</string>
+</resources>

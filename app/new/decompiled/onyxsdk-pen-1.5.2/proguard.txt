@@ -1,0 +1,269 @@
+# Add project specific ProGuard rules here.
+# By default, the flags in this file are appended to flags specified
+# in /opt/adt-bundle-linux/sdk/tools/proguard/proguard-android.txt
+# You can edit the include path and order by changing the proguardFiles
+# directive in build.gradle.
+#
+# For more details, see
+#   http://developer.android.com/guide/developing/tools/proguard.html
+
+# Add any project specific keep options here:
+
+# If your project uses WebView with JS, uncomment the following
+# and specify the fully qualified class name to the JavaScript interface
+# class:
+#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
+#   public *;
+#}
+
+-dontshrink
+
+-keepattributes Signature,*Annotation*,EnclosingMethod,SourceFile,LineNumberTable
+
+-keep public class com.onyx.android.sdk.pen.** { public *; }
+
+-keep class com.onyx.android.sdk.pen.RawInputReader { public *; }
+
+# Add project specific ProGuard rules here.
+# By default, the flags in this file are appended to flags specified
+# in D:\SDK\android\android-sdk-windows/tools/proguard/proguard-android.txt
+# You can edit the include path and order by changing the proguardFiles
+# directive in build.gradle.
+#
+# For more details, see
+#   http://developer.android.com/guide/developing/tools/proguard.html
+
+# Add any project specific keep options here:
+
+# If your project uses WebView with JS, uncomment the following
+# and specify the fully qualified class name to the JavaScript interface
+# class:
+#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
+#   public *;
+#}
+
+# configs for common libraries
+
+-keepparameternames
+-renamesourcefileattribute SourceFile
+-keepattributes Exceptions,InnerClasses,Signature,Deprecated,SourceFile,LineNumberTable,EnclosingMethod
+
+# Preserve all annotations.
+
+-keepattributes *Annotation*
+
+# Preserve all public classes, and their public and protected fields and
+# methods.
+
+-keep public class * {
+    public protected *;
+}
+
+# Preserve all .class method names.
+
+-keepclassmembernames class * {
+    java.lang.Class class$(java.lang.String);
+    java.lang.Class class$(java.lang.String, boolean);
+}
+
+# Preserve all native method names and the names of their classes.
+
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+
+# Preserve the special static methods that are required in all enumeration
+# classes.
+
+-keepclassmembers class * extends java.lang.Enum {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+
+# Explicitly preserve all serialization members. The Serializable interface
+# is only a marker interface, so it wouldn't save them.
+# You can comment this out if your library doesn't use serialization.
+# If your code contains serializable classes that have to be backward
+# compatible, please refer to the manual.
+
+-keepclassmembers class * implements java.io.Serializable {
+    static final long serialVersionUID;
+    static final java.io.ObjectStreamField[] serialPersistentFields;
+    private void writeObject(java.io.ObjectOutputStream);
+    private void readObject(java.io.ObjectInputStream);
+    java.lang.Object writeReplace();
+    java.lang.Object readResolve();
+}
+
+# Your library may contain more items that need to be preserved;
+# typically classes that are dynamically created using Class.forName:
+
+-dontnote com.google.android.material.**
+-dontnote androidx.**
+-dontnote com.alibaba.**
+-dontnote com.android.**
+-dontnote com.fasterxml.**
+-dontnote com.google.**
+-dontnote javassist.**
+-dontnote io.reactivex.**
+-dontnote com.raizlabs.**
+-dontwarn javassist.**
+-dontnote org.nustaq.**
+-dontwarn org.nustaq.**
+-dontnote org.objenesis.**
+-dontwarn org.objenesis.**
+-dontwarn okio.**
+-dontwarn retrofit2.**
+-dontwarn com.github.junrar.**
+-dontwarn com.squareup.**
+-dontwarn com.raizlabs.**
+-dontwarn com.facebook.**
+-dontwarn org.apache.**
+-dontwarn com.alibaba.**
+-dontwarn javax.xml.bind.*
+
+-dontwarn android.test.**
+
+-dontwarn butterknife.internal.ButterKnifeProcessor
+
+-dontwarn com.onyx.android.sdk.ui.dialog.DialogLoading
+-dontwarn com.onyx.android.sdk.ui.dialog.DialogReaderMenu
+-dontwarn com.onyx.android.sdk.scribble.request.shape.PenStateChangeRequest
+
+-dontwarn com.neverland.engbook.**
+-dontwarn com.onyx.android.sdk.**
+
+-keep class com.onyx.android.sdk.scribble.touch.RawInputReader {
+    public void onTouchPointReceived(...);
+}
+
+-keepclassmembers class com.onyx.android.sdk.neopdf.** implements java.io.Serializable {
+    private <fields>;
+    static final long serialVersionUID;
+    private static final java.io.ObjectStreamField[] serialPersistentFields;
+    private void writeObject(java.io.ObjectOutputStream);
+    private void readObject(java.io.ObjectInputStream);
+    java.lang.Object writeReplace();
+    java.lang.Object readResolve();
+}
+
+-keep class * implements android.os.Parcelable { *; }
+
+-keepnames class org.greenrobot.eventbus.** { *; }
+-keepclassmembers class ** {
+    @org.greenrobot.eventbus.Subscribe <methods>;
+}
+-keep enum org.greenrobot.eventbus.ThreadMode { *; }
+# Only required if you use AsyncExecutor
+-keepclassmembers class * extends org.greenrobot.eventbus.util.ThrowableFailureEvent {
+    <init>(java.lang.Throwable);
+}
+
+# Fresco
+-keep class com.facebook.fresco.** {*;}
+-keep interface com.facebook.fresco.** {*;}
+-keep enum com.facebook.fresco.** {*;}
+
+# Facebook
+-keep class com.facebook.** {*;}
+-keep interface com.facebook.** {*;}
+-keep enum com.facebook.** {*;}
+
+-keep class * extends com.raizlabs.android.dbflow.config.DatabaseHolder { *; }
+-keep class * extends com.raizlabs.android.dbflow.converter.TypeConverter { *; }
+-keep class * extends com.raizlabs.android.dbflow.structure.BaseModel { *; }
+-keep class * extends com.raizlabs.android.dbflow.runtime.BaseContentProvider { *; }
+
+-keep class com.alibaba.fastjson2.** { *; }
+-keepclassmembers class * {
+    @com.alibaba.fastjson2.annotation.JSONField *;
+}
+
+# Retain generated class which implement Unbinder.
+-keep public class * implements butterknife.Unbinder { public <init>(...); }
+
+# Prevent obfuscation of types which use ButterKnife annotations since the simple name
+# is used to reflectively look up the generated ViewBinding.
+-keep class butterknife.*
+-keep class **$$ViewBinder { *; }
+-keepclasseswithmembernames class * { @butterknife.* <methods>; }
+-keepclasseswithmembernames class * { @butterknife.* <fields>; }
+
+# for aliyun-oss
+-keep class com.alibaba.sdk.android.oss.** { *; }
+-dontwarn org.apache.commons.codec.binary.**
+
+# for ebookservice
+-keep class org.slf4j.** { *; }
+-dontwarn org.htmlcleaner.**
+-dontwarn nl.siegmann.epublib.**
+-dontnote org.apache.**
+-dontnote org.jsoup
+
+# for wechat
+-keep class com.tencent.mm.opensdk.** { *; }
+-keep class com.tencent.wxop.** { *; }
+-keep class com.tencent.mm.sdk.** { *; }
+
+# for onxysdk-data model
+-keepclasseswithmembernames public class com.onyx.android.sdk.data.model.** { *;}
+
+# for alreader-engine
+-keep class com.neverland.engbook.level1.RealCHM { public *; }
+
+# for leanCloud
+-keep class com.avos.** { *; }
+-dontwarn com.avos.**
+-keep class sun.misc.** { *; }
+-dontwarn sun.misc.**
+
+# for glide
+-keep public class * implements com.bumptech.glide.module.GlideModule
+-keep public class * extends com.bumptech.glide.module.AppGlideModule
+-keep public enum com.bumptech.glide.load.ImageHeaderParser$** {
+  **[] $VALUES;
+  public *;
+}
+
+# Data Binding
+-dontwarn android.databinding.**
+-keep class android.databinding.** { *; }
+-dontwarn com.onyx.android.sdk.wifi.**
+-keep class com.onyx.common.onyxshop.data.**{ *; }
+
+# evernote
+-dontwarn com.evernote.**
+-dontnote com.evernote.**
+-keep class com.evernote.** { *; }
+
+# dropbox
+-dontwarn com.dropbox.core.**
+-dontnote com.dropbox.core.**
+-keep class com.dropbox.core.** { *; }
+
+# myscript
+-keep class com.myscript.** { *; }
+
+# icrash
+-keep class xcrash.NativeCrashHandler {
+    native <methods>;
+    void callback(...);
+}
+
+
+-keep class com.mikepenz.fastadapter.** { *;}
+-dontwarn com.mikepenz.fastadapter.**
+-keep class com.mikepenz.materialize.** { *;}
+-dontwarn com.mikepenz.materialize.**
+
+# tiff
+-keep class org.beyka.tiffbitmapfactory.** { *;}
+
+# google-api-client
+-keep class com.google.api.** { *; }
+-keep class com.google.api.client.** { *; }
+
+-keep class com.baidu.speech.**{*;}
+
+# webdav
+-keep class com.thegrizzlylabs.sardineandroid.** { *; }

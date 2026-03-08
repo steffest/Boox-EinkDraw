@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <string-array name="wifi_status">
+    <item/>
+    <item>Scanning\u2026</item>
+    <item>Connecting\u2026</item>
+    <item>Authenticating\u2026</item>
+    <item>Obtaining IP address\u2026</item>
+    <item>Connected</item>
+    <item>Suspended</item>
+    <item>Disconnecting\u2026</item>
+    <item>Disconnected</item>
+    <item>Unsuccessful</item>
+  </string-array>
+    <string-array name="wifi_status_with_ssid">
+    <item/>
+    <item>Scanning\u2026</item>
+    <item>Connecting to <ns1:g id="network_name">%1$s</ns1:g>\u2026        </item>
+    <item>Authenticating with  <ns1:g id="network_name">%1$s</ns1:g>\u2026        </item>
+    <item>Obtaining IP address from <ns1:g id="network_name">%1$s</ns1:g>\u2026        </item>
+    <item>Connected to  <ns1:g id="network_name">%1$s</ns1:g></item>
+    <item>Suspended</item>
+    <item>Disconnecting from  <ns1:g id="network_name">%1$s</ns1:g>\u2026        </item>
+    <item>Disconnected</item>
+    <item>Unsuccessful</item>
+  </string-array>
+    <string name="Wireless_lan">无线局域网</string>
+    <string name="closed">关闭</string>
+    <string name="current_available_wifi_count">当前可用Wi-Fi网络：%1$d </string>
+    <string name="day_symbol" translatable="false">天</string>
+    <string name="format_minutes">%d分钟</string>
+    <string name="format_minutes_seconds">%s%s</string>
+    <string name="format_seconds">%d秒</string>
+    <string name="hour_symbol" translatable="false">时</string>
+    <string name="minute_symbol" translatable="false">分</string>
+    <string name="no_credential">无证书</string>
+    <string name="open_wifi">要查看可用网络，请打开Wi-Fi</string>
+    <string name="paste">粘贴</string>
+    <string name="second_symbol" translatable="false">秒</string>
+    <string name="unavailable">不可用</string>
+    <string name="wifi_connect">连接</string>
+    <string name="wifi_connected">已连接</string>
+    <string name="wifi_disabled_generic">已停用</string>
+    <string name="wifi_disabled_network_failure">已停用状况不佳的互联网连接</string>
+    <string name="wifi_disabled_no_internet_temporary">已连接但无法访问internet</string>
+    <string name="wifi_disabled_password_failure">身份验证出现问题</string>
+    <string name="wifi_disabled_wrong_password">请检查密码，然后重试</string>
+    <string name="wifi_disabled_wrong_password_tips">连接失败，请重试</string>
+    <string name="wifi_edit">编辑</string>
+    <string name="wifi_encryption">加密</string>
+    <string name="wifi_forget">不保存</string>
+    <string name="wifi_ip_address">IP 地址</string>
+    <string name="wifi_network">Wi-Fi网络</string>
+    <string name="wifi_open">开放</string>
+    <string name="wifi_password">密码</string>
+    <string name="wifi_remembered">已保存</string>
+    <string name="wifi_rescan">重新扫描</string>
+    <string name="wifi_secured_first_item">"通过<ns1:g id="WIFI_SECURITY_SHORT">%1$s</ns1:g>进行保护"    </string>
+    <string name="wifi_secured_second_item">"，通过 <ns1:g id="WIFI_SECURITY_SHORT">%1$s</ns1:g>进行保护"    </string>
+    <string name="wifi_security">安全性</string>
+    <string name="wifi_security_none">无</string>
+    <string name="wifi_show_advanced">显示高级选项</string>
+    <string name="wifi_show_password">显示密码</string>
+    <string name="wifi_signal">信号强度</string>
+    <string name="wifi_signal_excellent">"强"</string>
+    <string name="wifi_signal_fair">"一般"</string>
+    <string name="wifi_signal_good">"较强"</string>
+    <string name="wifi_signal_none">"无"</string>
+    <string name="wifi_signal_poor">"弱"</string>
+    <string name="wifi_speed">连接速度</string>
+    <string name="wifi_status">状态消息</string>
+    <string name="wifi_wps_available_first_item">受保护的网络可用</string>
+    <string name="wifi_wps_available_second_item">" （受保护的网络可用）"</string>
+</resources>

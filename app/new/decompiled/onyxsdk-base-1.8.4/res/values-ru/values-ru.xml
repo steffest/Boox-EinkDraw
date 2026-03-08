@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <string-array name="wifi_status">
+    <item/>
+    <item>Сканирование \u2026</item>
+    <item>Соединение\u2026 </item>
+    <item>Аутентификация \u2026</item>
+    <item>Получение IP адреса\u2026 </item>
+    <item>Подключено</item>
+    <item>Ожидание</item>
+    <item>Отключение \u2026</item>
+    <item>Отключено</item>
+    <item>Ошибка</item>
+  </string-array>
+    <string-array name="wifi_status_with_ssid">
+    <item/>
+    <item>Сканирование \u2026</item>
+    <item>Подключение к to <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Аутентификация <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Получение IP адреса от <ns1:g id="network_name">%1$s</ns1:g>\u2026 </item>
+    <item>Подключено к <ns1:g id="network_name">%1$s</ns1:g></item>
+    <item>Ожидание </item>
+    <item>Отключение от <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Отключено </item>
+    <item>Ошибка</item>
+  </string-array>
+    <string name="Wireless_lan">Беспроводная сеть</string>
+    <string name="closed">Закрыто</string>
+    <string name="current_available_wifi_count">Доступные сети: %1$d</string>
+    <string name="no_credential">Нет учетных данных</string>
+    <string name="open_wifi">Включите Wi-Fi-модуль для проверки доступных сетей</string>
+    <string name="paste">Вставить</string>
+    <string name="unavailable">Недоступно</string>
+    <string name="wifi_connect">Подключить</string>
+    <string name="wifi_connected">Подключено</string>
+    <string name="wifi_disabled_generic">Отключено</string>
+    <string name="wifi_disabled_network_failure">Сеть отключена из-за низкого уровня сигнала</string>
+    <string name="wifi_disabled_no_internet_temporary">Wi-Fi подключен, но нет доступа к Интернету </string>
+    <string name="wifi_disabled_password_failure">Ошибка аутентификации</string>
+    <string name="wifi_disabled_wrong_password">Проверьте пароль и повторите попытку</string>
+    <string name="wifi_disabled_wrong_password_tips">Ошибка соединения. Повторите попытку</string>
+    <string name="wifi_edit">Редактировать</string>
+    <string name="wifi_encryption">Шифрование</string>
+    <string name="wifi_forget">Забыть</string>
+    <string name="wifi_ip_address">IP-адрес</string>
+    <string name="wifi_network">Сети Wi-Fi</string>
+    <string name="wifi_open">Открытая </string>
+    <string name="wifi_password">Пароль</string>
+    <string name="wifi_remembered">Сохранено</string>
+    <string name="wifi_rescan">Сканировать повторно</string>
+    <string name="wifi_secured_first_item">"Защищено с помощью: <ns1:g id="wifi_security_short">%1$s</ns1:g>"</string>
+    <string name="wifi_secured_second_item">", защищено с помощью: <ns1:g id="wifi_security_short">%1$s</ns1:g>"</string>
+    <string name="wifi_security">Защита</string>
+    <string name="wifi_security_none">Нет данных</string>
+    <string name="wifi_show_advanced">Показать дополнительные опции</string>
+    <string name="wifi_show_password">Показать пароль</string>
+    <string name="wifi_signal">Сила сигнала</string>
+    <string name="wifi_signal_excellent">Отличный </string>
+    <string name="wifi_signal_fair">Стабильный </string>
+    <string name="wifi_signal_good">Хороший </string>
+    <string name="wifi_signal_none">Нет</string>
+    <string name="wifi_signal_poor">Слабый </string>
+    <string name="wifi_speed">Скорость подключения</string>
+    <string name="wifi_status">Статус</string>
+    <string name="wifi_wps_available_first_item">Доступна защищенная сеть</string>
+    <string name="wifi_wps_available_second_item">Доступна защищенная сеть</string>
+</resources>

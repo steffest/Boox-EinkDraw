@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <string-array name="wifi_status">
+    <item/>
+    <item>Scanning\u2026</item>
+    <item>Connecting\u2026</item>
+    <item>Authenticating\u2026</item>
+    <item>Obtaining IP address\u2026</item>
+    <item>Connected</item>
+    <item>Suspended</item>
+    <item>Disconnecting\u2026</item>
+    <item>Disconnected</item>
+    <item>Unsuccessful</item>
+  </string-array>
+    <string-array name="wifi_status_with_ssid">
+    <item/>
+    <item>Scanning\u2026</item>
+    <item>Connecting to <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Authenticating with  <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Obtaining IP address from <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Connected to <ns1:g id="network_name">%1$s</ns1:g></item>
+    <item>Suspended</item>
+    <item>Disconnecting from  <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Disconnected</item>
+    <item>Unsuccessful</item>
+  </string-array>
+    <string name="Wireless_lan">Belaidis vietinis tinklas (LAN)</string>
+    <string name="closed">Uždaryta</string>
+    <string name="current_available_wifi_count">Šiuo metu prieinamas „Wi-Fi“: %1$d</string>
+    <string name="no_credential">Nėra įgaliojimo</string>
+    <string name="open_wifi">Įjunkite „Wi-Fi“ ir patikrinkite galimus tinklus</string>
+    <string name="paste">Įklijuoti</string>
+    <string name="unavailable">Nepasiekiamas</string>
+    <string name="wifi_connect">Prisijungti</string>
+    <string name="wifi_connected">Prisijungęs</string>
+    <string name="wifi_disabled_generic">Išjungtas</string>
+    <string name="wifi_disabled_network_failure">Silpnas tinklo ryšys išjungtas</string>
+    <string name="wifi_disabled_no_internet_temporary">„Wi-Fi“ yra prijungtas, bet internetas nepasiekiamas.</string>
+    <string name="wifi_disabled_password_failure">Autentiškumo patvirtinimo klaida</string>
+    <string name="wifi_disabled_wrong_password">Prašome patikrinti slaptažodį ir bandyti dar kartą.</string>
+    <string name="wifi_disabled_wrong_password_tips">Ryšys nepavyko. Bandykite dar kartą.</string>
+    <string name="wifi_edit">Redaguoti</string>
+    <string name="wifi_encryption">Šifravimas</string>
+    <string name="wifi_forget">Pamiršti</string>
+    <string name="wifi_ip_address">IP adresas</string>
+    <string name="wifi_network">„Wi-Fi“ tinklai</string>
+    <string name="wifi_open">Atidaryti</string>
+    <string name="wifi_password">Slaptažodis</string>
+    <string name="wifi_remembered">Išsaugotas</string>
+    <string name="wifi_rescan">Iš naujo nuskaityti</string>
+    <string name="wifi_secured_first_item">„Apsaugotas su <ns1:g id="wifi_security_short">%1$s</ns1:g>“</string>
+    <string name="wifi_secured_second_item">„  , Apsaugotas su <ns1:g id="wifi_security_short">%1$s</ns1:g>“</string>
+    <string name="wifi_security">Sauga</string>
+    <string name="wifi_security_none">Nė vienas</string>
+    <string name="wifi_show_advanced">Rodyti išplėstines parinktis</string>
+    <string name="wifi_show_password">Rodyti slaptažodį</string>
+    <string name="wifi_signal">Signalo stiprumas</string>
+    <string name="wifi_signal_excellent">„Puikus“</string>
+    <string name="wifi_signal_fair">„Sąžiningas“</string>
+    <string name="wifi_signal_good">„Geras“</string>
+    <string name="wifi_signal_none">„Nė vienas“</string>
+    <string name="wifi_signal_poor">„Skurdus“</string>
+    <string name="wifi_speed">Prisijungimo greitis</string>
+    <string name="wifi_status">Būsenos informacija</string>
+    <string name="wifi_wps_available_first_item">Prieinami apsaugoti tinklai</string>
+    <string name="wifi_wps_available_second_item">„ （Prieinami apsaugoti tinklai）“</string>
+</resources>

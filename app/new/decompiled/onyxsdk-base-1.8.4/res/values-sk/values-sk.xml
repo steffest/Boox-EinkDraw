@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <string-array name="wifi_status">
+    <item/>
+    <item>Skenovanie \u2026</item>
+    <item>Pripojování \u2026</item>
+    <item>Overovanie \u2026</item>
+    <item>Získanie adresy IP \u2026</item>
+    <item>Pripojené</item>
+    <item>Pozastavené</item>
+    <item>Odpojování \u2026</item>
+    <item>Odpojené</item>
+    <item>Neúspešné</item>
+  </string-array>
+    <string-array name="wifi_status_with_ssid">
+    <item/>
+    <item>Skenovanie\u2026</item>
+    <item>Pripája sa k <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Overuje sa s <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Získanie IP adresy z <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Pripojený k <ns1:g id="network_name">%1$s</ns1:g></item>
+    <item>Pozastavené</item>
+    <item>Odpája sa od  <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Odpojené</item>
+    <item>Neúspešné</item>
+  </string-array>
+    <string name="Wireless_lan">Bezdrôtová sieť LAN</string>
+    <string name="closed">Zavrieť</string>
+    <string name="current_available_wifi_count">Aktuálne dostupné Wi-Fi: %1$d</string>
+    <string name="no_credential">Bez poverenia</string>
+    <string name="open_wifi">Zapnite Wi-Fi a skontrolujte dostupné siete</string>
+    <string name="paste">vložiť</string>
+    <string name="unavailable">Nedostupné</string>
+    <string name="wifi_connect">Pripojiť</string>
+    <string name="wifi_connected">Pripojené</string>
+    <string name="wifi_disabled_generic">Zakázané</string>
+    <string name="wifi_disabled_network_failure">Slabé sieťové pripojenie je zakázané</string>
+    <string name="wifi_disabled_no_internet_temporary">Žiadny dočasný internet</string>
+    <string name="wifi_disabled_password_failure">Chyba overenia</string>
+    <string name="wifi_disabled_wrong_password">Skontrolujte heslo a skúste to znova.</string>
+    <string name="wifi_disabled_wrong_password_tips">Pripojenie zlyhalo. Prosím skúste znova.</string>
+    <string name="wifi_edit">Edit</string>
+    <string name="wifi_encryption">Šifrovanie</string>
+    <string name="wifi_forget">Zabudni</string>
+    <string name="wifi_ip_address">IP adresa</string>
+    <string name="wifi_network">Siete Wi-Fi</string>
+    <string name="wifi_open">Otvoriť</string>
+    <string name="wifi_password">Heslo</string>
+    <string name="wifi_remembered">Uložené</string>
+    <string name="wifi_rescan">Znova skenovať</string>
+    <string name="wifi_secured_first_item">"Zabezpečené pomocou <ns1:g id="wifi_security_short">%1$s</ns1:g>"</string>
+    <string name="wifi_secured_second_item">"， Zabezpečené pomocou <ns1:g id="wifi_security_short">%1$s</ns1:g>"</string>
+    <string name="wifi_security">Bezpečnostné</string>
+    <string name="wifi_security_none">Žiadny</string>
+    <string name="wifi_show_advanced">Zobraziť rozšírené možnosti</string>
+    <string name="wifi_show_password">Zobraziť heslo</string>
+    <string name="wifi_signal">Sila signálu</string>
+    <string name="wifi_signal_excellent">"Vynikajúci"</string>
+    <string name="wifi_signal_fair">"Uspokojivý"</string>
+    <string name="wifi_signal_good">"Dobrý"</string>
+    <string name="wifi_signal_none">"Žiadny"</string>
+    <string name="wifi_signal_poor">"Slabý"</string>
+    <string name="wifi_speed">Rýchlosť pripojenia</string>
+    <string name="wifi_status">Stav</string>
+    <string name="wifi_wps_available_first_item">Dostupné chránené siete</string>
+    <string name="wifi_wps_available_second_item">„（Dostupné chránené siete）“</string>
+</resources>

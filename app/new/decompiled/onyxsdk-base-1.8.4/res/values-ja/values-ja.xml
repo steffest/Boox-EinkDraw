@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <string-array name="wifi_status">
+    <item/>
+    <item>スキャニング...\u2026</item>
+    <item>接続中... \u2026</item>
+    <item>認証中…\u2026</item>
+    <item>IPアドレス取得中…\u2026</item>
+    <item>接続完了</item>
+    <item>保留中</item>
+    <item>接続解除中…\u2026</item>
+    <item>接続解除</item>
+    <item>失敗</item>
+  </string-array>
+    <string-array name="wifi_status_with_ssid">
+    <item/>
+    <item>ネットワーク走査中…\u2026</item>
+    <item>に接続中…\u2026に接続中…\u2026</item>
+    <item>で認証中…\u2026で認証中…\u2026</item>
+    <item>からIPアドレスを取得中…\u2026からIPアドレスを取得中…\u2026</item>
+    <item>に接続完了に接続完了</item>
+    <item>保留中</item>
+    <item>から接続解除中…\u2026から接続解除中…\u2026</item>
+    <item>接続解除</item>
+    <item>失敗</item>
+  </string-array>
+    <string name="Wireless_lan">無線LAN</string>
+    <string name="closed">終了</string>
+    <string name="current_available_wifi_count">現在利用可能なWi-Fi: %1$d</string>
+    <string name="no_credential">資格がありません</string>
+    <string name="open_wifi">Wi-Fiをオンにして、利用可能なネットワークを確認します</string>
+    <string name="paste">貼り付け</string>
+    <string name="unavailable">使用禁止</string>
+    <string name="wifi_connect">接続</string>
+    <string name="wifi_connected">接続完了</string>
+    <string name="wifi_disabled_generic">無効</string>
+    <string name="wifi_disabled_network_failure">ネットワーク接続が弱いため無効になりました</string>
+    <string name="wifi_disabled_no_internet_temporary">Wi-Fiは接続されていますが、インターネットにアクセスできません。</string>
+    <string name="wifi_disabled_password_failure">認証エラー</string>
+    <string name="wifi_disabled_wrong_password">パスワードを確認して、もう一度お試し下さい。</string>
+    <string name="wifi_disabled_wrong_password_tips">接続に失敗しました。もう一度試して下さい。</string>
+    <string name="wifi_edit">編集</string>
+    <string name="wifi_encryption">暗号化</string>
+    <string name="wifi_forget">削除</string>
+    <string name="wifi_ip_address">IPアドレス</string>
+    <string name="wifi_network">Wi-Fi ネットワーク</string>
+    <string name="wifi_open">オープン</string>
+    <string name="wifi_password">パスワード</string>
+    <string name="wifi_remembered">保存しました</string>
+    <string name="wifi_rescan">再スキャン</string>
+    <string name="wifi_secured_first_item">"<ns1:g id="wifi_security_short">%1$s</ns1:g>で保護"</string>
+    <string name="wifi_secured_second_item">"， <ns1:g id="wifi_security_short">%1$s</ns1:g> で保護"</string>
+    <string name="wifi_security">セキュリティ</string>
+    <string name="wifi_security_none">なし</string>
+    <string name="wifi_show_advanced">拡張オプションを表示</string>
+    <string name="wifi_show_password">パスワード表示</string>
+    <string name="wifi_signal">信号強度</string>
+    <string name="wifi_signal_excellent">"かなり強い"</string>
+    <string name="wifi_signal_fair">"普通"</string>
+    <string name="wifi_signal_good">"良い"</string>
+    <string name="wifi_signal_none">"なし"</string>
+    <string name="wifi_signal_poor">"弱い"</string>
+    <string name="wifi_speed">接続スピード</string>
+    <string name="wifi_status">ステータス情報</string>
+    <string name="wifi_wps_available_first_item">利用可能な保護対象ネットワーク</string>
+    <string name="wifi_wps_available_second_item">" (利用可能な保護対象ネットワーク)"</string>
+</resources>

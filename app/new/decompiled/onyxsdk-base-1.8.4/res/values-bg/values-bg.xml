@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <string-array name="wifi_status">
+    <item/>
+    <item>Scanning\u2026</item>
+    <item>Connecting\u2026</item>
+    <item>Authenticating\u2026</item>
+    <item>Obtaining IP address\u2026</item>
+    <item>Connected</item>
+    <item>Suspended</item>
+    <item>Disconnecting\u2026</item>
+    <item>Disconnected</item>
+    <item>Unsuccessful</item>
+  </string-array>
+    <string-array name="wifi_status_with_ssid">
+    <item/>
+    <item>Scanning\u2026</item>
+    <item>Connecting to <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Authenticating with  <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Obtaining IP address from <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Connected to <ns1:g id="network_name">%1$s</ns1:g></item>
+    <item>Suspended</item>
+    <item>Disconnecting from  <ns1:g id="network_name">%1$s</ns1:g>\u2026</item>
+    <item>Disconnected</item>
+    <item>Unsuccessful</item>
+  </string-array>
+    <string name="Wireless_lan">Безжична LAN мрежа</string>
+    <string name="closed">Затворено</string>
+    <string name="current_available_wifi_count">Наличен в момента Wi-Fi: %1$d </string>
+    <string name="no_credential">Няма данни за вход</string>
+    <string name="open_wifi">Включете Wi-Fi, за да проверите наличните мрежи</string>
+    <string name="paste">Поставяне</string>
+    <string name="unavailable">Недостъпен</string>
+    <string name="wifi_connect">Свързване</string>
+    <string name="wifi_connected">Свързано</string>
+    <string name="wifi_disabled_generic">Деактивирано</string>
+    <string name="wifi_disabled_network_failure">Слабата мрежова връзка е деактивирана</string>
+    <string name="wifi_disabled_no_internet_temporary">Wi-Fi е свързан, но интернет не е достъпен.</string>
+    <string name="wifi_disabled_password_failure">Грешка при удостоверяване</string>
+    <string name="wifi_disabled_wrong_password">Моля, проверете паролата и опитайте отново. </string>
+    <string name="wifi_disabled_wrong_password_tips">Връзката е неуспешна. Моля, опитайте отново.</string>
+    <string name="wifi_edit">Редактиране</string>
+    <string name="wifi_encryption">Шифроване</string>
+    <string name="wifi_forget">Забравяне</string>
+    <string name="wifi_ip_address">IP адрес</string>
+    <string name="wifi_network">Wi-Fi мрежи</string>
+    <string name="wifi_open">Отваряне</string>
+    <string name="wifi_password">Парола</string>
+    <string name="wifi_remembered">Запазено</string>
+    <string name="wifi_rescan">Повторно сканиране</string>
+    <string name="wifi_secured_first_item">"Обезпечено с <ns1:g id="wifi_security_short">%1$s</ns1:g>"    </string>
+    <string name="wifi_secured_second_item">„，Осигурено с <ns1:g id="wifi_security_short">%1$s</ns1:g>“ </string>
+    <string name="wifi_security">Безопасност</string>
+    <string name="wifi_security_none">Няма</string>
+    <string name="wifi_show_advanced">Показване на разширени опции</string>
+    <string name="wifi_show_password">Показване на парола</string>
+    <string name="wifi_signal">Сила на сигнала</string>
+    <string name="wifi_signal_excellent">"Отлична"</string>
+    <string name="wifi_signal_fair">"Задоволителна"</string>
+    <string name="wifi_signal_good">"Добра"</string>
+    <string name="wifi_signal_none">"Няма"</string>
+    <string name="wifi_signal_poor">"Лоша"</string>
+    <string name="wifi_speed">Скорост на свързване</string>
+    <string name="wifi_status">Информация за състоянието</string>
+    <string name="wifi_wps_available_first_item">Налични защитени мрежи</string>
+    <string name="wifi_wps_available_second_item">" (Налични защитени мрежи)"</string>
+</resources>
