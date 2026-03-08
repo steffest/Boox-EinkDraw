@@ -1,148 +1,195 @@
 package com.onyx.android.sdk.data.note;
 
-import com.boox.einkdraw.RapidInputTransform;
-import com.boox.einkdraw.RapidRawPointRelay;
+import android.graphics.Matrix;
+import android.view.MotionEvent;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * Compatibility shim for Onyx pen native callbacks.
- *
- * Some Onyx pen SDK builds reference this class from native code but do not
- * package it in the AAR dependency graph used by modern AndroidX projects.
- * A minimal implementation keeps raw drawing initialization from crashing.
- */
-public class TouchPoint {
-    public float x;
-    public float y;
-    public float size;
-    public float pressure;
-    public int toolType;
+public class TouchPoint extends com.onyx.android.sdk.base.data.TouchPoint {
+    public static final int OBJECT_BYTE_COUNT = 32;
+
     public int action;
-    public long timestamp;
     public long time;
-    private long lastPublishedTime;
+    public int toolType;
 
     public TouchPoint() {
+        syncTime();
+    }
+
+    public TouchPoint(float x, float y) {
+        super(x, y);
+        syncTime();
     }
 
     public TouchPoint(float x, float y, float pressure) {
-        this.x = RapidInputTransform.mapX(x);
-        this.y = RapidInputTransform.mapY(y);
-        this.pressure = pressure;
-        this.action = 2;
-        this.time = System.currentTimeMillis();
-        this.timestamp = this.time;
-        maybePublish();
+        this(x, y, pressure, 0f, System.currentTimeMillis());
+        this.action = MotionEvent.ACTION_MOVE;
     }
 
-    /**
-     * Signature required by Onyx pen native reader:
-     * <init>(FFFFIIJ)V
-     */
-    public TouchPoint(
-        float x,
-        float y,
-        float size,
-        float pressure,
-        int toolType,
-        int action,
-        long time
-    ) {
-        this.x = RapidInputTransform.mapX(x);
-        this.y = RapidInputTransform.mapY(y);
-        // On some firmware builds these two floats can swap meaning.
-        // Prefer a non-zero pressure candidate to keep pressure-sensitive
-        // rendering active in raw mode.
-        if (pressure <= 0f && size > 0f) {
-            this.size = pressure;
-            this.pressure = size;
+    public TouchPoint(float x, float y, float pressure, float size, long timestamp) {
+        super(x, y, pressure, size, timestamp);
+        syncTime();
+    }
+
+    public TouchPoint(float x, float y, float pressure, float size, int tiltX, int tiltY, long timestamp) {
+        super(x, y, pressure, size, tiltX, tiltY, timestamp);
+        syncTime();
+    }
+
+    public TouchPoint(MotionEvent motionEvent) {
+        super(motionEvent);
+        action = motionEvent.getActionMasked();
+        toolType = motionEvent.getToolType(0);
+        syncTime();
+    }
+
+    public TouchPoint(TouchPoint other) {
+        super(other);
+        action = other.action;
+        time = other.time;
+        toolType = other.toolType;
+    }
+
+    public TouchPoint(com.onyx.android.sdk.base.data.TouchPoint other) {
+        super(other);
+        if (other instanceof TouchPoint) {
+            TouchPoint notePoint = (TouchPoint) other;
+            action = notePoint.action;
+            time = notePoint.time;
+            toolType = notePoint.toolType;
         } else {
-            this.size = size;
-            this.pressure = pressure;
+            syncTime();
         }
-        this.toolType = toolType;
-        this.action = action;
-        this.timestamp = time;
-        this.time = time;
-        maybePublish();
     }
 
-    public float getX() {
-        return x;
+    public static int computePointByteSize(List<TouchPoint> list) {
+        return list == null ? 0 : list.size() * OBJECT_BYTE_COUNT;
     }
 
-    public void setX(float x) {
-        this.x = RapidInputTransform.mapX(x);
+    public static List<TouchPoint> copyList(List<TouchPoint> list) {
+        ArrayList<TouchPoint> copies = new ArrayList<>();
+        if (list == null) {
+            return copies;
+        }
+        for (TouchPoint point : list) {
+            if (point != null) {
+                copies.add(point.copy());
+            }
+        }
+        return copies;
     }
 
-    public float getY() {
-        return y;
+    public static TouchPoint create(MotionEvent motionEvent) {
+        return new TouchPoint(motionEvent);
     }
 
-    public void setY(float y) {
-        this.y = RapidInputTransform.mapY(y);
-    }
-
-    public float getPressure() {
-        return pressure;
-    }
-
-    public void setPressure(float pressure) {
-        this.pressure = pressure;
-    }
-
-    public float getSize() {
-        return size;
-    }
-
-    public void setSize(float size) {
-        this.size = size;
-    }
-
-    public int getToolType() {
-        return toolType;
-    }
-
-    public void setToolType(int toolType) {
-        this.toolType = toolType;
+    public static TouchPoint fromHistorical(MotionEvent motionEvent, int historyIndex) {
+        return new TouchPoint(
+            motionEvent.getHistoricalX(historyIndex),
+            motionEvent.getHistoricalY(historyIndex),
+            motionEvent.getHistoricalPressure(historyIndex),
+            motionEvent.getHistoricalSize(historyIndex),
+            motionEvent.getHistoricalEventTime(historyIndex)
+        );
     }
 
     public int getAction() {
         return action;
     }
 
-    public void setAction(int action) {
-        this.action = action;
-        maybePublish();
-    }
-
     public long getTime() {
         return time;
+    }
+
+    public int getToolType() {
+        return toolType;
+    }
+
+    public void set(TouchPoint other) {
+        super.set(other);
+        action = other.action;
+        time = other.time;
+        toolType = other.toolType;
+    }
+
+    public void setAction(int action) {
+        this.action = action;
+    }
+
+    @Override
+    public TouchPoint setPressure(float pressure) {
+        super.setPressure(pressure);
+        return this;
+    }
+
+    @Override
+    public TouchPoint setSize(float size) {
+        super.setSize(size);
+        return this;
+    }
+
+    @Override
+    public TouchPoint setTiltX(int tiltX) {
+        super.setTiltX(tiltX);
+        return this;
+    }
+
+    @Override
+    public TouchPoint setTiltY(int tiltY) {
+        super.setTiltY(tiltY);
+        return this;
     }
 
     public void setTime(long time) {
         this.time = time;
         this.timestamp = time;
-        maybePublish();
     }
 
-    public long getTimestamp() {
-        return timestamp;
+    @Override
+    public TouchPoint setTimestamp(long timestamp) {
+        super.setTimestamp(timestamp);
+        syncTime();
+        return this;
     }
 
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
-        this.time = timestamp;
-        maybePublish();
+    public void setToolType(int toolType) {
+        this.toolType = toolType;
     }
 
-    private void maybePublish() {
-        if (time <= 0L) {
-            return;
-        }
-        if (time == lastPublishedTime && action == 2) {
-            return;
-        }
-        lastPublishedTime = time;
-        RapidRawPointRelay.publish(this.x, this.y, this.pressure, this.action, this.time);
+    @Override
+    public TouchPoint setX(float x) {
+        super.setX(x);
+        return this;
+    }
+
+    @Override
+    public TouchPoint setY(float y) {
+        super.setY(y);
+        return this;
+    }
+
+    public TouchPoint copy() {
+        return new TouchPoint(this);
+    }
+
+    @Override
+    public TouchPoint transform(Matrix matrix) {
+        TouchPoint point = copy();
+        point.applyMatrix(matrix);
+        return point;
+    }
+
+    @Override
+    public TouchPoint clone() {
+        return new TouchPoint(this);
+    }
+
+    @Override
+    public String toString() {
+        return "x:" + x + " y:" + y + " pressure:" + pressure + " size:" + size;
+    }
+
+    private void syncTime() {
+        time = timestamp;
     }
 }

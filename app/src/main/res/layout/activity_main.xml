@@ -2,91 +2,88 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="8dp">
+    android:orientation="vertical">
 
+    <!-- ── Brush selector ─────────────────────────────────────── -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#EBEBEB"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/brushButtonRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
+
+    <!-- ── Width slider + action buttons ─────────────────────── -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#DEDEDE"
         android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="3dp"
+        android:paddingBottom="3dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="W"
+            android:textSize="12sp" />
+
+        <SeekBar
+            android:id="@+id/widthSeekBar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:max="99" />
+
+        <TextView
+            android:id="@+id/widthValueLabel"
+            android:layout_width="42dp"
+            android:layout_height="wrap_content"
+            android:text="5 px"
+            android:textSize="11sp" />
 
         <Button
-            android:id="@+id/buttonRapidMode"
+            android:id="@+id/buttonClear"
+            style="?android:attr/buttonStyleSmall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/rapid_mode_off" />
-
-        <LinearLayout
-            android:id="@+id/colorPalette"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal" />
-
-        <ImageButton
-            android:id="@+id/buttonColorPicker"
-            android:layout_width="22dp"
-            android:layout_height="22dp"
             android:layout_marginStart="6dp"
-            android:background="@drawable/rainbow_dot"
-            android:contentDescription="@string/color_picker"
-            android:foreground="?attr/selectableItemBackgroundBorderless" />
+            android:minHeight="0dp"
+            android:text="Clear"
+            android:textSize="12sp" />
 
-        <Space
-            android:layout_width="0dp"
+        <Button
+            android:id="@+id/buttonSave"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
-
-        <ImageButton
-            android:id="@+id/buttonMenu"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/actions_menu"
-            android:src="@drawable/hamburger_black" />
+            android:layout_marginStart="4dp"
+            android:minHeight="0dp"
+            android:text="Save"
+            android:textSize="12sp" />
     </LinearLayout>
 
-    <LinearLayout
+    <!-- ── Drawing canvas (fills remaining space) ─────────────── -->
+    <com.boox.einkdraw.HardwarePenSurfaceView
+        android:id="@+id/penSurfaceView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
         android:layout_weight="1"
-        android:orientation="horizontal">
-
-        <LinearLayout
-            android:layout_width="56dp"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-
-            <com.boox.einkdraw.VerticalSeekBar
-                android:id="@+id/sliderBrushSize"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:contentDescription="@string/brush_size"
-                android:max="100"
-                android:progress="40" />
-
-            <com.boox.einkdraw.VerticalSeekBar
-                android:id="@+id/sliderBrushOpacity"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="8dp"
-                android:layout_weight="1"
-                android:contentDescription="@string/brush_opacity"
-                android:max="100"
-                android:progress="100" />
-        </LinearLayout>
-
-        <com.boox.einkdraw.DrawingView
-            android:id="@+id/drawingView"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginStart="8dp"
-            android:layout_weight="1" />
-    </LinearLayout>
+        android:background="#FFFFFF" />
 
 </LinearLayout>

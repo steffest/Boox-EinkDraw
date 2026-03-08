@@ -1,30 +1,3 @@
 <resources>
-    <string name="app_name">Boox E-Ink Draw</string>
-    <string name="open_png">Open PNG</string>
-    <string name="export_png">Export PNG</string>
-    <string name="clear">Clear</string>
-    <string name="reset_view">Reset View</string>
-    <string name="brush_size">Brush Size</string>
-    <string name="brush_opacity">Brush Opacity</string>
-    <string name="color_black">Color: Black</string>
-    <string name="color_white">Color: White</string>
-    <string name="rapid_mode_on">Rapid: ON</string>
-    <string name="rapid_mode_off">Rapid: OFF</string>
-    <string name="overlay_permission_required">Overlay permission is required for rapid mode</string>
-    <string name="rapid_overlay_not_supported">Rapid mode is not supported on this device</string>
-    <string name="rapid_overlay_title">Boox Rapid Overlay</string>
-    <string name="rapid_overlay_running">Raw stylus drawing is active (pressure enabled)</string>
-    <string name="rapid_overlay_channel_name">Boox rapid overlay</string>
-    <string name="stop">Stop</string>
-    <string name="save_filename">drawing.png</string>
-    <string name="error_open_png">Could not open PNG</string>
-    <string name="error_save_png">Could not save PNG</string>
-    <string name="error_wrong_size">PNG must be 930x1240</string>
-    <string name="saved_ok">Saved PNG</string>
-    <string name="actions_menu">Actions menu</string>
-    <string name="color_picker">Color picker</string>
-    <string name="pick_color">Pick color</string>
-    <string name="red_channel">Red</string>
-    <string name="green_channel">Green</string>
-    <string name="blue_channel">Blue</string>
+    <string name="app_name">Boox Draw</string>
 </resources>

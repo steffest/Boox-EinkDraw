@@ -51,8 +51,10 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.activity:activity-ktx:1.9.2")
     
-    // Reference all local AAR/JAR files in the libs folder (onyxsdk-device, onyxsdk-pen, etc.)
-    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar", "*.jar"))))
+    // Latest Onyx SDK versions (compatible set)
+    implementation(files("libs/onyxsdk-base-1.8.4.aar"))
+    implementation(files("libs/onyxsdk-pen-1.5.2.aar"))
+    implementation(files("libs/onyxsdk-device-1.3.3.aar"))
     
     // RxJava 2 dependencies required by Onyx SDK
     implementation("io.reactivex.rxjava2:rxjava:2.2.21")

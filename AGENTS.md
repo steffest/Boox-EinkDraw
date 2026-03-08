@@ -81,3 +81,4 @@ Calling `closeRawDrawing()` synchronously on the UI thread while rapid updates a
 ### D) App Canvas Coordinate Space
 E-ink hardware provides raw coordinates in physical screen pixels. 
 **Mitigation:** You must reverse transform them (`toCanvasX`, `toCanvasY`) using the current pan/zoom/displayScale offsets before ingesting them into the permanent bitmap.
+
