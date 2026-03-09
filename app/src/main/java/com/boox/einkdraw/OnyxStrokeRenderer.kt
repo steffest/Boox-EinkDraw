@@ -9,6 +9,7 @@ import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
 import com.onyx.android.sdk.data.note.TouchPoint
+import com.onyx.android.sdk.pen.NeoBrushPenWrapper
 import com.onyx.android.sdk.pen.NeoFountainPenWrapper
 import com.onyx.android.sdk.pen.NeoMarkerPenWrapper
 import kotlin.math.PI
@@ -43,27 +44,28 @@ object OnyxStrokeRenderer {
         style: HardwarePenStyle,
         points: List<TouchPoint>,
         widthPx: Float,
+        color: Int,
         canvas: Canvas,
         maxPressure: Float,
     ) {
         if (points.isEmpty()) return
         when (style) {
-            HardwarePenStyle.PENCIL -> renderPencil(points, widthPx, canvas)
-            HardwarePenStyle.FOUNTAIN -> renderFountain(points, widthPx, canvas, maxPressure)
-            HardwarePenStyle.MARKER -> renderMarker(points, widthPx, canvas, maxPressure)
-            HardwarePenStyle.NEO_BRUSH -> renderNeoBrush(points, widthPx, canvas)
-            HardwarePenStyle.CHARCOAL -> renderCharcoal(points, widthPx, canvas, v2 = false, maxPressure = maxPressure)
-            HardwarePenStyle.DASH -> renderDash(points, widthPx, canvas)
-            HardwarePenStyle.CHARCOAL_V2 -> renderCharcoal(points, widthPx, canvas, v2 = true, maxPressure = maxPressure)
-            HardwarePenStyle.SQUARE_PEN -> renderSquarePen(points, widthPx, canvas)
+            HardwarePenStyle.PENCIL -> renderPencil(points, widthPx, color, canvas)
+            HardwarePenStyle.FOUNTAIN -> renderFountain(points, widthPx, color, canvas, maxPressure)
+            HardwarePenStyle.MARKER -> renderMarker(points, widthPx, color, canvas, maxPressure)
+            HardwarePenStyle.NEO_BRUSH -> renderNeoBrush(points, widthPx, color, canvas, maxPressure)
+            HardwarePenStyle.CHARCOAL -> renderCharcoal(points, widthPx, color, canvas, v2 = false, maxPressure = maxPressure)
+            HardwarePenStyle.DASH -> renderDash(points, widthPx, color, canvas)
+            HardwarePenStyle.CHARCOAL_V2 -> renderCharcoal(points, widthPx, color, canvas, v2 = true, maxPressure = maxPressure)
+            HardwarePenStyle.SQUARE_PEN -> renderSquarePen(points, widthPx, color, canvas)
         }
     }
 
     // ─── PENCIL: deterministic stipple dots ───────────────────────────────────
 
-    private fun renderPencil(points: List<TouchPoint>, widthPx: Float, canvas: Canvas) {
+    private fun renderPencil(points: List<TouchPoint>, widthPx: Float, color: Int, canvas: Canvas) {
         val paint = Paint().apply {
-            color = Color.BLACK
+            this.color = color
             strokeWidth = widthPx
             style = Paint.Style.STROKE
             strokeCap = Paint.Cap.ROUND
@@ -75,8 +77,8 @@ object OnyxStrokeRenderer {
 
     // ─── FOUNTAIN: NeoFountainPenWrapper ──────────────────────────────────────
 
-    private fun renderFountain(points: List<TouchPoint>, widthPx: Float, canvas: Canvas, maxPressure: Float) {
-        val paint = solidPaint()
+    private fun renderFountain(points: List<TouchPoint>, widthPx: Float, color: Int, canvas: Canvas, maxPressure: Float) {
+        val paint = solidPaint(color)
         val pts = points.toArrayList()
         try {
             val pressureDivisor = nativePressureDivisor(pts, maxPressure)
@@ -85,17 +87,17 @@ object OnyxStrokeRenderer {
             val result = NeoFountainPenWrapper.computeStrokePoints(pts, 1f, widthPx, pressureDivisor)
             com.onyx.android.sdk.pen.PenUtils.drawStrokeByPointSize(canvas, paint, result, false)
         } catch (_: Throwable) {
-            fallbackPressureStroke(points, widthPx, canvas)
+            fallbackPressureStroke(points, widthPx, color, canvas, HardwarePenStyle.FOUNTAIN, maxPressure)
         }
     }
 
     // ─── MARKER: NeoMarkerPenWrapper, 50 % alpha offscreen composite ──────────
 
-    private fun renderMarker(points: List<TouchPoint>, widthPx: Float, canvas: Canvas, maxPressure: Float) {
+    private fun renderMarker(points: List<TouchPoint>, widthPx: Float, color: Int, canvas: Canvas, maxPressure: Float) {
         android.util.Log.d("MarkerTest", "renderMarker: ${points.size} pts width=$widthPx")
         if (points.isEmpty()) return
         val pts = points.toArrayList()
-        val paint = solidPaint().apply {
+        val paint = solidPaint(color).apply {
             strokeWidth = widthPx; isAntiAlias = true
             style = Paint.Style.FILL_AND_STROKE
             strokeCap = Paint.Cap.ROUND; strokeJoin = Paint.Join.ROUND
@@ -142,33 +144,52 @@ object OnyxStrokeRenderer {
 
     // ─── NEO_BRUSH: NeoBrushPenWrapper ───────────────────────────────────────
 
-    private fun renderNeoBrush(points: List<TouchPoint>, widthPx: Float, canvas: Canvas) {
-        fallbackPressureStroke(points, widthPx, canvas)
+    private fun renderNeoBrush(points: List<TouchPoint>, widthPx: Float, color: Int, canvas: Canvas, maxPressure: Float) {
+        val pts = points.toArrayList()
+        val paint = solidPaint(color)
+        try {
+            val pressureDivisor = nativePressureDivisor(pts, maxPressure)
+            val result = NeoBrushPenWrapper.computeStrokePoints(pts, widthPx, pressureDivisor)
+            if (!result.isNullOrEmpty()) {
+                com.onyx.android.sdk.pen.PenUtils.drawStrokeByPointSize(canvas, paint, result, false)
+            } else {
+                fallbackPressureStroke(points, widthPx, color, canvas, HardwarePenStyle.NEO_BRUSH, maxPressure)
+            }
+        } catch (_: Throwable) {
+            fallbackPressureStroke(points, widthPx, color, canvas, HardwarePenStyle.NEO_BRUSH, maxPressure)
+        }
     }
 
     // ─── CHARCOAL / CHARCOAL_V2 ──────────────────────────────────────────────
     //
-    // Uses NeoCharcoalPenV2Wrapper.drawNormalStroke (create + destroy per stroke).
+    // Uses native wrappers:
+    //  - V1: NeoCharcoalPenWrapper.drawNormalStroke
+    //  - V2: NeoCharcoalPenV2Wrapper.drawNormalStroke
     // A GC hint before each call encourages the JVM to collect Bitmap / PenResult
     // objects from the previous stroke before allocating new native stamps, preventing
     // heap exhaustion across many strokes.
-    // V1 uses the Kotlin cloud-texture fallback.
+    // Kotlin cloud-texture path is retained only as fallback.
 
     private fun renderCharcoal(
         points: List<TouchPoint>,
         widthPx: Float,
+        color: Int,
         canvas: Canvas,
         v2: Boolean,
         maxPressure: Float,
     ) {
-        if (!v2) { charcoalCloudTexture(points, widthPx, canvas, false); return }
-        if (points.size < 2) { charcoalCloudTexture(points, widthPx, canvas, true); return }
+        if (points.size < 2) { charcoalCloudTexture(points, widthPx, color, canvas, v2); return }
 
         // Encourage GC to collect stamp objects from the previous stroke's render.
         System.gc()
 
-        val prepared = prepareCharcoalV2Points(points, maxPressure)
+        val prepared = prepareCharcoalPoints(points, maxPressure)
         val pressureInfo = prepared.second
+        val penType = if (v2) {
+            com.onyx.android.sdk.pen.NeoPenConfig.NEOPEN_PEN_TYPE_CHARCOAL_V2
+        } else {
+            com.onyx.android.sdk.pen.NeoPenConfig.NEOPEN_PEN_TYPE_CHARCOAL
+        }
         val createArgs = com.onyx.android.sdk.data.note.ShapeCreateArgs()
             .setMaxPressure(pressureInfo.renderMaxPressure)
 
@@ -176,9 +197,9 @@ object OnyxStrokeRenderer {
             .setCanvas(canvas)
             .setPoints(prepared.first)
             .setStrokeWidth(widthPx)
-            .setColor(Color.BLACK)
+            .setColor(color)
             .setContentRect(RectF(0f, 0f, canvas.width.toFloat(), canvas.height.toFloat()))
-            .setPenType(com.onyx.android.sdk.pen.NeoPenConfig.NEOPEN_PEN_TYPE_CHARCOAL_V2)
+            .setPenType(penType)
             .setScreenMatrix(android.graphics.Matrix())
             .setRenderMatrix(android.graphics.Matrix())
             .setTiltEnabled(true)
@@ -187,18 +208,22 @@ object OnyxStrokeRenderer {
 
         android.util.Log.d(
             "CharcoalTest",
-            "v2 pts=${prepared.first.size} pressure=[${"%.3f".format(pressureInfo.minPressure)},${"%.3f".format(pressureInfo.maxPressure)}] " +
+            "v${if (v2) 2 else 1} pts=${prepared.first.size} pressure=[${"%.3f".format(pressureInfo.minPressure)},${"%.3f".format(pressureInfo.maxPressure)}] " +
                 "renderMax=${"%.3f".format(pressureInfo.renderMaxPressure)} normalized=${pressureInfo.normalizedInput}"
         )
 
         runCatching {
-            com.onyx.android.sdk.pen.NeoCharcoalPenV2Wrapper.drawNormalStroke(args)
+            if (v2) {
+                com.onyx.android.sdk.pen.NeoCharcoalPenV2Wrapper.drawNormalStroke(args)
+            } else {
+                com.onyx.android.sdk.pen.NeoCharcoalPenWrapper.drawNormalStroke(args)
+            }
         }.onFailure { e ->
-            android.util.Log.w("CharcoalTest", "drawNormalStroke failed: ${e.message}")
-            charcoalCloudTexture(points, widthPx, canvas, true)
+            android.util.Log.w("CharcoalTest", "v${if (v2) 2 else 1} drawNormalStroke failed: ${e.message}")
+            charcoalCloudTexture(points, widthPx, color, canvas, v2)
         }
 
-        android.util.Log.d("CharcoalTest", "drawNormalStroke pts=${points.size}")
+        android.util.Log.d("CharcoalTest", "v${if (v2) 2 else 1} drawNormalStroke pts=${points.size}")
     }
 
     private data class PressureInfo(
@@ -213,7 +238,7 @@ object OnyxStrokeRenderer {
      * The native charcoal wrapper always divides by createArgs.maxPressure, so we normalize
      * max-pressure per stroke to keep output consistent and avoid invisible strokes.
      */
-    private fun prepareCharcoalV2Points(points: List<TouchPoint>, deviceMaxPressure: Float): Pair<ArrayList<TouchPoint>, PressureInfo> {
+    private fun prepareCharcoalPoints(points: List<TouchPoint>, deviceMaxPressure: Float): Pair<ArrayList<TouchPoint>, PressureInfo> {
         val out = ArrayList<TouchPoint>(points.size)
         var minP = Float.MAX_VALUE
         var maxP = 0f
@@ -264,10 +289,9 @@ object OnyxStrokeRenderer {
     }
 
     /** Pure-Java fallback: ring + dot cloud stamps along the stroke path. */
-    private fun charcoalCloudTexture(points: List<TouchPoint>, widthPx: Float, canvas: Canvas, v2: Boolean) {
+    private fun charcoalCloudTexture(points: List<TouchPoint>, widthPx: Float, color: Int, canvas: Canvas, v2: Boolean) {
         val paint = Paint().apply {
-            color = Color.BLACK
-            alpha = 160 // Proper charcoal opacity layer
+            this.color = withAlpha(color, 160) // Proper charcoal opacity layer
             strokeWidth = 1f
             style = Paint.Style.STROKE
             isAntiAlias = false
@@ -317,21 +341,61 @@ object OnyxStrokeRenderer {
         }
     }
 
-    // ─── DASH: DashPathEffect line ────────────────────────────────────────────
+    // ─── DASH: black+white dashed track (matches Onyx overlay style) ─────────
 
-    private fun renderDash(points: List<TouchPoint>, widthPx: Float, canvas: Canvas) {
-        val dashLen = widthPx * 3f
-        val gapLen = widthPx * 1.5f
-        val paint = Paint().apply {
-            color = Color.BLACK
-            strokeWidth = widthPx
+    private fun renderDash(points: List<TouchPoint>, widthPx: Float, color: Int, canvas: Canvas) {
+        if (points.isEmpty()) return
+
+        val dashPeriod = max(2f, widthPx * 3f)
+        val phase = 0f
+        val offset = max(0.5f, widthPx / 3f)
+
+        val basePaint = Paint().apply {
             style = Paint.Style.STROKE
             strokeCap = Paint.Cap.ROUND
             strokeJoin = Paint.Join.ROUND
+            strokeWidth = widthPx
             isAntiAlias = true
-            pathEffect = DashPathEffect(floatArrayOf(dashLen, gapLen), 0f)
         }
-        drawPolyline(points, canvas, paint)
+        val whiteDash = Paint(basePaint).apply {
+            this.color = Color.WHITE
+            pathEffect = DashPathEffect(
+                floatArrayOf(max(1f, dashPeriod - offset), dashPeriod + offset),
+                phase,
+            )
+        }
+        val blackDash = Paint(basePaint).apply {
+            this.color = color
+            pathEffect = DashPathEffect(floatArrayOf(dashPeriod, dashPeriod), phase)
+        }
+
+        if (points.size == 1) {
+            val p = points[0]
+            val radius = max(0.75f, widthPx * 0.5f)
+            val whiteDot = Paint(basePaint).apply {
+                style = Paint.Style.FILL
+                this.color = Color.WHITE
+                pathEffect = null
+            }
+            val blackDot = Paint(basePaint).apply {
+                style = Paint.Style.FILL
+                this.color = color
+                pathEffect = null
+            }
+            canvas.drawCircle(p.x + offset, p.y + offset, radius, whiteDot)
+            canvas.drawCircle(p.x, p.y, radius, blackDot)
+            return
+        }
+
+        val path = Path().apply {
+            moveTo(points[0].x, points[0].y)
+            for (i in 1 until points.size) lineTo(points[i].x, points[i].y)
+        }
+        canvas.save()
+        canvas.translate(offset, offset)
+        canvas.drawPath(path, whiteDash)
+        canvas.restore()
+        canvas.drawPath(path, blackDash)
     }
 
     // ─── SQUARE_PEN: calligraphy chisel-nib ──────────────────────────────────
@@ -342,15 +406,15 @@ object OnyxStrokeRenderer {
      * Nib angle 45° produces the classic copperplate look:
      *   diagonal strokes → thick, horizontal/vertical strokes → thin.
      */
-    private fun renderSquarePen(points: List<TouchPoint>, widthPx: Float, canvas: Canvas) {
+    private fun renderSquarePen(points: List<TouchPoint>, widthPx: Float, color: Int, canvas: Canvas) {
         if (points.size < 2) {
-            val paint = solidPaint().apply { style = Paint.Style.FILL }
+            val paint = solidPaint(color).apply { style = Paint.Style.FILL }
             points.firstOrNull()?.let { canvas.drawCircle(it.x, it.y, widthPx / 2f, paint) }
             return
         }
         val nibAngle = (PI / 4.0).toFloat()   // 45° nib
         val paint = Paint().apply {
-            color = Color.BLACK
+            this.color = color
             style = Paint.Style.STROKE
             strokeCap = Paint.Cap.BUTT
             strokeJoin = Paint.Join.MITER
@@ -383,19 +447,26 @@ object OnyxStrokeRenderer {
     }
 
     /** Pressure-varying filled-circle fallback used when SDK wrappers are unavailable. */
-    private fun fallbackPressureStroke(points: List<TouchPoint>, widthPx: Float, canvas: Canvas) {
-        val paint = solidPaint().apply { style = Paint.Style.FILL }
-        val stats = signalStats(points)
+    private fun fallbackPressureStroke(
+        points: List<TouchPoint>,
+        widthPx: Float,
+        color: Int,
+        canvas: Canvas,
+        penStyle: HardwarePenStyle,
+        maxPressure: Float,
+    ) {
+        val paint = solidPaint(color).apply { style = Paint.Style.FILL }
+        val pressureDivisor = nativePressureDivisor(points, maxPressure)
         if (points.size == 1) {
             val p = points[0]
-            canvas.drawCircle(p.x, p.y, max(0.5f, pressureToRadius(widthPx, normalizedSignal(p, stats), HardwarePenStyle.FOUNTAIN)), paint)
+            canvas.drawCircle(p.x, p.y, max(0.5f, pressureToRadius(widthPx, normalizedSignalAbsolute(p, pressureDivisor), penStyle)), paint)
             return
         }
         var prev = points[0]
         for (i in 1 until points.size) {
             val curr = points[i]
-            val pr = pressureToRadius(widthPx, normalizedSignal(prev, stats), HardwarePenStyle.FOUNTAIN)
-            val cr = pressureToRadius(widthPx, normalizedSignal(curr, stats), HardwarePenStyle.FOUNTAIN)
+            val pr = pressureToRadius(widthPx, normalizedSignalAbsolute(prev, pressureDivisor), penStyle)
+            val cr = pressureToRadius(widthPx, normalizedSignalAbsolute(curr, pressureDivisor), penStyle)
             interpolateCircles(prev, curr, pr, cr, canvas, paint)
             prev = curr
         }
@@ -412,8 +483,8 @@ object OnyxStrokeRenderer {
         }
     }
 
-    private fun solidPaint() = Paint().apply {
-        color = Color.BLACK
+    private fun solidPaint(color: Int) = Paint().apply {
+        this.color = color
         isAntiAlias = true
         style = Paint.Style.FILL
         strokeCap = Paint.Cap.ROUND
@@ -453,6 +524,20 @@ object OnyxStrokeRenderer {
         return norm.pow(0.85f).coerceIn(0.01f, 1f)
     }
 
+    /**
+     * Absolute pressure normalization (vs per-stroke relative), used by fallback
+     * paths to avoid width spikes on short low-pressure strokes.
+     */
+    private fun normalizedSignalAbsolute(pt: TouchPoint, pressureDivisor: Float): Float {
+        if (pt.pressure <= 0f) return 0.35f
+        val norm = if (pressureDivisor <= 1.5f) {
+            pt.pressure.coerceIn(0.01f, 1f)
+        } else {
+            (pt.pressure / pressureDivisor).coerceIn(0.01f, 1f)
+        }
+        return norm.pow(0.85f).coerceIn(0.01f, 1f)
+    }
+
     private fun pressureToRadius(baseWidth: Float, signal: Float, style: HardwarePenStyle): Float {
         val (curve, minF, maxF) = when (style) {
             HardwarePenStyle.PENCIL -> Triple(0.5f, 0.12f, 1.0f)
@@ -468,6 +553,9 @@ object OnyxStrokeRenderer {
     // ─── Math helpers ─────────────────────────────────────────────────────────
 
     private fun lerp(a: Float, b: Float, t: Float) = a + (b - a) * t.coerceIn(0f, 1f)
+
+    private fun withAlpha(color: Int, alpha: Int): Int =
+        Color.argb(alpha.coerceIn(0, 255), Color.red(color), Color.green(color), Color.blue(color))
 
     /** Deterministic pseudo-random float in [0, 1) — same inputs → same dot positions. */
     private fun hashUnit(seed: Int, salt: Int): Float {

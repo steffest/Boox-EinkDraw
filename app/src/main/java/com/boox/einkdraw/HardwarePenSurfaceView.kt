@@ -40,6 +40,7 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
     private data class RecordedStroke(
         val style: HardwarePenStyle,
         val widthPx: Float,
+        val color: Int,
         val points: List<TouchPoint>,
     )
 
@@ -47,6 +48,7 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
 
     private var activeStyle = HardwarePenStyle.PENCIL
     private var activeWidthPx = HardwarePenStyle.PENCIL.defaultWidthPx
+    private var activeColor = Color.BLACK
     private var rawInputSuppressed = false
 
     // ─── Persistent ink bitmap ────────────────────────────────────────────────
@@ -69,6 +71,7 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
 
     private var strokeStyle = HardwarePenStyle.PENCIL
     private var strokeWidthPx = 5f
+    private var strokeColor = Color.BLACK
     private val strokePoints = ArrayList<TouchPoint>(256)
     private var receivedAuthorityList = false
     private var needsFullRebuild = false
@@ -92,6 +95,11 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         reconfigureTouchHelper()
     }
 
+    fun setStrokeColor(color: Int) {
+        activeColor = color
+        reconfigureTouchHelper()
+    }
+
     /**
      * Suppress/restore the hardware pen overlay while the user interacts with UI controls.
      * Must be called from the UI thread (e.g. via an onTouchListener on every UI button).
@@ -110,6 +118,20 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         inkCanvas?.drawColor(Color.WHITE)
         snapshotCanvas?.drawColor(Color.WHITE)
         invalidateSurface()
+    }
+
+    fun loadCanvasBitmap(bitmap: Bitmap): Boolean {
+        if (bitmap.isRecycled || width <= 0 || height <= 0) return false
+        allocateBitmap(width, height)
+        val canvas = inkCanvas ?: return false
+        canvas.drawColor(Color.WHITE)
+        val dst = fitCenterRect(bitmap.width, bitmap.height, width, height)
+        canvas.drawBitmap(bitmap, null, dst, null)
+        completedStrokes.clear()
+        strokePoints.clear()
+        updateSnapshot()
+        invalidateSurface()
+        return true
     }
 
     fun exportBitmap(): Bitmap? =
@@ -206,10 +228,12 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
                 helper.setStrokeWidth(widthPx)
                 // 2. Hardware Preview Color — Apply correct alpha for translucent/textured brushes
                 val hardwareColor = when (style) {
-                    HardwarePenStyle.MARKER -> Color.argb(128, 0, 0, 0)
-                    HardwarePenStyle.CHARCOAL -> Color.argb(160, 0, 0, 0)
-                    HardwarePenStyle.CHARCOAL_V2 -> Color.argb(160, 0, 0, 0)
-                    else -> Color.BLACK
+                    HardwarePenStyle.MARKER -> withAlpha(activeColor, 128)
+                    // Charcoal hardware preview should keep full RGB; translucent ARGB
+                    // can be coerced to black by the pen chip for these styles.
+                    HardwarePenStyle.CHARCOAL -> withAlpha(activeColor, 255)
+                    HardwarePenStyle.CHARCOAL_V2 -> withAlpha(activeColor, 255)
+                    else -> withAlpha(activeColor, 255)
                 }
                 helper.setStrokeColor(hardwareColor)
                 // 3. Limit rect
@@ -218,6 +242,10 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
                 helper.openRawDrawing()
                 // 5. Style — MUST come after openRawDrawing or it reverts to FOUNTAIN
                 helper.setStrokeStyle(style.hardwareStrokeStyle)
+                // Some styles (notably Charcoal) reset chip-side color/width defaults when style changes.
+                // Re-apply active pen params after selecting style.
+                helper.setStrokeWidth(widthPx)
+                helper.setStrokeColor(hardwareColor)
                 // 6. Let the hardware chip draw the live preview (zero latency)
                 helper.setRawDrawingRenderEnabled(false)
                 // 7. Enable (or keep disabled while UI is active)
@@ -257,6 +285,24 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         // bitmap has been composited, ensuring the hardware sees the updated framebuffer.
         invalidate()
     }
+
+    private fun fitCenterRect(srcW: Int, srcH: Int, dstW: Int, dstH: Int): RectF {
+        if (srcW <= 0 || srcH <= 0 || dstW <= 0 || dstH <= 0) return RectF(0f, 0f, dstW.toFloat(), dstH.toFloat())
+        val srcAspect = srcW.toFloat() / srcH.toFloat()
+        val dstAspect = dstW.toFloat() / dstH.toFloat()
+        return if (srcAspect > dstAspect) {
+            val drawH = dstW / srcAspect
+            val top = (dstH - drawH) * 0.5f
+            RectF(0f, top, dstW.toFloat(), top + drawH)
+        } else {
+            val drawW = dstH * srcAspect
+            val left = (dstW - drawW) * 0.5f
+            RectF(left, 0f, left + drawW, dstH.toFloat())
+        }
+    }
+
+    private fun withAlpha(color: Int, alpha: Int): Int =
+        Color.argb(alpha.coerceIn(0, 255), Color.red(color), Color.green(color), Color.blue(color))
 
     // ─── Point helpers ────────────────────────────────────────────────────────
 
@@ -309,6 +355,7 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
             strokePoints.clear()
             strokeStyle = activeStyle
             strokeWidthPx = activeWidthPx
+            strokeColor = activeColor
             needsFullRebuild = false
             receivedAuthorityList = false
             pendingPenUpRefresh = false
@@ -336,11 +383,11 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
             if (strokePoints.size >= 2 && !hasRenderedThisStroke) {
                 hasRenderedThisStroke = true
                 val copy = ArrayList(strokePoints)
-                completedStrokes.add(RecordedStroke(strokeStyle, strokeWidthPx, copy))
+                completedStrokes.add(RecordedStroke(strokeStyle, strokeWidthPx, strokeColor, copy))
                 Log.d(TAG, "render: style=$strokeStyle inkCanvas=${inkCanvas != null} pts=${copy.size}")
                 runCatching {
                     inkCanvas?.let {
-                        OnyxStrokeRenderer.render(strokeStyle, copy, strokeWidthPx, it, maxPressure())
+                        OnyxStrokeRenderer.render(strokeStyle, copy, strokeWidthPx, strokeColor, it, maxPressure())
                     }
                 }.onFailure { e ->
                     Log.e(TAG, "render threw: ${e.javaClass.simpleName}: ${e.message}", e)

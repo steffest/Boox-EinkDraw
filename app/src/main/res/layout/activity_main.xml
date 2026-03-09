@@ -57,6 +57,34 @@
             android:text="5 px"
             android:textSize="11sp" />
 
+        <View
+            android:id="@+id/swatchBlack"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="6dp" />
+
+        <View
+            android:id="@+id/swatchWhite"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="4dp" />
+
+        <View
+            android:id="@+id/swatchBlue"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="4dp" />
+
+        <Button
+            android:id="@+id/buttonLoad"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:minHeight="0dp"
+            android:text="Load"
+            android:textSize="12sp" />
+
         <Button
             android:id="@+id/buttonClear"
             style="?android:attr/buttonStyleSmall"
