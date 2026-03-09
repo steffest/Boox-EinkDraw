@@ -49,7 +49,7 @@ object OnyxStrokeRenderer {
         if (points.isEmpty()) return
         when (style) {
             HardwarePenStyle.PENCIL -> renderPencil(points, widthPx, canvas)
-            HardwarePenStyle.FOUNTAIN -> renderFountain(points, widthPx, canvas)
+            HardwarePenStyle.FOUNTAIN -> renderFountain(points, widthPx, canvas, maxPressure)
             HardwarePenStyle.MARKER -> renderMarker(points, widthPx, canvas, maxPressure)
             HardwarePenStyle.NEO_BRUSH -> renderNeoBrush(points, widthPx, canvas)
             HardwarePenStyle.CHARCOAL -> renderCharcoal(points, widthPx, canvas, v2 = false, maxPressure = maxPressure)
@@ -75,17 +75,14 @@ object OnyxStrokeRenderer {
 
     // ─── FOUNTAIN: NeoFountainPenWrapper ──────────────────────────────────────
 
-    private fun renderFountain(points: List<TouchPoint>, widthPx: Float, canvas: Canvas) {
+    private fun renderFountain(points: List<TouchPoint>, widthPx: Float, canvas: Canvas, maxPressure: Float) {
         val paint = solidPaint()
-        val min = widthPx * 0.18f
-        val max = widthPx
         val pts = points.toArrayList()
         try {
-            val result = if (NeoFountainPenWrapper.hasPressure(pts)) {
-                NeoFountainPenWrapper.computeStrokePoints(pts, min, max, 1f)
-            } else {
-                NeoFountainPenWrapper.computeStrokePoints(pts, min, max)
-            }
+            val pressureDivisor = nativePressureDivisor(pts, maxPressure)
+            // Signature: (points, displayScale, strokeWidth, maxTouchPressure)
+            // The wrapper divides each point.pressure by maxTouchPressure internally.
+            val result = NeoFountainPenWrapper.computeStrokePoints(pts, 1f, widthPx, pressureDivisor)
             com.onyx.android.sdk.pen.PenUtils.drawStrokeByPointSize(canvas, paint, result, false)
         } catch (_: Throwable) {
             fallbackPressureStroke(points, widthPx, canvas)
@@ -251,6 +248,19 @@ object OnyxStrokeRenderer {
             renderMaxPressure = renderMax,
             normalizedInput = normalizedInput,
         )
+    }
+
+    /**
+     * Native pen wrappers normalize by dividing point.pressure by this divisor.
+     * RawInput can deliver either already-normalized [0..1] or raw [0..MAX] pressure.
+     */
+    private fun nativePressureDivisor(points: List<TouchPoint>, deviceMaxPressure: Float): Float {
+        var maxP = 0f
+        for (p in points) {
+            if (p.pressure > 0f) maxP = max(maxP, p.pressure)
+        }
+        if (maxP <= 0f) return 1f
+        return if (maxP <= 1.5f) 1f else max(deviceMaxPressure, maxP)
     }
 
     /** Pure-Java fallback: ring + dot cloud stamps along the stroke path. */
