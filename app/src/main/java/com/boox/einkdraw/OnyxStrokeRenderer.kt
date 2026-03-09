@@ -19,6 +19,7 @@ import com.onyx.android.sdk.pen.NeoPen
 import com.onyx.android.sdk.pen.NeoPenConfig
 import com.onyx.android.sdk.pen.NeoPenUtils
 import com.onyx.android.sdk.pen.NeoRenderPoint
+import com.onyx.android.sdk.pen.NeoSquarePen
 import com.onyx.android.sdk.pen.PenResult
 import kotlin.math.PI
 import kotlin.math.abs
@@ -42,7 +43,7 @@ import kotlin.math.sqrt
  *  CHARCOAL   – ring + dot cloud texture (V1 params)
  *  DASH       – DashPathEffect line
  *  CHARCOAL_V2– ring + dot cloud texture (V2 params, slightly larger halos)
- *  SQUARE_PEN – angle-keyed variable-width stroke (calligraphy chisel nib)
+ *  SQUARE_PEN – NeoSquarePen native path-result renderer (fallback: trig approximation)
  */
 object OnyxStrokeRenderer {
 
@@ -65,7 +66,7 @@ object OnyxStrokeRenderer {
             HardwarePenStyle.CHARCOAL -> renderCharcoal(points, widthPx, color, canvas, v2 = false, maxPressure = maxPressure)
             HardwarePenStyle.DASH -> renderDash(points, widthPx, color, canvas)
             HardwarePenStyle.CHARCOAL_V2 -> renderCharcoal(points, widthPx, color, canvas, v2 = true, maxPressure = maxPressure)
-            HardwarePenStyle.SQUARE_PEN -> renderSquarePen(points, widthPx, color, canvas)
+            HardwarePenStyle.SQUARE_PEN -> renderSquarePen(points, widthPx, color, canvas, maxPressure)
         }
     }
 
@@ -346,6 +347,24 @@ object OnyxStrokeRenderer {
         fn.invoke(pen, point, true) as? Pair<PenResult?, PenResult?>
     }.getOrNull()
 
+    private fun renderPenResultPairs(
+        results: List<Pair<PenResult?, PenResult?>>,
+        canvas: Canvas,
+        paint: Paint,
+    ) {
+        for (pair in results) {
+            pair.first?.draw(canvas, paint)
+        }
+        results.lastOrNull()?.second?.draw(canvas, paint)
+    }
+
+    private fun clearPenResultPairCache(results: List<Pair<PenResult?, PenResult?>>) {
+        for (pair in results) {
+            pair.first?.clearCache()
+            pair.second?.clearCache()
+        }
+    }
+
     private data class PressureInfo(
         val minPressure: Float,
         val maxPressure: Float,
@@ -535,21 +554,95 @@ object OnyxStrokeRenderer {
         canvas.drawPath(path, blackDash)
     }
 
-    // ─── SQUARE_PEN: calligraphy chisel-nib ──────────────────────────────────
+    // ─── SQUARE_PEN: NeoSquarePen (reference path from neo-reader) ──────────
 
     /**
-     * Simulates a flat-nibbed calligraphy pen:
-     *   stroke width = widthPx × |sin(strokeAngle − nibAngle)|
-     * Nib angle 45° produces the classic copperplate look:
-     *   diagonal strokes → thick, horizontal/vertical strokes → thin.
+     * Matches neo-reader/knote software replay:
+     *  - NeoSquarePen default config
+     *  - width = strokeWidth * 2
+     *  - brushRatio = min(strokeWidth, 10)
+     *  - brushAngle = 45°
      */
-    private fun renderSquarePen(points: List<TouchPoint>, widthPx: Float, color: Int, canvas: Canvas) {
+    private fun renderSquarePen(
+        points: List<TouchPoint>,
+        widthPx: Float,
+        color: Int,
+        canvas: Canvas,
+        maxPressure: Float,
+    ) {
+        if (points.isEmpty()) return
+        val rendered = runCatching {
+            renderSquarePenNative(points, widthPx, color, canvas, maxPressure)
+        }.getOrDefault(false)
+        if (!rendered) {
+            renderSquarePenFallback(points, widthPx, color, canvas)
+        }
+    }
+
+    private fun renderSquarePenNative(
+        points: List<TouchPoint>,
+        widthPx: Float,
+        color: Int,
+        canvas: Canvas,
+        maxPressure: Float,
+    ): Boolean {
+        if (points.size < 2) {
+            val paint = solidPaint(color).apply { style = Paint.Style.FILL }
+            points.firstOrNull()?.let { canvas.drawCircle(it.x, it.y, widthPx / 2f, paint) }
+            return true
+        }
+
+        val mapped = points.toArrayList()
+        val pressureDivisor = nativePressureDivisor(mapped, maxPressure)
+        for (p in mapped) {
+            val normalized = if (pressureDivisor <= 1.5f) p.pressure else (p.pressure / pressureDivisor)
+            p.pressure = normalized.coerceIn(0.01f, 1f)
+        }
+
+        val config = NeoSquarePen.Companion.defaultPenConfig()
+            .setColor(color)
+            .setWidth(widthPx * 2f)
+            .setRotateAngle(0)
+            .setMaxTouchPressure(1f)
+            .setTiltEnabled(true)
+        config.brushAngle = 45f
+        config.brushRatio = min(widthPx, 10f)
+        config.scalePrecision = 1f
+        config.displayScaleX = 1f
+        config.displayScaleY = 1f
+
+        val pen = NeoSquarePen.Companion.create(config) ?: return false
+        val results = ArrayList<Pair<PenResult?, PenResult?>>(4)
+        return try {
+            invokePenDown(pen, mapped.first())?.let(results::add)
+            if (mapped.size > 2) {
+                invokePenMove(pen, mapped.subList(1, mapped.size - 1))?.let(results::add)
+            }
+            invokePenUp(pen, mapped.last())?.let(results::add)
+            if (results.isEmpty()) return false
+
+            val paint = solidPaint(color).apply {
+                style = Paint.Style.FILL
+                strokeWidth = 0f
+            }
+            renderPenResultPairs(results, canvas, paint)
+            clearPenResultPairCache(results)
+            true
+        } finally {
+            runCatching { pen.destroy() }
+        }
+    }
+
+    /**
+     * Legacy approximation retained only if NeoSquarePen is unavailable.
+     */
+    private fun renderSquarePenFallback(points: List<TouchPoint>, widthPx: Float, color: Int, canvas: Canvas) {
         if (points.size < 2) {
             val paint = solidPaint(color).apply { style = Paint.Style.FILL }
             points.firstOrNull()?.let { canvas.drawCircle(it.x, it.y, widthPx / 2f, paint) }
             return
         }
-        val nibAngle = (PI / 4.0).toFloat()   // 45° nib
+        val nibAngle = (PI / 4.0).toFloat()
         val paint = Paint().apply {
             this.color = color
             style = Paint.Style.STROKE
@@ -560,8 +653,12 @@ object OnyxStrokeRenderer {
         var prev = points[0]
         for (i in 1 until points.size) {
             val curr = points[i]
-            val dx = curr.x - prev.x; val dy = curr.y - prev.y
-            if (abs(dx) < 0.01f && abs(dy) < 0.01f) { prev = curr; continue }
+            val dx = curr.x - prev.x
+            val dy = curr.y - prev.y
+            if (abs(dx) < 0.01f && abs(dy) < 0.01f) {
+                prev = curr
+                continue
+            }
             val angle = atan2(dy, dx)
             val factor = max(0.12f, abs(sin(angle - nibAngle)))
             paint.strokeWidth = widthPx * factor

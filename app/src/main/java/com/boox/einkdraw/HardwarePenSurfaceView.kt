@@ -4,6 +4,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.PorterDuff
 import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
@@ -18,15 +20,15 @@ import com.onyx.android.sdk.pen.TouchHelper
 import com.onyx.android.sdk.pen.data.TouchPointList
 import java.util.concurrent.Executors
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 /**
  * Full-screen drawing surface backed by the Onyx hardware pen chip.
  *
  * Architecture:
  *  - TouchHelper drives zero-latency hardware preview (setRawDrawingRenderEnabled=false).
- *  - RawInputCallback accumulates points incrementally and renders to an ink bitmap in parallel.
- *  - On pen-up / onPenUpRefresh the hardware preview clears and our bitmap is revealed.
- *  - Every completed stroke is recorded for clear/rebuild.
+ *  - RawInputCallback accumulates points and renders to the active software layer.
+ *  - On pen-up / onPenUpRefresh the hardware preview clears and composed layers are shown.
  */
 class HardwarePenSurfaceView @JvmOverloads constructor(
     context: Context,
@@ -37,55 +39,56 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         private const val TAG = "HardwarePenSurface"
     }
 
-    private data class RecordedStroke(
-        val style: HardwarePenStyle,
-        val widthPx: Float,
-        val color: Int,
-        val points: List<TouchPoint>,
+    data class LayerInfo(
+        val id: Int,
+        val name: String,
+        val visible: Boolean,
+        val opacity: Float,
+        val active: Boolean,
     )
 
-    // ─── Active pen state ─────────────────────────────────────────────────────
+    private data class LayerState(
+        val id: Int,
+        val name: String,
+        var visible: Boolean,
+        var opacity: Float,
+        val bitmap: Bitmap,
+        val canvas: Canvas,
+        val snapshotBitmap: Bitmap,
+        val snapshotCanvas: Canvas,
+    )
 
+    // Active pen state
     private var activeStyle = HardwarePenStyle.PENCIL
     private var activeWidthPx = HardwarePenStyle.PENCIL.defaultWidthPx
     private var activeColor = Color.BLACK
     private var rawInputSuppressed = false
 
-    // ─── Persistent ink bitmap ────────────────────────────────────────────────
+    // Layers (index 0 = bottom, last = top)
+    private val layers = ArrayList<LayerState>(8)
+    private var nextLayerId = 1
+    private var activeLayerId = -1
 
-    private var inkBitmap: Bitmap? = null
-    private var inkCanvas: Canvas? = null
-
-    // ─── Snapshot of completed strokes ────────────────────────────────────────
-    // Updated after every completed stroke so rebuildWithCurrentStroke can
-    // restore the canvas with a fast blit instead of re-running native renderers.
-
-    private var snapshotBitmap: Bitmap? = null
-    private var snapshotCanvas: Canvas? = null
-
-    // ─── Stroke history ───────────────────────────────────────────────────────
-
-    private val completedStrokes = ArrayList<RecordedStroke>(512)
-
-    // ─── In-flight stroke ─────────────────────────────────────────────────────
-
+    // In-flight stroke
     private var strokeStyle = HardwarePenStyle.PENCIL
     private var strokeWidthPx = 5f
     private var strokeColor = Color.BLACK
+    private var strokeLayerId = -1
     private val strokePoints = ArrayList<TouchPoint>(256)
     private val rawMovePoints = ArrayList<TouchPoint>(256)
     private var receivedAuthorityList = false
-    private var needsFullRebuild = false
     private var pendingPenUpRefresh = false
     private var hasRenderedThisStroke = false
     private var strokeInProgress = false
 
-    // ─── TouchHelper (configured on a background thread) ─────────────────────
-
+    // TouchHelper (configured on a background thread)
     private val helperThread = Executors.newSingleThreadExecutor()
     private var touchHelper: TouchHelper? = null
 
-    // ─── Public API ───────────────────────────────────────────────────────────
+    // Reused paint for layer-alpha composition
+    private val layerPaint = Paint().apply { isFilterBitmap = true }
+
+    // Public API
 
     fun setStyle(style: HardwarePenStyle) {
         activeStyle = style
@@ -103,8 +106,7 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
     }
 
     /**
-     * Suppress/restore the hardware pen overlay while the user interacts with UI controls.
-     * Must be called from the UI thread (e.g. via an onTouchListener on every UI button).
+     * Suppress/restore hardware pen overlay while the user interacts with UI controls.
      */
     fun setRawInputSuppressed(suppressed: Boolean) {
         rawInputSuppressed = suppressed
@@ -114,45 +116,191 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         }
     }
 
-    fun clearCanvas() {
-        completedStrokes.clear()
-        strokePoints.clear()
-        inkCanvas?.drawColor(Color.WHITE)
-        snapshotCanvas?.drawColor(Color.WHITE)
-        invalidateSurface()
+    fun getLayerInfos(): List<LayerInfo> {
+        val activeId = activeLayerId
+        return layers.asReversed().map { layer ->
+            LayerInfo(
+                id = layer.id,
+                name = layer.name,
+                visible = layer.visible,
+                opacity = layer.opacity,
+                active = layer.id == activeId,
+            )
+        }
     }
 
-    fun loadCanvasBitmap(bitmap: Bitmap): Boolean {
-        if (bitmap.isRecycled || width <= 0 || height <= 0) return false
-        allocateBitmap(width, height)
-        val canvas = inkCanvas ?: return false
-        canvas.drawColor(Color.WHITE)
-        val dst = fitCenterRect(bitmap.width, bitmap.height, width, height)
-        canvas.drawBitmap(bitmap, null, dst, null)
-        completedStrokes.clear()
-        strokePoints.clear()
-        updateSnapshot()
+    fun addLayer(): Int {
+        ensureLayerStack(width, height)
+        val w = width
+        val h = height
+        if (w <= 0 || h <= 0) return activeLayerId
+        val layer = createLayer(
+            id = nextLayerId++,
+            name = "Layer ${layers.size + 1}",
+            w = w,
+            h = h,
+            visible = true,
+            opacity = 1f,
+        )
+        layers.add(layer)
+        activeLayerId = layer.id
+        updateSnapshot(layer.id)
+        invalidateSurface()
+        return layer.id
+    }
+
+    fun removeLayer(id: Int): Boolean {
+        if (layers.size <= 1) return false
+        val idx = layers.indexOfFirst { it.id == id }
+        if (idx < 0) return false
+
+        val removed = layers.removeAt(idx)
+        recycleLayer(removed)
+
+        if (activeLayerId == id) {
+            val nextIdx = idx.coerceAtMost(layers.lastIndex)
+            activeLayerId = layers[nextIdx].id
+        }
+
+        updateSnapshot(activeLayerId)
         invalidateSurface()
         return true
     }
 
-    fun exportBitmap(): Bitmap? =
-        inkBitmap?.copy(Bitmap.Config.ARGB_8888, false)
+    fun setActiveLayer(id: Int): Boolean {
+        if (layers.none { it.id == id }) return false
+        activeLayerId = id
+        updateSnapshot(id)
+        return true
+    }
 
-    // ─── View lifecycle ───────────────────────────────────────────────────────
+    /**
+     * Reorder layers from top-down display indices.
+     */
+    fun moveLayerByDisplayIndices(fromDisplayIndex: Int, toDisplayIndex: Int): Boolean {
+        val n = layers.size
+        if (fromDisplayIndex !in 0 until n || toDisplayIndex !in 0 until n) return false
+        val fromInternal = n - 1 - fromDisplayIndex
+        val toInternal = n - 1 - toDisplayIndex
+        if (fromInternal == toInternal) return true
+
+        val layer = layers.removeAt(fromInternal)
+        layers.add(toInternal, layer)
+        invalidateSurface()
+        return true
+    }
+
+    fun setLayerVisible(id: Int, visible: Boolean): Boolean {
+        val layer = layerById(id) ?: return false
+        if (layer.visible == visible) return true
+        layer.visible = visible
+        invalidateSurface()
+        return true
+    }
+
+    fun setLayerOpacity(id: Int, opacity: Float): Boolean {
+        val layer = layerById(id) ?: return false
+        val v = opacity.coerceIn(0f, 1f)
+        if (abs(layer.opacity - v) < 0.0001f) return true
+        layer.opacity = v
+        invalidateSurface()
+        return true
+    }
+
+    fun clearCurrentLayer(): Boolean {
+        ensureLayerStack(width, height)
+        val layer = activeLayer() ?: return false
+        clearBitmap(layer.canvas)
+        clearBitmap(layer.snapshotCanvas)
+        if (strokeLayerId == layer.id) {
+            strokePoints.clear()
+            rawMovePoints.clear()
+            receivedAuthorityList = false
+            pendingPenUpRefresh = false
+            hasRenderedThisStroke = false
+            strokeInProgress = false
+        }
+        invalidateSurface()
+        return true
+    }
+
+    fun clearFile() {
+        strokePoints.clear()
+        rawMovePoints.clear()
+        receivedAuthorityList = false
+        pendingPenUpRefresh = false
+        hasRenderedThisStroke = false
+        strokeInProgress = false
+        strokeLayerId = -1
+
+        layers.forEach { recycleLayer(it) }
+        layers.clear()
+        nextLayerId = 1
+
+        val w = width
+        val h = height
+        if (w > 0 && h > 0) {
+            val base = createLayer(
+                id = nextLayerId++,
+                name = "Layer 1",
+                w = w,
+                h = h,
+                visible = true,
+                opacity = 1f,
+            )
+            layers.add(base)
+            activeLayerId = base.id
+            updateSnapshot(base.id)
+        } else {
+            activeLayerId = -1
+        }
+        invalidateSurface()
+    }
+
+    fun clearCanvas() {
+        clearFile()
+    }
+
+    /**
+     * Loads the bitmap into the currently active layer.
+     */
+    fun loadCanvasBitmap(bitmap: Bitmap): Boolean {
+        if (bitmap.isRecycled || width <= 0 || height <= 0) return false
+        ensureLayerStack(width, height)
+        val layer = activeLayer() ?: return false
+
+        clearBitmap(layer.canvas)
+        val dst = fitCenterRect(bitmap.width, bitmap.height, width, height)
+        layer.canvas.drawBitmap(bitmap, null, dst, null)
+        updateSnapshot(layer.id)
+        invalidateSurface()
+        return true
+    }
+
+    /**
+     * Exports the visible composed result of all layers.
+     */
+    fun exportBitmap(): Bitmap? {
+        val w = width
+        val h = height
+        if (w <= 0 || h <= 0) return null
+        val out = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(out)
+        drawComposedLayers(canvas)
+        return out
+    }
+
+    // View lifecycle
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        allocateBitmap(w, h)
+        ensureLayerStack(w, h)
         ensureTouchHelper()
         reconfigureTouchHelper()
     }
 
     override fun onDraw(canvas: Canvas) {
-        canvas.drawColor(Color.WHITE)
-        inkBitmap?.let { canvas.drawBitmap(it, 0f, 0f, null) }
-        // Refresh e-ink hardware AFTER the bitmap has been drawn to the canvas,
-        // so the controller reads the updated framebuffer (not the previous one).
+        drawComposedLayers(canvas)
         runCatching {
             EpdController.invalidate(this, UpdateMode.HAND_WRITING_REPAINT_MODE)
             EpdController.refreshScreen(rootView, UpdateMode.HAND_WRITING_REPAINT_MODE)
@@ -160,6 +308,7 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (rawInputSuppressed) return false
         return touchHelper?.onTouchEvent(event) == true || isStylus(event)
     }
 
@@ -173,39 +322,98 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
             }
         }
         helperThread.shutdown()
-        inkBitmap?.recycle()
-        inkBitmap = null
-        inkCanvas = null
-        snapshotBitmap?.recycle()
-        snapshotBitmap = null
-        snapshotCanvas = null
+
+        layers.forEach { recycleLayer(it) }
+        layers.clear()
+
         super.onDetachedFromWindow()
     }
 
-    // ─── Bitmap management ────────────────────────────────────────────────────
+    // Layer management
 
-    private fun allocateBitmap(w: Int, h: Int) {
+    private fun ensureLayerStack(w: Int, h: Int) {
         if (w <= 0 || h <= 0) return
-        val ex = inkBitmap
-        if (ex != null && ex.width == w && ex.height == h) return
-        ex?.recycle()
-        inkBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888).also { bmp ->
-            inkCanvas = Canvas(bmp).apply { drawColor(Color.WHITE) }
+
+        if (layers.isEmpty()) {
+            val base = createLayer(
+                id = nextLayerId++,
+                name = "Layer 1",
+                w = w,
+                h = h,
+                visible = true,
+                opacity = 1f,
+            )
+            layers.add(base)
+            activeLayerId = base.id
+            updateSnapshot(base.id)
+            return
         }
-        snapshotBitmap?.recycle()
-        snapshotBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888).also { bmp ->
-            snapshotCanvas = Canvas(bmp).apply { drawColor(Color.WHITE) }
+
+        if (layers[0].bitmap.width == w && layers[0].bitmap.height == h) {
+            if (activeLayerId < 0) activeLayerId = layers.last().id
+            return
+        }
+
+        // Size changed: recreate while preserving existing pixels.
+        val oldLayers = ArrayList(layers)
+        layers.clear()
+        for (old in oldLayers) {
+            val recreated = createLayer(
+                id = old.id,
+                name = old.name,
+                w = w,
+                h = h,
+                visible = old.visible,
+                opacity = old.opacity,
+            )
+            val dst = fitCenterRect(old.bitmap.width, old.bitmap.height, w, h)
+            recreated.canvas.drawBitmap(old.bitmap, null, dst, null)
+            clearBitmap(recreated.snapshotCanvas)
+            recreated.snapshotCanvas.drawBitmap(recreated.bitmap, 0f, 0f, null)
+            layers.add(recreated)
+            recycleLayer(old)
+        }
+        if (layers.none { it.id == activeLayerId }) {
+            activeLayerId = layers.last().id
         }
     }
 
-    /** Save the current ink canvas state as the authoritative snapshot of completed strokes. */
-    private fun updateSnapshot() {
-        val src = inkBitmap ?: return
-        val sc  = snapshotCanvas ?: return
-        sc.drawBitmap(src, 0f, 0f, null)
+    private fun createLayer(
+        id: Int,
+        name: String,
+        w: Int,
+        h: Int,
+        visible: Boolean,
+        opacity: Float,
+    ): LayerState {
+        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val snap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bmp)
+        val snapCanvas = Canvas(snap)
+        clearBitmap(canvas)
+        clearBitmap(snapCanvas)
+        return LayerState(
+            id = id,
+            name = name,
+            visible = visible,
+            opacity = opacity,
+            bitmap = bmp,
+            canvas = canvas,
+            snapshotBitmap = snap,
+            snapshotCanvas = snapCanvas,
+        )
     }
 
-    // ─── TouchHelper management ───────────────────────────────────────────────
+    private fun recycleLayer(layer: LayerState) {
+        if (!layer.bitmap.isRecycled) layer.bitmap.recycle()
+        if (!layer.snapshotBitmap.isRecycled) layer.snapshotBitmap.recycle()
+    }
+
+    private fun layerById(id: Int): LayerState? = layers.firstOrNull { it.id == id }
+
+    private fun activeLayer(): LayerState? = layerById(activeLayerId)
+
+    // TouchHelper management
 
     private fun ensureTouchHelper() {
         if (touchHelper != null) return
@@ -214,11 +422,12 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
 
     /**
      * Initialise / reconfigure the hardware chip.
-     * The order here is critical — see AGENTS.md §3 for the exact sequence.
+     * The order here is critical.
      */
     private fun reconfigureTouchHelper() {
         val helper = touchHelper ?: return
-        val w = width; val h = height
+        val w = width
+        val h = height
         if (w <= 0 || h <= 0) return
         val style = activeStyle
         val widthPx = activeWidthPx
@@ -228,35 +437,32 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
             runCatching {
                 // 1. Width
                 helper.setStrokeWidth(widthPx)
-                // 2. Hardware Preview Color — Apply correct alpha for translucent/textured brushes
+                // 2. Preview color
                 val hardwareColor = when (style) {
                     HardwarePenStyle.MARKER -> withAlpha(activeColor, 128)
-                    // Charcoal hardware preview should keep full RGB; translucent ARGB
-                    // can be coerced to black by the pen chip for these styles.
                     HardwarePenStyle.CHARCOAL -> withAlpha(activeColor, 255)
                     HardwarePenStyle.CHARCOAL_V2 -> withAlpha(activeColor, 255)
                     else -> withAlpha(activeColor, 255)
                 }
                 helper.setStrokeColor(hardwareColor)
-                // 3. Limit rect
+                // 3. Limits
                 helper.setLimitRect(Rect(0, 0, w, h), emptyList())
                 // 4. Open (resets chip)
                 helper.openRawDrawing()
-                // 5. Style — MUST come after openRawDrawing or it reverts to FOUNTAIN
+                // 5. Style after open
                 helper.setStrokeStyle(style.hardwareStrokeStyle)
-                // Some styles (notably Charcoal) reset chip-side color/width defaults when style changes.
-                // Re-apply active pen params after selecting style.
+                // Re-apply params after style selection
                 helper.setStrokeWidth(widthPx)
                 helper.setStrokeColor(hardwareColor)
-                // 6. Let the hardware chip draw the live preview (zero latency)
+                // 6. Hardware draws live preview
                 helper.setRawDrawingRenderEnabled(false)
-                // 7. Enable (or keep disabled while UI is active)
+                // 7. Enable unless suppressed by UI
                 helper.setRawDrawingEnabled(!rawInputSuppressed)
             }
         }
     }
 
-    // ─── Rendering helpers ────────────────────────────────────────────────────
+    // Rendering helpers
 
     private fun maxPressure(): Float {
         val v = runCatching { EpdController.getMaxTouchPressure() }.getOrDefault(0f)
@@ -267,29 +473,40 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         }
     }
 
-    /**
-     * Restore the ink canvas to the last-known-good snapshot (completed strokes only).
-     * This is a fast blit — no native rendering calls — safe to invoke from authority-list
-     * callbacks that may fire multiple times per gesture.
-     */
-    private fun rebuildWithCurrentStroke() {
-        val c = inkCanvas ?: return
-        val snap = snapshotBitmap
-        // Always clear first so the blit is a clean replace, not a composite
-        c.drawColor(Color.WHITE)
-        if (snap != null && !snap.isRecycled) {
-            c.drawBitmap(snap, 0f, 0f, null)
+    private fun drawComposedLayers(canvas: Canvas) {
+        canvas.drawColor(Color.WHITE)
+        for (layer in layers) {
+            if (!layer.visible || layer.opacity <= 0f) continue
+            if (layer.opacity >= 0.999f) {
+                canvas.drawBitmap(layer.bitmap, 0f, 0f, null)
+            } else {
+                layerPaint.alpha = (layer.opacity * 255f).roundToInt().coerceIn(0, 255)
+                canvas.drawBitmap(layer.bitmap, 0f, 0f, layerPaint)
+            }
         }
+        layerPaint.alpha = 255
+    }
+
+    private fun updateSnapshot(layerId: Int) {
+        val layer = layerById(layerId) ?: return
+        clearBitmap(layer.snapshotCanvas)
+        layer.snapshotCanvas.drawBitmap(layer.bitmap, 0f, 0f, null)
+    }
+
+    private fun rebuildWithCurrentStroke(layerId: Int) {
+        val layer = layerById(layerId) ?: return
+        clearBitmap(layer.canvas)
+        layer.canvas.drawBitmap(layer.snapshotBitmap, 0f, 0f, null)
     }
 
     private fun invalidateSurface() {
-        // Trigger onDraw; the EpdController refresh happens inside onDraw after the
-        // bitmap has been composited, ensuring the hardware sees the updated framebuffer.
         invalidate()
     }
 
     private fun fitCenterRect(srcW: Int, srcH: Int, dstW: Int, dstH: Int): RectF {
-        if (srcW <= 0 || srcH <= 0 || dstW <= 0 || dstH <= 0) return RectF(0f, 0f, dstW.toFloat(), dstH.toFloat())
+        if (srcW <= 0 || srcH <= 0 || dstW <= 0 || dstH <= 0) {
+            return RectF(0f, 0f, dstW.toFloat(), dstH.toFloat())
+        }
         val srcAspect = srcW.toFloat() / srcH.toFloat()
         val dstAspect = dstW.toFloat() / dstH.toFloat()
         return if (srcAspect > dstAspect) {
@@ -306,7 +523,11 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
     private fun withAlpha(color: Int, alpha: Int): Int =
         Color.argb(alpha.coerceIn(0, 255), Color.red(color), Color.green(color), Color.blue(color))
 
-    // ─── Point helpers ────────────────────────────────────────────────────────
+    private fun clearBitmap(canvas: Canvas) {
+        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
+    }
+
+    // Point helpers
 
     private fun appendPoint(pt: TouchPoint?) {
         pt ?: return
@@ -368,15 +589,19 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
     }
 
     /**
-     * Reconcile with the authoritative point list delivered by the hardware.
-     * If it extends our running list cleanly, append the tail. Otherwise, replace and rebuild.
+     * Reconcile with authoritative list from hardware.
+     * If it diverges, replace and rebuild current stroke layer from snapshot.
      */
     private fun mergeAuthorityList(pts: List<TouchPoint>) {
         val common = minOf(strokePoints.size, pts.size)
         var prefixOk = true
         for (i in 0 until common) {
-            val a = strokePoints[i]; val b = pts[i]
-            if (abs(a.x - b.x) > 0.35f || abs(a.y - b.y) > 0.35f) { prefixOk = false; break }
+            val a = strokePoints[i]
+            val b = pts[i]
+            if (abs(a.x - b.x) > 0.35f || abs(a.y - b.y) > 0.35f) {
+                prefixOk = false
+                break
+            }
         }
 
         if (prefixOk && pts.size >= strokePoints.size) {
@@ -385,8 +610,7 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         } else {
             strokePoints.clear()
             pts.forEach { appendPoint(it) }
-            needsFullRebuild = true
-            rebuildWithCurrentStroke()
+            rebuildWithCurrentStroke(strokeLayerId)
         }
     }
 
@@ -395,32 +619,34 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         return event.getToolType(idx) in listOf(MotionEvent.TOOL_TYPE_STYLUS, MotionEvent.TOOL_TYPE_ERASER)
     }
 
-    // ─── RawInputCallback ─────────────────────────────────────────────────────
+    // RawInputCallback
 
     private val rawInputCallback = object : RawInputCallback() {
 
         override fun onBeginRawDrawing(success: Boolean, pt: TouchPoint?) {
+            ensureLayerStack(width, height)
+
             if (strokeInProgress) {
-                // Some firmware versions emit duplicate begin events within one gesture.
-                // Preserve accumulated points instead of resetting the stroke state.
+                // Some firmware versions emit duplicate begin events inside one gesture.
                 appendPoint(pt)
                 appendRawMovePoint(pt)
                 Log.d(TAG, "duplicate onBeginRawDrawing style=$activeStyle")
                 return
             }
+
             strokeInProgress = true
-            Log.d(TAG, "onBeginRawDrawing style=$activeStyle width=$activeWidthPx")
             strokePoints.clear()
             rawMovePoints.clear()
             strokeStyle = activeStyle
             strokeWidthPx = activeWidthPx
             strokeColor = activeColor
-            needsFullRebuild = false
+            strokeLayerId = activeLayerId
             receivedAuthorityList = false
             pendingPenUpRefresh = false
             hasRenderedThisStroke = false
             appendPoint(pt)
             appendRawMovePoint(pt)
+            Log.d(TAG, "onBeginRawDrawing style=$activeStyle width=$activeWidthPx layer=$strokeLayerId")
         }
 
         override fun onRawDrawingTouchPointMoveReceived(pt: TouchPoint?) {
@@ -431,7 +657,6 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         override fun onRawDrawingTouchPointListReceived(list: TouchPointList?) {
             val pts = list?.points ?: return
             if (pts.isEmpty()) return
-            Log.d(TAG, "authorityList size=${pts.size}")
             mergeAuthorityList(pts)
             receivedAuthorityList = true
         }
@@ -439,34 +664,37 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         override fun onEndRawDrawing(success: Boolean, pt: TouchPoint?) {
             if (!strokeInProgress) return
             strokeInProgress = false
-            Log.d(TAG, "onEndRawDrawing points=${strokePoints.size} gotList=$receivedAuthorityList")
+
             if (!receivedAuthorityList) {
                 appendPoint(pt)
             }
             appendRawMovePoint(pt)
+
             val renderPts = chooseRenderPoints(strokeStyle)
-            if (renderPts.size >= 2 && !hasRenderedThisStroke) {
+            val layer = layerById(strokeLayerId)
+            if (renderPts.size >= 2 && !hasRenderedThisStroke && layer != null) {
                 hasRenderedThisStroke = true
                 val copy = ArrayList(renderPts)
-                completedStrokes.add(RecordedStroke(strokeStyle, strokeWidthPx, strokeColor, copy))
                 val source = if (renderPts === rawMovePoints) "rawMove" else "authority"
                 val sig = signalOf(renderPts)
-                Log.d(TAG, "render: style=$strokeStyle source=$source inkCanvas=${inkCanvas != null} pts=${copy.size} maxP=${sig.maxPressure} tiltNz=${sig.nonZeroTiltCount}")
+                Log.d(
+                    TAG,
+                    "render: style=$strokeStyle layer=$strokeLayerId source=$source pts=${copy.size} maxP=${sig.maxPressure} tiltNz=${sig.nonZeroTiltCount}"
+                )
                 runCatching {
-                    inkCanvas?.let {
-                        OnyxStrokeRenderer.render(strokeStyle, copy, strokeWidthPx, strokeColor, it, maxPressure())
-                    }
+                    OnyxStrokeRenderer.render(strokeStyle, copy, strokeWidthPx, strokeColor, layer.canvas, maxPressure())
                 }.onFailure { e ->
                     Log.e(TAG, "render threw: ${e.javaClass.simpleName}: ${e.message}", e)
                 }
-                updateSnapshot()
+                updateSnapshot(strokeLayerId)
             }
+
             strokePoints.clear()
             rawMovePoints.clear()
             receivedAuthorityList = false
-            needsFullRebuild = false
             pendingPenUpRefresh = true
-            // Fallback refresh if onPenUpRefresh doesn't fire within ~120 ms
+
+            // Fallback refresh if onPenUpRefresh does not fire in time.
             postDelayed({
                 if (pendingPenUpRefresh) {
                     pendingPenUpRefresh = false

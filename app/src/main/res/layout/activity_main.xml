@@ -1,117 +1,328 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootFrame"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
-    <!-- ── Brush selector ─────────────────────────────────────── -->
-    <HorizontalScrollView
+    <LinearLayout
+        android:id="@+id/mainContent"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#EBEBEB"
-        android:paddingStart="6dp"
-        android:paddingEnd="6dp"
-        android:paddingTop="5dp"
-        android:paddingBottom="5dp"
-        android:scrollbars="none">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
         <LinearLayout
-            android:id="@+id/brushButtonRow"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/toolbar_white_bottom_line"
+            android:gravity="center_vertical"
+            android:paddingStart="4dp"
+            android:paddingTop="3dp"
+            android:paddingEnd="4dp"
+            android:paddingBottom="4dp">
+
+            <LinearLayout
+                android:id="@+id/toolbarRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/brushGroup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:id="@+id/brushButtonRow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="3dp"
+                    android:layout_marginEnd="3dp"
+                    android:background="#22000000" />
+
+                <LinearLayout
+                    android:id="@+id/widthGroup"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <SeekBar
+                        android:id="@+id/widthSeekBar"
+                        android:layout_width="0dp"
+                        android:layout_height="20dp"
+                        android:layout_weight="1"
+                        android:max="99"
+                        android:minHeight="20dp"
+                        android:progressDrawable="@drawable/slider_track_rounded"
+                        android:splitTrack="false"
+                        android:thumb="@drawable/slider_thumb_invisible" />
+
+                    <TextView
+                        android:id="@+id/widthValueLabel"
+                        android:layout_width="36dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="2dp"
+                        android:text="5 px"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="3dp"
+                    android:layout_marginEnd="3dp"
+                    android:background="#22000000" />
+
+                <LinearLayout
+                    android:id="@+id/colorGroup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:id="@+id/swatchBlack"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp" />
+
+                    <View
+                        android:id="@+id/swatchWhite"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginStart="4dp" />
+
+                    <View
+                        android:id="@+id/swatchBlue"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginStart="4dp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="3dp"
+                    android:layout_marginEnd="3dp"
+                    android:background="#22000000" />
+
+                <LinearLayout
+                    android:id="@+id/topButtonsGroup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageButton
+                        android:id="@+id/buttonLayers"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:background="@android:color/transparent"
+                        android:contentDescription="Layers"
+                        android:padding="2dp"
+                        android:src="@drawable/ic_layers_stack_black_24" />
+
+                    <ImageButton
+                        android:id="@+id/buttonMenu"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_marginStart="4dp"
+                        android:background="@android:color/transparent"
+                        android:contentDescription="Menu"
+                        android:padding="2dp"
+                        android:src="@drawable/ic_hamburger_two_lines_black_24" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <com.boox.einkdraw.HardwarePenSurfaceView
+            android:id="@+id/penSurfaceView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="#FFFFFF" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layerPanel"
+        android:layout_width="220dp"
+        android:layout_height="320dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="56dp"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/floating_panel_background"
+        android:clickable="true"
+        android:elevation="18dp"
+        android:focusable="true"
+        android:orientation="vertical"
+        android:padding="8dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:orientation="horizontal" />
-    </HorizontalScrollView>
+            android:orientation="horizontal">
 
-    <!-- ── Width slider + action buttons ─────────────────────── -->
+            <TextView
+                android:id="@+id/layerDragHandle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Layers"
+                android:textColor="#222222"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/buttonAddLayer"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="Add Layer"
+                android:src="@drawable/ic_add_black_24" />
+
+            <ImageButton
+                android:id="@+id/buttonRemoveLayer"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginStart="4dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="Remove Layer"
+                android:src="@drawable/ic_remove_black_24" />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/layerRecycler"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="6dp"
+            android:layout_weight="1" />
+    </LinearLayout>
+
     <LinearLayout
-        android:layout_width="match_parent"
+        android:id="@+id/colorPickerPanel"
+        android:layout_width="248dp"
         android:layout_height="wrap_content"
-        android:background="#DEDEDE"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:paddingTop="3dp"
-        android:paddingBottom="3dp">
+        android:layout_gravity="top|end"
+        android:layout_marginTop="56dp"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/color_picker_panel_background"
+        android:clickable="true"
+        android:elevation="20dp"
+        android:focusable="true"
+        android:orientation="vertical"
+        android:paddingStart="10dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="10dp"
+        android:visibility="gone">
+
+        <com.boox.einkdraw.CircularColorPickerView
+            android:id="@+id/colorPickerView"
+            android:layout_width="228dp"
+            android:layout_height="228dp"
+            android:layout_gravity="center_horizontal" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:id="@+id/textColorHex"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="W"
-            android:textSize="12sp" />
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="#000000"
+            android:textColor="#F2F2F2"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
-        <SeekBar
-            android:id="@+id/widthSeekBar"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:layout_marginEnd="4dp"
-            android:layout_weight="1"
-            android:max="99" />
+    <LinearLayout
+        android:id="@+id/fileMenuPanel"
+        android:layout_width="140dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="56dp"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/floating_panel_background"
+        android:clickable="true"
+        android:elevation="24dp"
+        android:focusable="true"
+        android:orientation="vertical"
+        android:padding="6dp"
+        android:visibility="gone">
 
         <TextView
-            android:id="@+id/widthValueLabel"
-            android:layout_width="42dp"
-            android:layout_height="wrap_content"
-            android:text="5 px"
-            android:textSize="11sp" />
-
-        <View
-            android:id="@+id/swatchBlack"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_marginStart="6dp" />
-
-        <View
-            android:id="@+id/swatchWhite"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_marginStart="4dp" />
-
-        <View
-            android:id="@+id/swatchBlue"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_marginStart="4dp" />
-
-        <Button
             android:id="@+id/buttonLoad"
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
+            android:background="@drawable/menu_item_background"
+            android:gravity="start|center_vertical"
             android:minHeight="0dp"
+            android:paddingStart="10dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="8dp"
             android:text="Load"
+            android:textColor="@drawable/menu_item_text_color"
             android:textSize="12sp" />
 
-        <Button
-            android:id="@+id/buttonClear"
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:minHeight="0dp"
-            android:text="Clear"
-            android:textSize="12sp" />
-
-        <Button
+        <TextView
             android:id="@+id/buttonSave"
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/menu_item_background"
+            android:gravity="start|center_vertical"
             android:minHeight="0dp"
+            android:paddingStart="10dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="8dp"
             android:text="Save"
+            android:textColor="@drawable/menu_item_text_color"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/buttonClearLayer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/menu_item_background"
+            android:gravity="start|center_vertical"
+            android:minHeight="0dp"
+            android:paddingStart="10dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="8dp"
+            android:text="Clear layer"
+            android:textColor="@drawable/menu_item_text_color"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/buttonClearFile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/menu_item_background"
+            android:gravity="start|center_vertical"
+            android:minHeight="0dp"
+            android:paddingStart="10dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="8dp"
+            android:text="Clear file"
+            android:textColor="@drawable/menu_item_text_color"
             android:textSize="12sp" />
     </LinearLayout>
 
-    <!-- ── Drawing canvas (fills remaining space) ─────────────── -->
-    <com.boox.einkdraw.HardwarePenSurfaceView
-        android:id="@+id/penSurfaceView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="#FFFFFF" />
-
-</LinearLayout>
+</FrameLayout>
