@@ -7,6 +7,7 @@ import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
+import android.graphics.RectF
 import com.onyx.android.sdk.data.note.TouchPoint
 import com.onyx.android.sdk.pen.NeoFountainPenWrapper
 import com.onyx.android.sdk.pen.NeoMarkerPenWrapper
@@ -169,18 +170,29 @@ object OnyxStrokeRenderer {
         // Encourage GC to collect stamp objects from the previous stroke's render.
         System.gc()
 
+        val prepared = prepareCharcoalV2Points(points, maxPressure)
+        val pressureInfo = prepared.second
         val createArgs = com.onyx.android.sdk.data.note.ShapeCreateArgs()
-            .setMaxPressure(maxPressure)
+            .setMaxPressure(pressureInfo.renderMaxPressure)
 
         val args = com.onyx.android.sdk.pen.PenRenderArgs()
             .setCanvas(canvas)
-            .setPoints(ArrayList(points))
+            .setPoints(prepared.first)
             .setStrokeWidth(widthPx)
             .setColor(Color.BLACK)
+            .setContentRect(RectF(0f, 0f, canvas.width.toFloat(), canvas.height.toFloat()))
+            .setPenType(com.onyx.android.sdk.pen.NeoPenConfig.NEOPEN_PEN_TYPE_CHARCOAL_V2)
             .setScreenMatrix(android.graphics.Matrix())
-            .setTiltEnabled(false)
+            .setRenderMatrix(android.graphics.Matrix())
+            .setTiltEnabled(true)
             .setErase(false)
             .setCreateArgs(createArgs)
+
+        android.util.Log.d(
+            "CharcoalTest",
+            "v2 pts=${prepared.first.size} pressure=[${"%.3f".format(pressureInfo.minPressure)},${"%.3f".format(pressureInfo.maxPressure)}] " +
+                "renderMax=${"%.3f".format(pressureInfo.renderMaxPressure)} normalized=${pressureInfo.normalizedInput}"
+        )
 
         runCatching {
             com.onyx.android.sdk.pen.NeoCharcoalPenV2Wrapper.drawNormalStroke(args)
@@ -190,6 +202,55 @@ object OnyxStrokeRenderer {
         }
 
         android.util.Log.d("CharcoalTest", "drawNormalStroke pts=${points.size}")
+    }
+
+    private data class PressureInfo(
+        val minPressure: Float,
+        val maxPressure: Float,
+        val renderMaxPressure: Float,
+        val normalizedInput: Boolean,
+    )
+
+    /**
+     * RawInput callbacks can deliver pressure in mixed units (0..1 or 0..MAX_TOUCH_PRESSURE).
+     * The native charcoal wrapper always divides by createArgs.maxPressure, so we normalize
+     * max-pressure per stroke to keep output consistent and avoid invisible strokes.
+     */
+    private fun prepareCharcoalV2Points(points: List<TouchPoint>, deviceMaxPressure: Float): Pair<ArrayList<TouchPoint>, PressureInfo> {
+        val out = ArrayList<TouchPoint>(points.size)
+        var minP = Float.MAX_VALUE
+        var maxP = 0f
+        var hasPressure = false
+        for (p in points) {
+            val copy = TouchPoint(p)
+            out.add(copy)
+            if (copy.pressure > 0f) {
+                hasPressure = true
+                minP = min(minP, copy.pressure)
+                maxP = max(maxP, copy.pressure)
+            }
+        }
+
+        if (!hasPressure) {
+            // Keep behavior deterministic even when pressure is missing entirely.
+            val fallback = 0.35f
+            for (p in out) p.pressure = fallback
+            return out to PressureInfo(
+                minPressure = fallback,
+                maxPressure = fallback,
+                renderMaxPressure = 1f,
+                normalizedInput = true,
+            )
+        }
+
+        val normalizedInput = maxP <= 1.5f
+        val renderMax = if (normalizedInput) 1f else max(deviceMaxPressure, maxP)
+        return out to PressureInfo(
+            minPressure = minP,
+            maxPressure = maxP,
+            renderMaxPressure = renderMax,
+            normalizedInput = normalizedInput,
+        )
     }
 
     /** Pure-Java fallback: ring + dot cloud stamps along the stroke path. */

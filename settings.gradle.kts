@@ -26,4 +26,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "BooxEinkDraw"
 include(":app")
-include(":knote_decompiled_app")

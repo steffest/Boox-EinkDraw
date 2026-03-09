@@ -73,6 +73,7 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
     private var receivedAuthorityList = false
     private var needsFullRebuild = false
     private var pendingPenUpRefresh = false
+    private var hasRenderedThisStroke = false
 
     // ─── TouchHelper (configured on a background thread) ─────────────────────
 
@@ -311,6 +312,7 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
             needsFullRebuild = false
             receivedAuthorityList = false
             pendingPenUpRefresh = false
+            hasRenderedThisStroke = false
             appendPoint(pt)
         }
 
@@ -331,7 +333,8 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
             if (!receivedAuthorityList) {
                 appendPoint(pt)
             }
-            if (strokePoints.size >= 2) {
+            if (strokePoints.size >= 2 && !hasRenderedThisStroke) {
+                hasRenderedThisStroke = true
                 val copy = ArrayList(strokePoints)
                 completedStrokes.add(RecordedStroke(strokeStyle, strokeWidthPx, copy))
                 Log.d(TAG, "render: style=$strokeStyle inkCanvas=${inkCanvas != null} pts=${copy.size}")
