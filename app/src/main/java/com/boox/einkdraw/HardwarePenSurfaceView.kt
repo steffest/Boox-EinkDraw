@@ -73,10 +73,12 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
     private var strokeWidthPx = 5f
     private var strokeColor = Color.BLACK
     private val strokePoints = ArrayList<TouchPoint>(256)
+    private val rawMovePoints = ArrayList<TouchPoint>(256)
     private var receivedAuthorityList = false
     private var needsFullRebuild = false
     private var pendingPenUpRefresh = false
     private var hasRenderedThisStroke = false
+    private var strokeInProgress = false
 
     // ─── TouchHelper (configured on a background thread) ─────────────────────
 
@@ -313,9 +315,56 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         if (last != null &&
             abs(last.x - copy.x) < 0.1f &&
             abs(last.y - copy.y) < 0.1f &&
-            abs(last.pressure - copy.pressure) < 0.001f
+            abs(last.pressure - copy.pressure) < 0.001f &&
+            abs(last.size - copy.size) < 0.001f &&
+            last.tiltX == copy.tiltX &&
+            last.tiltY == copy.tiltY
         ) return
         strokePoints.add(copy)
+    }
+
+    private fun appendRawMovePoint(pt: TouchPoint?) {
+        pt ?: return
+        val copy = TouchPoint(pt)
+        val last = rawMovePoints.lastOrNull()
+        if (last != null &&
+            abs(last.x - copy.x) < 0.1f &&
+            abs(last.y - copy.y) < 0.1f &&
+            abs(last.pressure - copy.pressure) < 0.001f &&
+            abs(last.size - copy.size) < 0.001f &&
+            last.tiltX == copy.tiltX &&
+            last.tiltY == copy.tiltY
+        ) return
+        rawMovePoints.add(copy)
+    }
+
+    private data class PointSignal(
+        val maxPressure: Float,
+        val nonZeroTiltCount: Int,
+    )
+
+    private fun signalOf(points: List<TouchPoint>): PointSignal {
+        var maxP = 0f
+        var tiltNz = 0
+        for (p in points) {
+            if (p.pressure > maxP) maxP = p.pressure
+            if (p.tiltX != 0 || p.tiltY != 0) tiltNz++
+        }
+        return PointSignal(maxP, tiltNz)
+    }
+
+    private fun chooseRenderPoints(style: HardwarePenStyle): List<TouchPoint> {
+        if (strokePoints.size < 2) return rawMovePoints
+        if (style != HardwarePenStyle.CHARCOAL && style != HardwarePenStyle.CHARCOAL_V2) {
+            return strokePoints
+        }
+        if (rawMovePoints.size < 2) return strokePoints
+
+        val authority = signalOf(strokePoints)
+        val raw = signalOf(rawMovePoints)
+        val hasRicherTilt = raw.nonZeroTiltCount > authority.nonZeroTiltCount
+        val hasRicherPressure = raw.maxPressure > 1.5f && authority.maxPressure <= 1.05f
+        return if (hasRicherTilt || hasRicherPressure) rawMovePoints else strokePoints
     }
 
     /**
@@ -351,8 +400,18 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
     private val rawInputCallback = object : RawInputCallback() {
 
         override fun onBeginRawDrawing(success: Boolean, pt: TouchPoint?) {
+            if (strokeInProgress) {
+                // Some firmware versions emit duplicate begin events within one gesture.
+                // Preserve accumulated points instead of resetting the stroke state.
+                appendPoint(pt)
+                appendRawMovePoint(pt)
+                Log.d(TAG, "duplicate onBeginRawDrawing style=$activeStyle")
+                return
+            }
+            strokeInProgress = true
             Log.d(TAG, "onBeginRawDrawing style=$activeStyle width=$activeWidthPx")
             strokePoints.clear()
+            rawMovePoints.clear()
             strokeStyle = activeStyle
             strokeWidthPx = activeWidthPx
             strokeColor = activeColor
@@ -361,10 +420,12 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
             pendingPenUpRefresh = false
             hasRenderedThisStroke = false
             appendPoint(pt)
+            appendRawMovePoint(pt)
         }
 
         override fun onRawDrawingTouchPointMoveReceived(pt: TouchPoint?) {
             appendPoint(pt)
+            appendRawMovePoint(pt)
         }
 
         override fun onRawDrawingTouchPointListReceived(list: TouchPointList?) {
@@ -376,15 +437,21 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         }
 
         override fun onEndRawDrawing(success: Boolean, pt: TouchPoint?) {
+            if (!strokeInProgress) return
+            strokeInProgress = false
             Log.d(TAG, "onEndRawDrawing points=${strokePoints.size} gotList=$receivedAuthorityList")
             if (!receivedAuthorityList) {
                 appendPoint(pt)
             }
-            if (strokePoints.size >= 2 && !hasRenderedThisStroke) {
+            appendRawMovePoint(pt)
+            val renderPts = chooseRenderPoints(strokeStyle)
+            if (renderPts.size >= 2 && !hasRenderedThisStroke) {
                 hasRenderedThisStroke = true
-                val copy = ArrayList(strokePoints)
+                val copy = ArrayList(renderPts)
                 completedStrokes.add(RecordedStroke(strokeStyle, strokeWidthPx, strokeColor, copy))
-                Log.d(TAG, "render: style=$strokeStyle inkCanvas=${inkCanvas != null} pts=${copy.size}")
+                val source = if (renderPts === rawMovePoints) "rawMove" else "authority"
+                val sig = signalOf(renderPts)
+                Log.d(TAG, "render: style=$strokeStyle source=$source inkCanvas=${inkCanvas != null} pts=${copy.size} maxP=${sig.maxPressure} tiltNz=${sig.nonZeroTiltCount}")
                 runCatching {
                     inkCanvas?.let {
                         OnyxStrokeRenderer.render(strokeStyle, copy, strokeWidthPx, strokeColor, it, maxPressure())
@@ -395,6 +462,7 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
                 updateSnapshot()
             }
             strokePoints.clear()
+            rawMovePoints.clear()
             receivedAuthorityList = false
             needsFullRebuild = false
             pendingPenUpRefresh = true

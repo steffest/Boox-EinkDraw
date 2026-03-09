@@ -4,14 +4,22 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.DashPathEffect
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
 import com.onyx.android.sdk.data.note.TouchPoint
+import com.onyx.android.sdk.pen.NeoCharcoalPen
+import com.onyx.android.sdk.pen.NeoCharcoalPenV2
 import com.onyx.android.sdk.pen.NeoBrushPenWrapper
 import com.onyx.android.sdk.pen.NeoFountainPenWrapper
 import com.onyx.android.sdk.pen.NeoMarkerPenWrapper
+import com.onyx.android.sdk.pen.NeoPen
+import com.onyx.android.sdk.pen.NeoPenConfig
+import com.onyx.android.sdk.pen.NeoPenUtils
+import com.onyx.android.sdk.pen.NeoRenderPoint
+import com.onyx.android.sdk.pen.PenResult
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -209,14 +217,27 @@ object OnyxStrokeRenderer {
         android.util.Log.d(
             "CharcoalTest",
             "v${if (v2) 2 else 1} pts=${prepared.first.size} pressure=[${"%.3f".format(pressureInfo.minPressure)},${"%.3f".format(pressureInfo.maxPressure)}] " +
-                "renderMax=${"%.3f".format(pressureInfo.renderMaxPressure)} normalized=${pressureInfo.normalizedInput}"
+                "renderMax=${"%.3f".format(pressureInfo.renderMaxPressure)} normalized=${pressureInfo.normalizedInput} " +
+                charcoalTiltSummary(prepared.first)
         )
 
         runCatching {
-            if (v2) {
-                com.onyx.android.sdk.pen.NeoCharcoalPenV2Wrapper.drawNormalStroke(args)
-            } else {
-                com.onyx.android.sdk.pen.NeoCharcoalPenWrapper.drawNormalStroke(args)
+            // Hardware preview path uses stronger pressure/min-width defaults than wrapper defaults.
+            // Match those config values first; fallback to SDK wrapper if the custom path fails.
+            val customDrawn = drawCharcoalWithHardwareLikeConfig(
+                points = prepared.first,
+                widthPx = widthPx,
+                color = color,
+                canvas = canvas,
+                maxPressure = pressureInfo.renderMaxPressure,
+                v2 = v2,
+            )
+            if (!customDrawn) {
+                if (v2) {
+                    com.onyx.android.sdk.pen.NeoCharcoalPenV2Wrapper.drawNormalStroke(args)
+                } else {
+                    com.onyx.android.sdk.pen.NeoCharcoalPenWrapper.drawNormalStroke(args)
+                }
             }
         }.onFailure { e ->
             android.util.Log.w("CharcoalTest", "v${if (v2) 2 else 1} drawNormalStroke failed: ${e.message}")
@@ -226,12 +247,128 @@ object OnyxStrokeRenderer {
         android.util.Log.d("CharcoalTest", "v${if (v2) 2 else 1} drawNormalStroke pts=${points.size}")
     }
 
+    /**
+     * Replica of the charcoal wrapper call chain with explicit pen config tuning to match
+     * hardware-preview output (pressure response + minimum stamp width).
+     */
+    private fun drawCharcoalWithHardwareLikeConfig(
+        points: List<TouchPoint>,
+        widthPx: Float,
+        color: Int,
+        canvas: Canvas,
+        maxPressure: Float,
+        v2: Boolean,
+    ): Boolean {
+        if (points.size < 2) return false
+        val safeMaxPressure = max(1f, maxPressure)
+        val screenMatrix = Matrix()
+        val penConfig = NeoPenConfig()
+            .setColor(color)
+            .setWidth(widthPx)
+            .setTiltEnabled(true)
+            .setRotateAngle(0)
+            .setMaxTouchPressure(safeMaxPressure)
+        penConfig.pressureSensitivity = 1.0f
+        penConfig.minWidth = 1.0f
+
+        val pen: NeoPen = if (v2) {
+            NeoCharcoalPenV2.Companion.create(penConfig)
+        } else {
+            NeoCharcoalPen.Companion.create(penConfig)
+        } ?: return false
+
+        val bitmaps = ArrayList<Bitmap>(512)
+        return try {
+            val mapped = NeoPenUtils.mapToPenCanvas(points, screenMatrix)
+            if (mapped.size < 2) return false
+            for (p in mapped) {
+                p.pressure /= safeMaxPressure
+            }
+
+            val renderPoints = ArrayList<NeoRenderPoint>(mapped.size * 3)
+            invokePenDown(pen, mapped[0])?.let { NeoPenUtils.readTextureResult(it, bitmaps, renderPoints) }
+            if (mapped.size > 2) {
+                invokePenMove(pen, mapped.subList(1, mapped.size - 1))
+                    ?.let { NeoPenUtils.readTextureResult(it, bitmaps, renderPoints) }
+            }
+            invokePenUp(pen, mapped[mapped.size - 1])?.let { NeoPenUtils.readTextureResult(it, bitmaps, renderPoints) }
+            if (renderPoints.isEmpty() || bitmaps.isEmpty()) return false
+
+            val inverse = Matrix()
+            val mappedRenderPoints = if (screenMatrix.invert(inverse)) {
+                NeoPenUtils.mapFromPenCanvas(renderPoints.toTypedArray(), bitmaps, inverse)
+            } else {
+                renderPoints.toTypedArray()
+            }
+
+            for (rp in mappedRenderPoints) {
+                val idx = rp.bitmapIndex
+                if (idx in 0 until bitmaps.size) {
+                    canvas.drawBitmap(bitmaps[idx], rp.x, rp.y, null)
+                }
+            }
+            true
+        } finally {
+            runCatching { pen.destroy() }
+            bitmaps.forEach { bmp ->
+                if (!bmp.isRecycled) runCatching { bmp.recycle() }
+            }
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun invokePenDown(
+        pen: NeoPen,
+        point: TouchPoint,
+    ): Pair<PenResult?, PenResult?>? = runCatching {
+        val basePoint = Class.forName("com.onyx.android.sdk.base.data.TouchPoint")
+        val fn = pen.javaClass.getMethod("onPenDown", basePoint, Boolean::class.javaPrimitiveType)
+        fn.invoke(pen, point, true) as? Pair<PenResult?, PenResult?>
+    }.getOrNull()
+
+    @Suppress("UNCHECKED_CAST")
+    private fun invokePenMove(
+        pen: NeoPen,
+        points: List<TouchPoint>,
+    ): Pair<PenResult?, PenResult?>? = runCatching {
+        val basePoint = Class.forName("com.onyx.android.sdk.base.data.TouchPoint")
+        val fn = pen.javaClass.getMethod("onPenMove", List::class.java, basePoint, Boolean::class.javaPrimitiveType)
+        fn.invoke(pen, points, null, true) as? Pair<PenResult?, PenResult?>
+    }.getOrNull()
+
+    @Suppress("UNCHECKED_CAST")
+    private fun invokePenUp(
+        pen: NeoPen,
+        point: TouchPoint,
+    ): Pair<PenResult?, PenResult?>? = runCatching {
+        val basePoint = Class.forName("com.onyx.android.sdk.base.data.TouchPoint")
+        val fn = pen.javaClass.getMethod("onPenUp", basePoint, Boolean::class.javaPrimitiveType)
+        fn.invoke(pen, point, true) as? Pair<PenResult?, PenResult?>
+    }.getOrNull()
+
     private data class PressureInfo(
         val minPressure: Float,
         val maxPressure: Float,
         val renderMaxPressure: Float,
         val normalizedInput: Boolean,
     )
+
+    private fun charcoalTiltSummary(points: List<TouchPoint>): String {
+        if (points.isEmpty()) return "tilt=none"
+        var minTx = Int.MAX_VALUE
+        var maxTx = Int.MIN_VALUE
+        var minTy = Int.MAX_VALUE
+        var maxTy = Int.MIN_VALUE
+        var nonZero = 0
+        for (p in points) {
+            minTx = min(minTx, p.tiltX)
+            maxTx = max(maxTx, p.tiltX)
+            minTy = min(minTy, p.tiltY)
+            maxTy = max(maxTy, p.tiltY)
+            if (p.tiltX != 0 || p.tiltY != 0) nonZero++
+        }
+        return "tiltX=[$minTx,$maxTx] tiltY=[$minTy,$maxTy] nz=$nonZero"
+    }
 
     /**
      * RawInput callbacks can deliver pressure in mixed units (0..1 or 0..MAX_TOUCH_PRESSURE).
