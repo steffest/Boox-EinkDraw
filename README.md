@@ -2,6 +2,8 @@
 
 Minimal but fast Android drawing app focused on Onyx Boox e-ink devices, with priority on low stylus latency and stable stroke replay.
 
+![BooxDraw icon](docs/icon.png)
+
 ## What it is
 
 This project is a Boox-specific drawing surface that combines:
@@ -23,7 +25,9 @@ Primary target and test device:
 
 - **Onyx Boox Note Air4C** (Android 13)
 
-It probably can run on other Onyx Boox tablets that expose the same Onyx pen APIs, but behavior can vary by firmware/device generation.
+This app was made to scratch a personal itch.  
+It probably can run on other Onyx Boox tablets that expose the same Onyx pen APIs, but behavior can vary by firmware/device generation.  
+(so it's very much a "it works on my device" project)
 
 ## Onyx SDK
 
@@ -138,3 +142,8 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 - Zooming is not present yet. With zooming, the direct mapping between hardware enabled system brushes and the software canvas fall apart very quickly.
 - undo/redo
 - saving/loading layers to a layer-enabled file format.
+
+It is not my goal to build a fully features drawing app for android.
+(I have [dpaint.js](https://github.com/steffest/DPaint-js) for that - which works fine on Android tablets as installed Chrome app.)  
+This project might be useful for other devs as example how to use the Boox hardware brushes in your own app.
+

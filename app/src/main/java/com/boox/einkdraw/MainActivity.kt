@@ -1,9 +1,11 @@
 package com.boox.einkdraw
 
+import android.app.Dialog
 import android.graphics.Color
 import android.graphics.ImageDecoder
 import android.graphics.Matrix
 import android.graphics.Rect
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
@@ -12,7 +14,6 @@ import android.provider.MediaStore
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.method.LinkMovementMethod
-import android.text.style.RelativeSizeSpan
 import android.text.style.URLSpan
 import android.view.MotionEvent
 import android.view.View
@@ -23,7 +24,6 @@ import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -552,11 +552,12 @@ class MainActivity : AppCompatActivity() {
         aboutDialogVisible = true
         updateRawSuppression()
 
-        val text = SpannableStringBuilder().apply {
-            append("V 0.0.1\n")
-            setSpan(RelativeSizeSpan(0.8f), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            append("Made by Steffest \u00A9 2026\n")
-            append("Open source - fork me on Github")
+        val content = layoutInflater.inflate(R.layout.dialog_about, null)
+        val imageView = content.findViewById<android.widget.ImageView>(R.id.aboutImage)
+        val textColumn = content.findViewById<LinearLayout>(R.id.aboutTextColumn)
+        val linkView = content.findViewById<TextView>(R.id.aboutLink)
+        val okButton = content.findViewById<TextView>(R.id.aboutOkButton)
+        val linkText = SpannableStringBuilder("Open source - fork me on Github").apply {
             val start = lastIndexOf("Github")
             if (start >= 0) {
                 val end = start + "Github".length
@@ -568,24 +569,35 @@ class MainActivity : AppCompatActivity() {
                 )
             }
         }
+        linkView.text = linkText
+        linkView.movementMethod = LinkMovementMethod.getInstance()
 
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("BooxDraw")
-            .setMessage(text)
-            .setPositiveButton("OK", null)
-            .create()
-
-        dialog.setCanceledOnTouchOutside(true)
-        dialog.setOnShowListener {
-            dialog.window?.setBackgroundDrawableResource(R.drawable.about_dialog_background)
-            dialog.findViewById<TextView>(android.R.id.message)?.movementMethod =
-                LinkMovementMethod.getInstance()
+        val dialog = Dialog(this, R.style.Theme_BooxEinkDraw_AboutDialog).apply {
+            setContentView(content)
+            setCancelable(true)
+            setCanceledOnTouchOutside(true)
+            window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         }
+
+        okButton.setOnClickListener { dialog.dismiss() }
         dialog.setOnDismissListener {
             aboutDialogVisible = false
             updateRawSuppression()
         }
         dialog.show()
+        content.post {
+            val side = textColumn.height.coerceAtLeast(dp(96))
+            val lp = imageView.layoutParams
+            if (lp.width != side || lp.height != side) {
+                lp.width = side
+                lp.height = side
+                imageView.layoutParams = lp
+            }
+            dialog.window?.setLayout(
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        }
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
