@@ -5,4 +5,10 @@
         <item name="colorOnPrimary">#FFFFFF</item>
         <item name="android:statusBarColor">#000000</item>
     </style>
+
+    <style name="Theme.BooxEinkDraw.AboutDialog" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowMinWidthMajor">0%</item>
+        <item name="android:windowMinWidthMinor">0%</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
 </resources>
