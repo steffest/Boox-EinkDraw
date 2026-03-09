@@ -2,20 +2,28 @@ package com.boox.einkdraw
 
 import android.graphics.Color
 import android.graphics.ImageDecoder
+import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.method.LinkMovementMethod
+import android.text.style.RelativeSizeSpan
+import android.text.style.URLSpan
 import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -47,14 +55,18 @@ class MainActivity : AppCompatActivity() {
     private lateinit var layerAdapter: LayerListAdapter
 
     private val brushButtons = LinkedHashMap<HardwarePenStyle, ImageButton>(HardwarePenStyle.entries.size)
+    private val brushWidths = HardwarePenStyle.entries.associateWith { it.defaultWidthPx }.toMutableMap()
+    private var selectedBrushStyle: HardwarePenStyle = HardwarePenStyle.PENCIL
     private var selectedBrushBtn: ImageButton? = null
     private var selectedColorSwatch: View? = null
     private var pickerInFlight: Boolean = false
     private var activityPaused: Boolean = false
     private var uiTouchDepth: Int = 0
+    private var aboutDialogVisible: Boolean = false
     private var layerDragDx: Float = 0f
     private var layerDragDy: Float = 0f
-    private var currentInkColor: Int = Color.BLUE
+    private var currentInkColor: Int = Color.BLACK
+    private var pickerDotColor: Int = Color.BLUE
 
     private val savePngLauncher = registerForActivityResult(
         ActivityResultContracts.CreateDocument("image/png")
@@ -100,6 +112,7 @@ class MainActivity : AppCompatActivity() {
         val clearLayerBtn = findViewById<View>(R.id.buttonClearLayer)
         val clearFileBtn = findViewById<View>(R.id.buttonClearFile)
         val saveBtn = findViewById<View>(R.id.buttonSave)
+        val aboutBtn = findViewById<View>(R.id.buttonAbout)
 
         setupBrushButtons()
         setupWidthSeekBar()
@@ -113,6 +126,7 @@ class MainActivity : AppCompatActivity() {
         guardRawMode(clearLayerBtn)
         guardRawMode(clearFileBtn)
         guardRawMode(saveBtn)
+        guardRawMode(aboutBtn)
         guardRawMode(swatchBlack)
         guardRawMode(swatchWhite)
         guardRawMode(swatchBlue)
@@ -152,6 +166,10 @@ class MainActivity : AppCompatActivity() {
             updateRawSuppression()
             savePngLauncher.launch("drawing.png")
         }
+        aboutBtn.setOnClickListener {
+            fileMenuPanel.visibility = View.GONE
+            showAboutDialog()
+        }
         buttonLayers.setOnClickListener { toggleLayerPanel() }
         buttonMenu.setOnClickListener { toggleFileMenu() }
 
@@ -167,10 +185,12 @@ class MainActivity : AppCompatActivity() {
                 setImageResource(brushIconRes(style))
                 background = null
                 setPadding(dp(2), dp(1), dp(2), dp(1))
+                scaleType = ImageView.ScaleType.MATRIX
                 contentDescription = style.label
                 alpha = 0.45f
                 setOnClickListener { selectBrush(style) }
             }
+            updateBrushIconTransform(btn, selected = false)
             guardRawMode(btn)
             brushButtons[style] = btn
             brushRow.addView(
@@ -310,7 +330,8 @@ class MainActivity : AppCompatActivity() {
         val willShow = colorPickerPanel.visibility != View.VISIBLE
         if (willShow) {
             layerPanel.visibility = View.GONE
-            colorPickerView.setColor(currentInkColor)
+            colorPickerView.setColor(pickerDotColor)
+            colorHexValue.text = formatHex(pickerDotColor)
         }
         colorPickerPanel.visibility = if (willShow) View.VISIBLE else View.GONE
         refreshPickerToggleSwatch(active = willShow)
@@ -336,8 +357,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun selectBrush(style: HardwarePenStyle) {
+        selectedBrushStyle = style
         penView.setStyle(style)
-        val width = style.defaultWidthPx
+        val width = brushWidths[style] ?: style.defaultWidthPx
         penView.setStrokeWidthPx(width)
         widthSeekBar.progress = widthToProgress(width)
         widthValueLabel.text = "${width.roundToInt()} px"
@@ -345,12 +367,19 @@ class MainActivity : AppCompatActivity() {
         selectedBrushBtn?.apply {
             alpha = 0.45f
             translationY = 0f
+            updateBrushIconTransform(this, selected = false)
         }
         brushButtons[style]?.also { btn ->
             btn.alpha = 1f
             btn.translationY = dp(3).toFloat()
+            updateBrushIconTransform(btn, selected = true)
             selectedBrushBtn = btn
         }
+    }
+
+    private fun updateBrushIconTransform(button: ImageButton, selected: Boolean) {
+        val shiftY = if (selected) dpF(-7f) else dpF(-10f)
+        button.imageMatrix = Matrix().apply { setTranslate(0f, shiftY) }
     }
 
     private fun setupWidthSeekBar() {
@@ -359,6 +388,7 @@ class MainActivity : AppCompatActivity() {
                 if (!fromUser) return
                 val width = progressToWidth(progress)
                 widthValueLabel.text = "${width.roundToInt()} px"
+                brushWidths[selectedBrushStyle] = width
                 penView.setStrokeWidthPx(width)
             }
 
@@ -372,7 +402,7 @@ class MainActivity : AppCompatActivity() {
             applyColor(color, swatch = null, syncPicker = false)
         }
         colorHexValue.text = formatHex(currentInkColor)
-        colorPickerView.setColor(currentInkColor)
+        colorPickerView.setColor(pickerDotColor)
     }
 
     private fun setupColorSwatches() {
@@ -380,7 +410,7 @@ class MainActivity : AppCompatActivity() {
         bindColorSwatch(swatchWhite, Color.WHITE)
         swatchBlue.setOnClickListener { toggleColorPickerPanel() }
         refreshPickerToggleSwatch(active = false)
-        applyColor(currentInkColor, swatch = null, syncPicker = true)
+        applyColor(currentInkColor, swatch = swatchBlack, syncPicker = false)
     }
 
     private fun bindColorSwatch(swatch: View, color: Int) {
@@ -397,6 +427,9 @@ class MainActivity : AppCompatActivity() {
             swatch.background = createSwatchDrawable(selectedInkColorOf(swatch), selected = true)
         }
         selectedColorSwatch = swatch
+        if (swatch == null) {
+            pickerDotColor = currentInkColor
+        }
         colorHexValue.text = formatHex(currentInkColor)
         refreshPickerToggleSwatch(active = colorPickerPanel.visibility == View.VISIBLE)
         if (syncPicker) {
@@ -432,7 +465,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun refreshPickerToggleSwatch(active: Boolean) {
-        swatchBlue.background = createPickerToggleDrawable(active = active, fillColor = currentInkColor)
+        swatchBlue.background = createPickerToggleDrawable(active = active, fillColor = pickerDotColor)
     }
 
     private fun formatHex(color: Int): String =
@@ -507,6 +540,7 @@ class MainActivity : AppCompatActivity() {
     private fun updateRawSuppression() {
         val suppress = activityPaused ||
             pickerInFlight ||
+            aboutDialogVisible ||
             uiTouchDepth > 0 ||
             layerPanel.visibility == View.VISIBLE ||
             colorPickerPanel.visibility == View.VISIBLE ||
@@ -514,27 +548,98 @@ class MainActivity : AppCompatActivity() {
         penView.setRawInputSuppressed(suppress)
     }
 
-    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-        if (ev.actionMasked == MotionEvent.ACTION_DOWN && fileMenuPanel.visibility == View.VISIBLE) {
-            val inMenu = isPointInsideView(fileMenuPanel, ev.rawX, ev.rawY)
-            val inMenuToggle = isPointInsideView(buttonMenu, ev.rawX, ev.rawY)
-            if (!inMenu && !inMenuToggle) {
-                fileMenuPanel.visibility = View.GONE
-                updateRawSuppression()
-                return true
+    private fun showAboutDialog() {
+        aboutDialogVisible = true
+        updateRawSuppression()
+
+        val text = SpannableStringBuilder().apply {
+            append("V 0.0.1\n")
+            setSpan(RelativeSizeSpan(0.8f), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            append("Made by Steffest \u00A9 2026\n")
+            append("Open source - fork me on Github")
+            val start = lastIndexOf("Github")
+            if (start >= 0) {
+                val end = start + "Github".length
+                setSpan(
+                    URLSpan("https://github.com/steffest/Boox-EinkDraw"),
+                    start,
+                    end,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
             }
         }
-        if (ev.actionMasked == MotionEvent.ACTION_DOWN && colorPickerPanel.visibility == View.VISIBLE) {
-            val inPicker = isPointInsideView(colorPickerPanel, ev.rawX, ev.rawY)
-            val inPickerToggle = isPointInsideView(swatchBlue, ev.rawX, ev.rawY)
-            if (!inPicker && !inPickerToggle) {
-                colorPickerPanel.visibility = View.GONE
-                refreshPickerToggleSwatch(active = false)
-                updateRawSuppression()
-                return true
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("BooxDraw")
+            .setMessage(text)
+            .setPositiveButton("OK", null)
+            .create()
+
+        dialog.setCanceledOnTouchOutside(true)
+        dialog.setOnShowListener {
+            dialog.window?.setBackgroundDrawableResource(R.drawable.about_dialog_background)
+            dialog.findViewById<TextView>(android.R.id.message)?.movementMethod =
+                LinkMovementMethod.getInstance()
+        }
+        dialog.setOnDismissListener {
+            aboutDialogVisible = false
+            updateRawSuppression()
+        }
+        dialog.show()
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        when (ev.actionMasked) {
+            MotionEvent.ACTION_DOWN,
+            MotionEvent.ACTION_POINTER_DOWN,
+            MotionEvent.ACTION_UP,
+            MotionEvent.ACTION_POINTER_UP -> {
+                if (dismissPanelsIfTappedOutside(ev.rawX, ev.rawY)) return true
             }
         }
         return super.dispatchTouchEvent(ev)
+    }
+
+    private fun dismissPanelsIfTappedOutside(rawX: Float, rawY: Float): Boolean {
+        var dismissed = false
+
+        if (layerPanel.visibility == View.VISIBLE &&
+            !isPointInsideView(layerPanel, rawX, rawY) &&
+            !isPointInsideView(buttonLayers, rawX, rawY)
+        ) {
+            layerPanel.visibility = View.GONE
+            dismissed = true
+        }
+
+        if (fileMenuPanel.visibility == View.VISIBLE &&
+            !isPointInsideView(fileMenuPanel, rawX, rawY) &&
+            !isPointInsideView(buttonMenu, rawX, rawY)
+        ) {
+            fileMenuPanel.visibility = View.GONE
+            dismissed = true
+        }
+
+        if (colorPickerPanel.visibility == View.VISIBLE &&
+            !isPointInsideView(colorPickerPanel, rawX, rawY) &&
+            !isPointInsideView(swatchBlue, rawX, rawY)
+        ) {
+            colorPickerPanel.visibility = View.GONE
+            dismissed = true
+        }
+
+        if (dismissed) {
+            refreshPickerToggleSwatch(active = colorPickerPanel.visibility == View.VISIBLE)
+            updateRawSuppression()
+            refreshUiAfterOverlayDismiss()
+        }
+        return dismissed
+    }
+
+    private fun refreshUiAfterOverlayDismiss() {
+        rootFrame.post {
+            rootFrame.invalidate()
+            penView.invalidate()
+        }
     }
 
     private fun isPointInsideView(view: View, rawX: Float, rawY: Float): Boolean {
@@ -556,4 +661,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun dp(v: Int): Int = (v * resources.displayMetrics.density).roundToInt()
+
+    private fun dpF(v: Float): Float = v * resources.displayMetrics.density
 }

@@ -323,6 +323,22 @@
             android:text="Clear file"
             android:textColor="@drawable/menu_item_text_color"
             android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/buttonAbout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/menu_item_background"
+            android:gravity="start|center_vertical"
+            android:minHeight="0dp"
+            android:paddingStart="10dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="8dp"
+            android:text="About"
+            android:textColor="@drawable/menu_item_text_color"
+            android:textSize="12sp" />
     </LinearLayout>
 
 </FrameLayout>
