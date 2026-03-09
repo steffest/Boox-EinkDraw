@@ -1,6 +1,6 @@
 # Boox E-Ink Draw
 
-Fast Android drawing app focused on Onyx Boox e-ink devices, with priority on low stylus latency and stable stroke replay.
+Minimal but fast Android drawing app focused on Onyx Boox e-ink devices, with priority on low stylus latency and stable stroke replay.
 
 ## What it is
 
@@ -8,14 +8,13 @@ This project is a Boox-specific drawing surface that combines:
 
 - hardware pen preview (near-zero latency on e-ink)
 - software canvas rendering (persistent bitmap/export/load)
-- brush parity work to keep software replay close to hardware preview
 
 Current app UI includes:
 
-- brush selector row (all hardware brush types)
-- width slider
-- color swatches (black/white/blue)
-- `Load`, `Clear`, `Save`
+- brush selector (exposing all hardware brush types found in their SDK)
+- Brush-width slider
+- color swatches and color picker
+- layer panel to manage layers
 - full-screen drawing surface
 
 ## For what tablet
@@ -24,11 +23,20 @@ Primary target and test device:
 
 - **Onyx Boox Note Air4C** (Android 13)
 
-It can run on other Onyx Boox tablets that expose the same Onyx pen APIs, but behavior can vary by firmware/device generation.
+It probably can run on other Onyx Boox tablets that expose the same Onyx pen APIs, but behavior can vary by firmware/device generation.
 
 ## Onyx SDK
 
-Onyx SDK documentation is sparse and API behavior is partially firmware-dependent.
+the Onyx Eink devices deliver a native zero-latency drawing experience. 
+This is achieved by using a hardware-driven pen experience: during drawing, the "Android screen" gets frozen and there is a direct communication line to the display controller, updating the screen with a pre-defined set of system brushes. 
+These strokes are then synced with the software app canvas.
+
+Onyx SDK documentation is sparse, missing or outdated. 
+API behavior is partially firmware-dependent.  
+ 
+this is is a call-out to Onyx that
+- there are developer out there that want to develop for your devices. Your low-latency Eink drawing libraries deliver a best-in-class drawing experience.
+- But .... for peeps sake .... you make it VERY hard for developers to find the correct documentation needed to use these in their own apps.
 
 This app uses Onyx pen/e-ink APIs from:
 
@@ -40,21 +48,11 @@ It also bundles missing native-pen Java classes used by wrappers:
 
 - `app/libs/onyxsdk-pen-native-classes.jar`
 
-## The problem.
+However ... these classes contain wrappers to functions that reside in `libneo_pen.so` - this a system library that only system apps can access.
+(so 3rth party apps can't use them directly)
 
-The Onyx SDK contains wrappers around native pen engines, but non-system apps can hit classpath/runtime gaps and undocumented behavior differences.
-
-Historically:
-
-- AAR wrappers referenced classes that were expected from system/framework scope.
-- Native implementation lives in Onyx system libs (for example `libneo_pen.so`) and is not always directly usable by third-party apps.
-- Wrapper calls could fail or behave differently depending on firmware + packaging.
-
-In this project, reliability required:
-
-- shipping a known-good `libneo_pen.so` in `app/src/main/jniLibs/arm64-v8a/`
-- validating behavior against decompiled reference apps (`neo-reader`, `knote_decompiled`)
-- adding fallbacks/guards where wrapper/native behavior is inconsistent
+In this project, a copy of this library is included.  
+As this is a system-level library, it's device and firmware dependant, so it may very wall fail on your device.
 
 ## Hardware-enabled drawing approach (zero-latency)
 
@@ -135,6 +133,8 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
 
-## Rebuild / handoff
+## Known missing features:
 
-- Agent handoff notes: [AGENTS.md](AGENTS.md)
+- Zooming is not present yet. With zooming, the direct mapping between hardware enabled system brushes and the software canvas fall apart very quickly.
+- undo/redo
+- saving/loading layers to a layer-enabled file format.
