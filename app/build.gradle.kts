@@ -35,15 +35,6 @@ android {
         jvmTarget = "17"
     }
 
-    sourceSets {
-        getByName("main") {
-            java {
-                exclude("com/onyx/android/sdk/data/note/TouchPoint.java")
-                exclude("com/onyx/android/sdk/base/data/TouchPoint.java")
-            }
-        }
-    }
-
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"

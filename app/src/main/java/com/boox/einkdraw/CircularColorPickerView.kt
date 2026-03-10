@@ -20,7 +20,7 @@ import kotlin.math.sqrt
 /**
  * Circular HSV picker:
  *  - outer ring: hue
- *  - inner disk: shade selection for current hue
+ *  - inner square: shade selection for current hue
  */
 class CircularColorPickerView @JvmOverloads constructor(
     context: Context,
@@ -53,6 +53,7 @@ class CircularColorPickerView @JvmOverloads constructor(
     private var ringRadius = 0f
     private var ringInnerRadius = 0f
     private var innerRadius = 0f
+    private var shadeHalf = 0f
 
     private var hue = 220f
     private var selectedColor = Color.BLACK
@@ -82,6 +83,7 @@ class CircularColorPickerView @JvmOverloads constructor(
         ringRadius = outerRadius - ringWidth * 0.5f
         ringInnerRadius = ringRadius - ringWidth * 0.5f
         innerRadius = max(0f, ringInnerRadius - dp(7f))
+        shadeHalf = innerRadius / SQRT_2
 
         wheelPaint.strokeWidth = ringWidth
         wheelShader = SweepGradientCompat.create(cx, cy)
@@ -127,7 +129,7 @@ class CircularColorPickerView @JvmOverloads constructor(
                 parent?.requestDisallowInterceptTouchEvent(true)
                 touchTarget = when {
                     isInHueRing(x, y) -> TouchTarget.HUE
-                    isInShadeDisk(x, y) -> TouchTarget.SHADE
+                    isInShadeArea(x, y) -> TouchTarget.SHADE
                     else -> TouchTarget.NONE
                 }
                 when (touchTarget) {
@@ -194,17 +196,8 @@ class CircularColorPickerView @JvmOverloads constructor(
     }
 
     private fun updateShadeFromTouch(x: Float, y: Float, notify: Boolean) {
-        val dx = x - cx
-        val dy = y - cy
-        val d = sqrt(dx * dx + dy * dy)
-        if (d > innerRadius && d > 0.001f) {
-            val k = innerRadius / d
-            markerX = cx + dx * k
-            markerY = cy + dy * k
-        } else {
-            markerX = x
-            markerY = y
-        }
+        markerX = x.coerceIn(cx - shadeHalf, cx + shadeHalf)
+        markerY = y.coerceIn(cy - shadeHalf, cy + shadeHalf)
         hasMarker = true
         updateSelectedColorFromMarker(notify = notify)
         invalidate()
@@ -219,7 +212,7 @@ class CircularColorPickerView @JvmOverloads constructor(
     }
 
     private fun rebuildInnerBitmap() {
-        if (width <= 0 || height <= 0 || innerRadius <= 0f) return
+        if (width <= 0 || height <= 0 || shadeHalf <= 0f) return
 
         val hueColor = Color.HSVToColor(floatArrayOf(hue, 1f, 1f))
         innerBitmap?.recycle()
@@ -230,31 +223,26 @@ class CircularColorPickerView @JvmOverloads constructor(
         val hueG = Color.green(hueColor)
         val hueB = Color.blue(hueColor)
 
-        val minX = max(0, (cx - innerRadius).roundToInt())
-        val maxX = min(width - 1, (cx + innerRadius).roundToInt())
-        val minY = max(0, (cy - innerRadius).roundToInt())
-        val maxY = min(height - 1, (cy + innerRadius).roundToInt())
-        val diameter = innerRadius * 2f
-        val radiusSq = innerRadius * innerRadius
+        val minX = max(0, (cx - shadeHalf).roundToInt())
+        val maxX = min(width - 1, (cx + shadeHalf).roundToInt())
+        val minY = max(0, (cy - shadeHalf).roundToInt())
+        val maxY = min(height - 1, (cy + shadeHalf).roundToInt())
+        val side = shadeHalf * 2f
 
         var y = minY
         while (y <= maxY) {
-            val dy = y - cy
-            val yNorm = ((y - (cy - innerRadius)) / diameter).coerceIn(0f, 1f)
+            val yNorm = ((y - (cy - shadeHalf)) / side).coerceIn(0f, 1f)
             val valueFactor = (1f - yNorm).coerceIn(0f, 1f)
             var x = minX
             while (x <= maxX) {
-                val dx = x - cx
-                if (dx * dx + dy * dy <= radiusSq) {
-                    val xNorm = ((x - (cx - innerRadius)) / diameter).coerceIn(0f, 1f)
-                    val baseR = lerp(255f, hueR.toFloat(), xNorm)
-                    val baseG = lerp(255f, hueG.toFloat(), xNorm)
-                    val baseB = lerp(255f, hueB.toFloat(), xNorm)
-                    val r = (baseR * valueFactor).roundToInt().coerceIn(0, 255)
-                    val g = (baseG * valueFactor).roundToInt().coerceIn(0, 255)
-                    val b = (baseB * valueFactor).roundToInt().coerceIn(0, 255)
-                    pixels[y * width + x] = Color.argb(255, r, g, b)
-                }
+                val xNorm = ((x - (cx - shadeHalf)) / side).coerceIn(0f, 1f)
+                val baseR = lerp(255f, hueR.toFloat(), xNorm)
+                val baseG = lerp(255f, hueG.toFloat(), xNorm)
+                val baseB = lerp(255f, hueB.toFloat(), xNorm)
+                val r = (baseR * valueFactor).roundToInt().coerceIn(0, 255)
+                val g = (baseG * valueFactor).roundToInt().coerceIn(0, 255)
+                val b = (baseB * valueFactor).roundToInt().coerceIn(0, 255)
+                pixels[y * width + x] = Color.argb(255, r, g, b)
                 x++
             }
             y++
@@ -266,10 +254,10 @@ class CircularColorPickerView @JvmOverloads constructor(
 
     private fun positionMarkerForColor(targetColor: Int) {
         val bmp = innerBitmap ?: return
-        val minX = max(0, (cx - innerRadius).roundToInt())
-        val maxX = min(bmp.width - 1, (cx + innerRadius).roundToInt())
-        val minY = max(0, (cy - innerRadius).roundToInt())
-        val maxY = min(bmp.height - 1, (cy + innerRadius).roundToInt())
+        val minX = max(0, (cx - shadeHalf).roundToInt())
+        val maxX = min(bmp.width - 1, (cx + shadeHalf).roundToInt())
+        val minY = max(0, (cy - shadeHalf).roundToInt())
+        val maxY = min(bmp.height - 1, (cy + shadeHalf).roundToInt())
 
         var bestX = cx
         var bestY = cy
@@ -279,21 +267,17 @@ class CircularColorPickerView @JvmOverloads constructor(
         while (y <= maxY) {
             var x = minX
             while (x <= maxX) {
-                val dx = x - cx
-                val dy = y - cy
-                if (dx * dx + dy * dy <= innerRadius * innerRadius) {
-                    val c = bmp.getPixel(x, y)
-                    if (Color.alpha(c) > 10) {
-                        val dr = Color.red(c) - Color.red(targetColor)
-                        val dg = Color.green(c) - Color.green(targetColor)
-                        val db = Color.blue(c) - Color.blue(targetColor)
-                        val dist = (dr * dr + dg * dg + db * db).toLong()
-                        if (dist < bestDist) {
-                            bestDist = dist
-                            bestX = x.toFloat()
-                            bestY = y.toFloat()
-                            if (dist == 0L) break
-                        }
+                val c = bmp.getPixel(x, y)
+                if (Color.alpha(c) > 10) {
+                    val dr = Color.red(c) - Color.red(targetColor)
+                    val dg = Color.green(c) - Color.green(targetColor)
+                    val db = Color.blue(c) - Color.blue(targetColor)
+                    val dist = (dr * dr + dg * dg + db * db).toLong()
+                    if (dist < bestDist) {
+                        bestDist = dist
+                        bestX = x.toFloat()
+                        bestY = y.toFloat()
+                        if (dist == 0L) break
                     }
                 }
                 x += 2
@@ -314,10 +298,11 @@ class CircularColorPickerView @JvmOverloads constructor(
         return d >= ringInnerRadius && d <= outerRadius
     }
 
-    private fun isInShadeDisk(x: Float, y: Float): Boolean {
-        val dx = x - cx
-        val dy = y - cy
-        return dx * dx + dy * dy <= innerRadius * innerRadius
+    private fun isInShadeArea(x: Float, y: Float): Boolean {
+        return x >= cx - shadeHalf &&
+            x <= cx + shadeHalf &&
+            y >= cy - shadeHalf &&
+            y <= cy + shadeHalf
     }
 
     private fun sampleInnerColor(x: Float, y: Float): Int {
@@ -337,6 +322,10 @@ class CircularColorPickerView @JvmOverloads constructor(
     private fun lerp(a: Float, b: Float, t: Float): Float = a + (b - a) * t
 
     private fun dp(v: Float): Float = v * resources.displayMetrics.density
+
+    companion object {
+        private const val SQRT_2 = 1.4142135f
+    }
 }
 
 private object SweepGradientCompat {
