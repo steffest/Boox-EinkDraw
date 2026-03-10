@@ -4,24 +4,31 @@ plugins {
 }
 
 val releaseStoreFilePath = providers.gradleProperty("BOOXDRAW_STORE_FILE")
-    .orElse("/Users/stef/Steffest_keystore.jks")
+    .orElse(providers.environmentVariable("BOOXDRAW_STORE_FILE"))
 val releaseStorePassword = providers.gradleProperty("BOOXDRAW_STORE_PASSWORD")
     .orElse(providers.environmentVariable("BOOXDRAW_STORE_PASSWORD"))
 val releaseKeyAlias = providers.gradleProperty("BOOXDRAW_KEY_ALIAS")
     .orElse(providers.environmentVariable("BOOXDRAW_KEY_ALIAS"))
 val releaseKeyPassword = providers.gradleProperty("BOOXDRAW_KEY_PASSWORD")
     .orElse(providers.environmentVariable("BOOXDRAW_KEY_PASSWORD"))
+val hasReleaseSigning =
+    releaseStoreFilePath.isPresent &&
+        releaseStorePassword.isPresent &&
+        releaseKeyAlias.isPresent &&
+        releaseKeyPassword.isPresent
 
 android {
     namespace = "com.boox.einkdraw"
     compileSdk = 34
 
     signingConfigs {
-        create("release") {
-            storeFile = file(releaseStoreFilePath.get())
-            storePassword = releaseStorePassword.orNull
-            keyAlias = releaseKeyAlias.orNull
-            keyPassword = releaseKeyPassword.orNull
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(releaseStoreFilePath.get())
+                storePassword = releaseStorePassword.orNull
+                keyAlias = releaseKeyAlias.orNull
+                keyPassword = releaseKeyPassword.orNull
+            }
         }
     }
 
@@ -41,10 +48,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            if (releaseStorePassword.isPresent &&
-                releaseKeyAlias.isPresent &&
-                releaseKeyPassword.isPresent
-            ) {
+            if (hasReleaseSigning) {
                 signingConfig = signingConfigs.getByName("release")
             }
         }

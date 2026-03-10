@@ -4,6 +4,31 @@
 /app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/
 /build/
 local.properties
+.DS_Store
+
+# IDE state
+.idea/
+
+# Generated release metadata/profiles (keep explicit APK if desired)
+/app/release/baselineProfiles/
+/app/release/output-metadata.json
+
+# Local binaries/backups
+/app/classes.jar
+/app/libs/*.bak
 
 # Ignore backup/new files
 /app/new/
+
+# Local reverse-engineering/debug artifacts
+/bugreport*.zip
+/jadx/
+/jadx*.zip
+/jadx_output.txt
+/knote.apk
+/knote_decompiled.zip
+/neo-reader.zip
+/temp/
+/strokes/
+/docs/aar-api-reference.md
+/docs/logs.md
