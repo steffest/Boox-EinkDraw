@@ -2,24 +2,25 @@
 
 Minimal but fast Android drawing app focused on Onyx Boox e-ink devices, with priority on low stylus latency and stable stroke replay.
 
-![BooxDraw icon](docs/icon.png)
+![BooxDraw icon](docs/title.png)
 
-## What it is
+## What is this?
 
-This project is a Boox-specific drawing surface that combines:
+This project is a Boox-specific drawing app that combines:
 
-- hardware pen preview (near-zero latency on e-ink)
-- software canvas rendering (persistent bitmap/export/load)
+- Hardware pen preview (near-zero latency on e-ink)
+- Software canvas rendering (persistent bitmap/export/load)
 
-Current app UI includes:
+Current app includes:
 
-- brush selector (exposing all hardware brush types found in their SDK)
+- Brush selector (exposing all hardware brush types found in their SDK)
 - Brush-width slider
-- color swatches and color picker
-- layer panel to manage layers
-- full-screen drawing surface
+- Color swatches and color picker
+- Layer panel to manage layers
+- Full-screen drawing surface
+- Basic pinch zooming/panning
 
-## For what tablet
+## For what tablet?
 
 Primary target and test device:
 
@@ -28,6 +29,27 @@ Primary target and test device:
 This app was made to scratch a personal itch.  
 It probably can run on other Onyx Boox tablets that expose the same Onyx pen APIs, but behavior can vary by firmware/device generation.  
 (so it's very much a "it works on my device" project)
+
+## Hardware brushes available
+
+From `HardwarePenStyle`:
+
+- `PENCIL` (default width `5px`)
+- `FOUNTAIN` (`8px`)
+- `MARKER` (`20px`)
+- `NEO_BRUSH` (`12px`)
+- `CHARCOAL` (`10px`)
+- `DASH` (`5px`)
+- `CHARCOAL_V2` (`10px`)
+- `SQUARE_PEN` (`8px`)
+
+These map to Onyx hardware stroke-style IDs used by `TouchHelper`.
+
+## File format
+Next to PNG, this app loads and saves the [Dpaint.js](https://dpaint.app/) format.  
+Dpaint.js is my fully featured pixel drawing app. Dpaint.js works fine on the Boox tablet (install as chrome app recomended) - but as all generic 3rth party drawing apps, it is quite slow on the Boox tablet because it doesn't use the device specific hardware brushes.   
+This app was created to fill that gap.  
+The Dpaint.js file format supports layers and all other features found in this app.  
 
 ## Onyx SDK
 
@@ -38,9 +60,9 @@ These strokes are then synced with the software app canvas.
 Onyx SDK documentation is sparse, missing or outdated. 
 API behavior is partially firmware-dependent.  
  
-this is is a call-out to Onyx that
-- there are developer out there that want to develop for your devices. Your low-latency Eink drawing libraries deliver a best-in-class drawing experience.
-- But .... for peeps sake .... you make it VERY hard for developers to find the correct documentation needed to use these in their own apps.
+this is is a call-out to Onyx to show there are developer out there that want to develop for your devices. Your low-latency Eink drawing libraries deliver a best-in-class drawing experience.  
+But .... for peeps sake .... you make it VERY hard for developers to find the correct documentation needed to use these in their own apps.  
+Please update your documentation and put out some recent code examples.
 
 This app uses Onyx pen/e-ink APIs from:
 
@@ -78,20 +100,6 @@ Core idea: let the hardware path draw immediately, while software reconstruction
 
 This gives low perceived latency while still producing a persistent/exportable canvas.
 
-## Hardware brushes available
-
-From `HardwarePenStyle`:
-
-- `PENCIL` (default width `5px`)
-- `FOUNTAIN` (`8px`)
-- `MARKER` (`20px`)
-- `NEO_BRUSH` (`12px`)
-- `CHARCOAL` (`10px`)
-- `DASH` (`5px`)
-- `CHARCOAL_V2` (`10px`)
-- `SQUARE_PEN` (`8px`)
-
-These map to Onyx hardware stroke-style IDs used by `TouchHelper`.
 
 ## Moving from hardware preview to software canvas
 
@@ -137,11 +145,10 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
 
-## Known missing features:
+## Known missing features / shortcomings:
 
-- Zooming is not present yet. With zooming, the direct mapping between hardware enabled system brushes and the software canvas fall apart very quickly.
-- undo/redo
-- saving/loading layers to a layer-enabled file format.
+- Zooming is supported, but when zoomed-in, the direct mapping between hardware enabled system brushes and the software canvas falls apart very quickly. This means that the zero-latency hardware preview of the stroke won't match the end result on the canvas all that well when drawing on a zoomed in canvas.
+- undo/redo is not there yet (just think of it like real paper :-)
 
 It is not my goal to build a fully features drawing app for android.
 (I have [dpaint.js](https://github.com/steffest/DPaint-js) for that - which works fine on Android tablets as installed Chrome app.)  
