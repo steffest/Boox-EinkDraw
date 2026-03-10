@@ -4,3 +4,6 @@
 /app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/
 /build/
 local.properties
+
+# Ignore backup/new files
+/app/new/
