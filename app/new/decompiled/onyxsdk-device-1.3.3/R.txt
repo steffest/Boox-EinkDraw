@@ -1,3 +1,0 @@
-int integer pin_code_max_count 0x0
-int integer pin_code_min_count 0x0
-int string app_name 0x0
