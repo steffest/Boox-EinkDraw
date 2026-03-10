@@ -437,6 +437,8 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
             runCatching {
                 // 1. Width
                 helper.setStrokeWidth(widthPx)
+                helper.enableFingerTouch(false)
+                helper.onlyEnableFingerTouch(false)
                 // 2. Preview color
                 val hardwareColor = when (style) {
                     HardwarePenStyle.MARKER -> withAlpha(activeColor, 128)
@@ -615,6 +617,7 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
     }
 
     private fun isStylus(event: MotionEvent): Boolean {
+        if (event.pointerCount <= 0) return false
         val idx = event.actionIndex.coerceIn(0, event.pointerCount - 1)
         return event.getToolType(idx) in listOf(MotionEvent.TOOL_TYPE_STYLUS, MotionEvent.TOOL_TYPE_ERASER)
     }
