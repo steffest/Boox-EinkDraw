@@ -1,6 +1,8 @@
 package com.boox.einkdraw
 
 import android.app.Dialog
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.ImageDecoder
 import android.graphics.Matrix
@@ -11,10 +13,12 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.method.LinkMovementMethod
 import android.text.style.URLSpan
+import android.util.Base64
 import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageButton
@@ -28,6 +32,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
@@ -38,6 +45,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var brushRow: LinearLayout
     private lateinit var widthSeekBar: SeekBar
     private lateinit var widthValueLabel: TextView
+    private lateinit var zoomValueLabel: TextView
     private lateinit var swatchBlack: View
     private lateinit var swatchWhite: View
     private lateinit var swatchBlue: View
@@ -67,6 +75,7 @@ class MainActivity : AppCompatActivity() {
     private var layerDragDy: Float = 0f
     private var currentInkColor: Int = Color.BLACK
     private var pickerDotColor: Int = Color.BLUE
+    private var currentDocumentBaseName: String = "drawing"
 
     private val savePngLauncher = registerForActivityResult(
         ActivityResultContracts.CreateDocument("image/png")
@@ -76,10 +85,18 @@ class MainActivity : AppCompatActivity() {
         updateRawSuppression()
     }
 
-    private val loadPngLauncher = registerForActivityResult(
+    private val saveDpaintLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        uri?.let { saveDpaint(it) }
+        pickerInFlight = false
+        updateRawSuppression()
+    }
+
+    private val loadDocumentLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri ->
-        uri?.let { loadPng(it) }
+        uri?.let { loadDocument(it) }
         pickerInFlight = false
         updateRawSuppression()
     }
@@ -93,6 +110,7 @@ class MainActivity : AppCompatActivity() {
         brushRow = findViewById(R.id.brushButtonRow)
         widthSeekBar = findViewById(R.id.widthSeekBar)
         widthValueLabel = findViewById(R.id.widthValueLabel)
+        zoomValueLabel = findViewById(R.id.zoomValueLabel)
         swatchBlack = findViewById(R.id.swatchBlack)
         swatchWhite = findViewById(R.id.swatchWhite)
         swatchBlue = findViewById(R.id.swatchBlue)
@@ -112,6 +130,8 @@ class MainActivity : AppCompatActivity() {
         val clearLayerBtn = findViewById<View>(R.id.buttonClearLayer)
         val clearFileBtn = findViewById<View>(R.id.buttonClearFile)
         val saveBtn = findViewById<View>(R.id.buttonSave)
+        val saveFileBtn = findViewById<View>(R.id.buttonSaveFile)
+        val resetViewBtn = findViewById<View>(R.id.buttonResetView)
         val aboutBtn = findViewById<View>(R.id.buttonAbout)
 
         setupBrushButtons()
@@ -120,12 +140,19 @@ class MainActivity : AppCompatActivity() {
         setupColorSwatches()
         setupLayerPanel()
         setupLayerPanelDrag()
+        penView.setOnViewportChangedListener { scale ->
+            runOnUiThread { updateZoomLabel(scale) }
+        }
+        zoomValueLabel.setOnClickListener { resetViewport() }
 
         guardRawMode(widthSeekBar)
+        guardRawMode(zoomValueLabel)
         guardRawMode(loadBtn)
         guardRawMode(clearLayerBtn)
         guardRawMode(clearFileBtn)
         guardRawMode(saveBtn)
+        guardRawMode(saveFileBtn)
+        guardRawMode(resetViewBtn)
         guardRawMode(aboutBtn)
         guardRawMode(swatchBlack)
         guardRawMode(swatchWhite)
@@ -143,7 +170,9 @@ class MainActivity : AppCompatActivity() {
             fileMenuPanel.visibility = View.GONE
             pickerInFlight = true
             updateRawSuppression()
-            loadPngLauncher.launch(arrayOf("image/png"))
+            loadDocumentLauncher.launch(
+                arrayOf("image/*", "application/json", "text/plain", "application/octet-stream")
+            )
         }
         clearLayerBtn.setOnClickListener {
             fileMenuPanel.visibility = View.GONE
@@ -157,6 +186,7 @@ class MainActivity : AppCompatActivity() {
         clearFileBtn.setOnClickListener {
             fileMenuPanel.visibility = View.GONE
             penView.clearFile()
+            currentDocumentBaseName = "drawing"
             refreshLayerPanel()
             updateRawSuppression()
         }
@@ -165,6 +195,17 @@ class MainActivity : AppCompatActivity() {
             pickerInFlight = true
             updateRawSuppression()
             savePngLauncher.launch("drawing.png")
+        }
+        saveFileBtn.setOnClickListener {
+            fileMenuPanel.visibility = View.GONE
+            pickerInFlight = true
+            updateRawSuppression()
+            saveDpaintLauncher.launch("${currentDocumentBaseName}.json")
+        }
+        resetViewBtn.setOnClickListener {
+            fileMenuPanel.visibility = View.GONE
+            resetViewport()
+            updateRawSuppression()
         }
         aboutBtn.setOnClickListener {
             fileMenuPanel.visibility = View.GONE
@@ -177,6 +218,7 @@ class MainActivity : AppCompatActivity() {
         refreshLayerPanel()
         ensureOverlayOrder()
         updateRawSuppression()
+        updateZoomLabel(penView.getViewScale())
     }
 
     private fun setupBrushButtons() {
@@ -184,7 +226,7 @@ class MainActivity : AppCompatActivity() {
             val btn = ImageButton(this).apply {
                 setImageResource(brushIconRes(style))
                 background = null
-                setPadding(dp(2), dp(1), dp(2), dp(1))
+                setPadding(dp(1), dp(1), dp(1), dp(1))
                 scaleType = ImageView.ScaleType.MATRIX
                 contentDescription = style.label
                 alpha = 0.45f
@@ -198,7 +240,7 @@ class MainActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams(
                     dp(24),
                     dp(30)
-                ).also { it.marginEnd = dp(2) }
+                ).also { it.marginEnd = dp(1) }
             )
         }
     }
@@ -476,6 +518,16 @@ class MainActivity : AppCompatActivity() {
         return 1f + t * t * 79f
     }
 
+    private fun updateZoomLabel(scale: Float) {
+        val pct = (scale * 100f).roundToInt().coerceAtLeast(100)
+        zoomValueLabel.text = "${pct}%"
+    }
+
+    private fun resetViewport() {
+        penView.resetViewport()
+        updateZoomLabel(penView.getViewScale())
+    }
+
     private fun widthToProgress(width: Float): Int {
         val t = ((width - 1f) / 79f).coerceIn(0f, 1f)
         return (sqrt(t.toDouble()) * 99).roundToInt()
@@ -491,10 +543,69 @@ class MainActivity : AppCompatActivity() {
                 bmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)
             } ?: false
         }.getOrDefault(false)
+        Toast.makeText(this, if (ok) "Exported" else "Export failed", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun saveDpaint(uri: Uri) {
+        val snapshot = penView.snapshotDocumentForExport() ?: run {
+            Toast.makeText(this, "Nothing to save", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val name = documentDisplayName(uri)?.substringBeforeLast('.')?.ifBlank { "Untitled" } ?: "Untitled"
+        val ok = runCatching {
+            val json = buildDpaintJson(snapshot, name)
+            contentResolver.openOutputStream(uri, "w")?.use { out ->
+                out.write(json.toString().toByteArray(Charsets.UTF_8))
+                true
+            } ?: false
+        }.getOrDefault(false)
+        snapshot.layers.forEach { if (!it.bitmap.isRecycled) it.bitmap.recycle() }
+        if (ok) {
+            currentDocumentBaseName = normalizeDocumentBaseName(documentDisplayName(uri))
+        }
         Toast.makeText(this, if (ok) "Saved" else "Save failed", Toast.LENGTH_SHORT).show()
     }
 
-    private fun loadPng(uri: Uri) {
+    private fun loadDocument(uri: Uri) {
+        val mime = contentResolver.getType(uri)?.lowercase().orEmpty()
+        val name = documentDisplayName(uri)?.lowercase().orEmpty()
+        val looksJson = mime.contains("json") || name.endsWith(".json")
+        val looksImage = mime.startsWith("image/") ||
+            name.endsWith(".png") || name.endsWith(".jpg") ||
+            name.endsWith(".jpeg") || name.endsWith(".webp")
+
+        if (looksJson) {
+            val ok = loadDpaintDocument(uri)
+            if (ok) {
+                currentDocumentBaseName = normalizeDocumentBaseName(documentDisplayName(uri))
+            }
+            Toast.makeText(this, if (ok) "Loaded" else "Load failed", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (looksImage) {
+            val ok = loadImageIntoCurrentLayer(uri)
+            if (ok) {
+                currentDocumentBaseName = normalizeDocumentBaseName(documentDisplayName(uri))
+            }
+            Toast.makeText(this, if (ok) "Loaded" else "Load failed", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val loadedDpaint = loadDpaintDocument(uri)
+        if (loadedDpaint) {
+            currentDocumentBaseName = normalizeDocumentBaseName(documentDisplayName(uri))
+            Toast.makeText(this, "Loaded", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val loadedImage = loadImageIntoCurrentLayer(uri)
+        if (loadedImage) {
+            currentDocumentBaseName = normalizeDocumentBaseName(documentDisplayName(uri))
+        }
+        Toast.makeText(this, if (loadedImage) "Loaded" else "Load failed", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun loadImageIntoCurrentLayer(uri: Uri): Boolean {
         val bitmap = runCatching {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 val source = ImageDecoder.createSource(contentResolver, uri)
@@ -507,13 +618,148 @@ class MainActivity : AppCompatActivity() {
             }
         }.getOrNull()
 
-        if (bitmap == null) {
-            Toast.makeText(this, "Load failed", Toast.LENGTH_SHORT).show()
-            return
-        }
+        if (bitmap == null) return false
         val ok = penView.loadCanvasBitmap(bitmap)
         bitmap.recycle()
-        Toast.makeText(this, if (ok) "Loaded" else "Load failed", Toast.LENGTH_SHORT).show()
+        if (ok) refreshLayerPanel()
+        return ok
+    }
+
+    private fun loadDpaintDocument(uri: Uri): Boolean {
+        val text = readUriText(uri) ?: return false
+        val root = runCatching { JSONObject(text) }.getOrNull() ?: return false
+        if (!root.optString("type").equals("dpaint", ignoreCase = true)) return false
+
+        val image = root.optJSONObject("image") ?: return false
+        val sourceWidth = image.optInt("width", 0)
+        val sourceHeight = image.optInt("height", 0)
+        val frames = image.optJSONArray("frames") ?: return false
+        if (frames.length() <= 0) return false
+
+        val frame = frames.optJSONObject(0) ?: return false
+        val imageActiveIndex = image.optInt("activeLayerIndex", 0)
+        val requestedActiveIndex = frame.optInt("activeLayerIndex", imageActiveIndex).coerceAtLeast(0)
+        val layers = frame.optJSONArray("layers") ?: return false
+        if (layers.length() <= 0) return false
+
+        val importedLayers = ArrayList<HardwarePenSurfaceView.LayerSnapshot>(layers.length())
+        var mappedActiveIndex = 0
+        for (i in 0 until layers.length()) {
+            val layerObj = layers.optJSONObject(i) ?: continue
+            val canvasData = layerObj.optString("canvas", "")
+            if (canvasData.isBlank()) continue
+            val bitmap = decodeDataUrlBitmap(canvasData) ?: continue
+            importedLayers.add(
+                HardwarePenSurfaceView.LayerSnapshot(
+                    name = layerObj.optString("name", "Layer ${i + 1}"),
+                    visible = layerObj.optBoolean("visible", true),
+                    opacity = (layerObj.optDouble("opacity", 100.0) / 100.0).toFloat(),
+                    bitmap = bitmap,
+                )
+            )
+            if (i == requestedActiveIndex) {
+                mappedActiveIndex = importedLayers.lastIndex
+            }
+        }
+
+        if (importedLayers.isEmpty()) return false
+        val ok = penView.replaceFileWithLayers(
+            sourceWidth = sourceWidth,
+            sourceHeight = sourceHeight,
+            sourceLayers = importedLayers,
+            activeLayerIndex = mappedActiveIndex,
+        )
+        importedLayers.forEach { if (!it.bitmap.isRecycled) it.bitmap.recycle() }
+        if (ok) {
+            refreshLayerPanel()
+            resetViewport()
+        }
+        return ok
+    }
+
+    private fun buildDpaintJson(
+        snapshot: HardwarePenSurfaceView.DocumentSnapshot,
+        imageName: String,
+    ): JSONObject {
+        val layersArray = JSONArray()
+        snapshot.layers.forEach { layer ->
+            layersArray.put(
+                JSONObject()
+                    .put("name", layer.name)
+                    .put("blendMode", "normal")
+                    .put("opacity", (layer.opacity.coerceIn(0f, 1f) * 100f).roundToInt().coerceIn(0, 100))
+                    .put("visible", layer.visible)
+                    .put("hasMask", false)
+                    .put("canvas", bitmapToDataUrl(layer.bitmap))
+            )
+        }
+
+        val frame = JSONObject()
+            .put("activeLayerIndex", snapshot.activeLayerIndex)
+            .put("layers", layersArray)
+
+        val image = JSONObject()
+            .put("name", imageName)
+            .put("width", snapshot.width)
+            .put("height", snapshot.height)
+            .put("activeLayerIndex", snapshot.activeLayerIndex)
+            .put("activeFrameIndex", 0)
+            .put("frames", JSONArray().put(frame))
+            .put("colorRange", JSONArray())
+
+        val palette = JSONArray()
+            .put(JSONArray().put(0).put(0).put(0))
+            .put(JSONArray().put(255).put(255).put(255))
+
+        return JSONObject()
+            .put("type", "dpaint")
+            .put("version", "1")
+            .put("image", image)
+            .put("palette", palette)
+            .put("paletteList", JSONArray().put(palette))
+            .put("paletteIndex", 0)
+            .put("errorCount", 0)
+    }
+
+    private fun bitmapToDataUrl(bitmap: Bitmap): String {
+        val out = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+        val b64 = Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
+        return "data:image/png;base64,$b64"
+    }
+
+    private fun decodeDataUrlBitmap(dataUrl: String): Bitmap? {
+        val marker = "base64,"
+        val start = dataUrl.indexOf(marker)
+        val payload = if (start >= 0) dataUrl.substring(start + marker.length) else dataUrl
+        return runCatching {
+            val bytes = Base64.decode(payload, Base64.DEFAULT)
+            BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+        }.getOrNull()
+    }
+
+    private fun readUriText(uri: Uri): String? =
+        runCatching {
+            contentResolver.openInputStream(uri)?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }
+        }.getOrNull()
+
+    private fun documentDisplayName(uri: Uri): String? =
+        runCatching {
+            contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+                if (!cursor.moveToFirst()) return@use null
+                val idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (idx < 0) return@use null
+                cursor.getString(idx)
+            }
+        }.getOrNull()
+
+    private fun normalizeDocumentBaseName(displayName: String?): String {
+        val cleaned = displayName
+            ?.substringBeforeLast('.', displayName)
+            ?.trim()
+            ?.replace(Regex("""[\\/:*?"<>|]"""), "_")
+            ?.ifBlank { null }
+        return cleaned ?: "drawing"
     }
 
     private fun beginUiTouch() {

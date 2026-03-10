@@ -20,7 +20,9 @@ import com.onyx.android.sdk.pen.TouchHelper
 import com.onyx.android.sdk.pen.data.TouchPointList
 import java.util.concurrent.Executors
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 /**
  * Full-screen drawing surface backed by the Onyx hardware pen chip.
@@ -47,9 +49,23 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         val active: Boolean,
     )
 
+    data class LayerSnapshot(
+        val name: String,
+        val visible: Boolean,
+        val opacity: Float,
+        val bitmap: Bitmap,
+    )
+
+    data class DocumentSnapshot(
+        val width: Int,
+        val height: Int,
+        val activeLayerIndex: Int,
+        val layers: List<LayerSnapshot>,
+    )
+
     private data class LayerState(
         val id: Int,
-        val name: String,
+        var name: String,
         var visible: Boolean,
         var opacity: Float,
         val bitmap: Bitmap,
@@ -58,11 +74,34 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         val snapshotCanvas: Canvas,
     )
 
+    private enum class ViewGestureMode {
+        NONE,
+        PAN,
+        PINCH,
+    }
+
     // Active pen state
     private var activeStyle = HardwarePenStyle.PENCIL
     private var activeWidthPx = HardwarePenStyle.PENCIL.defaultWidthPx
     private var activeColor = Color.BLACK
     private var rawInputSuppressed = false
+
+    // Viewport transform (software canvas only; hardware preview stays 1.0x)
+    @Volatile
+    private var viewScale = 1f
+    @Volatile
+    private var viewOffsetX = 0f
+    @Volatile
+    private var viewOffsetY = 0f
+    private val minViewScale = 1f
+    private val maxViewScale = 4f
+    private var viewGestureMode = ViewGestureMode.NONE
+    private var panLastX = 0f
+    private var panLastY = 0f
+    private var pinchStartDistance = 0f
+    private var pinchStartScale = 1f
+    private var pinchAnchorWorldX = 0f
+    private var pinchAnchorWorldY = 0f
 
     // Layers (index 0 = bottom, last = top)
     private val layers = ArrayList<LayerState>(8)
@@ -80,10 +119,16 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
     private var pendingPenUpRefresh = false
     private var hasRenderedThisStroke = false
     private var strokeInProgress = false
+    private var strokeViewScale = 1f
+    private var strokeViewOffsetX = 0f
+    private var strokeViewOffsetY = 0f
 
     // TouchHelper (configured on a background thread)
     private val helperThread = Executors.newSingleThreadExecutor()
     private var touchHelper: TouchHelper? = null
+    private var viewportListener: ((Float) -> Unit)? = null
+    @Volatile
+    private var viewportGestureSuppressRaw = false
 
     // Reused paint for layer-alpha composition
     private val layerPaint = Paint().apply { isFilterBitmap = true }
@@ -105,6 +150,23 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         reconfigureTouchHelper()
     }
 
+    fun setOnViewportChangedListener(listener: ((Float) -> Unit)?) {
+        viewportListener = listener
+        listener?.invoke(viewScale)
+    }
+
+    fun getViewScale(): Float = viewScale
+
+    fun resetViewport() {
+        viewScale = 1f
+        viewOffsetX = 0f
+        viewOffsetY = 0f
+        viewGestureMode = ViewGestureMode.NONE
+        setViewportGestureRawSuppressed(false)
+        notifyViewportChanged()
+        invalidateSurface()
+    }
+
     /**
      * Suppress/restore hardware pen overlay while the user interacts with UI controls.
      */
@@ -112,7 +174,7 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         rawInputSuppressed = suppressed
         val helper = touchHelper ?: return
         helperThread.execute {
-            runCatching { helper.setRawDrawingEnabled(!suppressed) }
+            runCatching { helper.setRawDrawingEnabled(!(suppressed || viewportGestureSuppressRaw)) }
         }
     }
 
@@ -278,6 +340,83 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
     }
 
     /**
+     * Snapshot all layers for structured export (bottom -> top).
+     */
+    fun snapshotDocumentForExport(): DocumentSnapshot? {
+        ensureLayerStack(width, height)
+        val w = width
+        val h = height
+        if (w <= 0 || h <= 0 || layers.isEmpty()) return null
+        val activeIndex = layers.indexOfFirst { it.id == activeLayerId }.coerceAtLeast(0)
+        val snapshots = layers.map { layer ->
+            LayerSnapshot(
+                name = layer.name,
+                visible = layer.visible,
+                opacity = layer.opacity,
+                bitmap = layer.bitmap.copy(Bitmap.Config.ARGB_8888, false),
+            )
+        }
+        return DocumentSnapshot(
+            width = w,
+            height = h,
+            activeLayerIndex = activeIndex,
+            layers = snapshots,
+        )
+    }
+
+    /**
+     * Replace the whole file with imported layers (bottom -> top).
+     */
+    fun replaceFileWithLayers(
+        sourceWidth: Int,
+        sourceHeight: Int,
+        sourceLayers: List<LayerSnapshot>,
+        activeLayerIndex: Int,
+    ): Boolean {
+        val w = width
+        val h = height
+        if (w <= 0 || h <= 0 || sourceLayers.isEmpty()) return false
+
+        strokePoints.clear()
+        rawMovePoints.clear()
+        receivedAuthorityList = false
+        pendingPenUpRefresh = false
+        hasRenderedThisStroke = false
+        strokeInProgress = false
+        strokeLayerId = -1
+
+        layers.forEach { recycleLayer(it) }
+        layers.clear()
+        nextLayerId = 1
+
+        val srcW = if (sourceWidth > 0) sourceWidth else sourceLayers.first().bitmap.width
+        val srcH = if (sourceHeight > 0) sourceHeight else sourceLayers.first().bitmap.height
+        val dst = fitCenterRect(srcW, srcH, w, h)
+
+        sourceLayers.forEachIndexed { index, source ->
+            val layer = createLayer(
+                id = nextLayerId++,
+                name = if (source.name.isBlank()) "Layer ${index + 1}" else source.name,
+                w = w,
+                h = h,
+                visible = source.visible,
+                opacity = source.opacity.coerceIn(0f, 1f),
+            )
+            clearBitmap(layer.canvas)
+            layer.canvas.drawBitmap(source.bitmap, null, dst, null)
+            clearBitmap(layer.snapshotCanvas)
+            layer.snapshotCanvas.drawBitmap(layer.bitmap, 0f, 0f, null)
+            layers.add(layer)
+        }
+
+        val idx = activeLayerIndex.coerceIn(0, layers.lastIndex)
+        activeLayerId = layers[idx].id
+        updateSnapshot(activeLayerId)
+        invalidateSurface()
+        return true
+    }
+
+    /**
      * Exports the visible composed result of all layers.
      */
     fun exportBitmap(): Bitmap? {
@@ -286,7 +425,8 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         if (w <= 0 || h <= 0) return null
         val out = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(out)
-        drawComposedLayers(canvas)
+        canvas.drawColor(Color.WHITE)
+        drawLayers(canvas)
         return out
     }
 
@@ -295,12 +435,19 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         ensureLayerStack(w, h)
+        clampViewport()
+        notifyViewportChanged()
         ensureTouchHelper()
         reconfigureTouchHelper()
     }
 
     override fun onDraw(canvas: Canvas) {
-        drawComposedLayers(canvas)
+        canvas.drawColor(Color.WHITE)
+        canvas.save()
+        canvas.translate(viewOffsetX, viewOffsetY)
+        canvas.scale(viewScale, viewScale)
+        drawLayers(canvas)
+        canvas.restore()
         runCatching {
             EpdController.invalidate(this, UpdateMode.HAND_WRITING_REPAINT_MODE)
             EpdController.refreshScreen(rootView, UpdateMode.HAND_WRITING_REPAINT_MODE)
@@ -309,6 +456,16 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (rawInputSuppressed) return false
+
+        // Finger-only stream is reserved for viewport gestures.
+        if (!eventHasStylus(event)) {
+            handleViewportGesture(event)
+            return true
+        }
+
+        // Ignore stylus stream while pinch is active.
+        if (viewGestureMode == ViewGestureMode.PINCH) return true
+
         return touchHelper?.onTouchEvent(event) == true || isStylus(event)
     }
 
@@ -417,7 +574,12 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
 
     private fun ensureTouchHelper() {
         if (touchHelper != null) return
-        touchHelper = TouchHelper.create(this, TouchHelper.FEATURE_ALL_TOUCH_RENDER, rawInputCallback)
+        touchHelper = TouchHelper.create(
+            this,
+            TouchHelper.FEATURE_ALL_TOUCH_RENDER,
+            rawInputCallback,
+            false
+        )
     }
 
     /**
@@ -459,7 +621,7 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
                 // 6. Hardware draws live preview
                 helper.setRawDrawingRenderEnabled(false)
                 // 7. Enable unless suppressed by UI
-                helper.setRawDrawingEnabled(!rawInputSuppressed)
+                helper.setRawDrawingEnabled(!(rawInputSuppressed || viewportGestureSuppressRaw))
             }
         }
     }
@@ -475,8 +637,7 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         }
     }
 
-    private fun drawComposedLayers(canvas: Canvas) {
-        canvas.drawColor(Color.WHITE)
+    private fun drawLayers(canvas: Canvas) {
         for (layer in layers) {
             if (!layer.visible || layer.opacity <= 0f) continue
             if (layer.opacity >= 0.999f) {
@@ -529,7 +690,205 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
     }
 
+    private fun notifyViewportChanged() {
+        viewportListener?.invoke(viewScale)
+    }
+
+    private fun setViewportGestureRawSuppressed(suppressed: Boolean) {
+        if (viewportGestureSuppressRaw == suppressed) return
+        viewportGestureSuppressRaw = suppressed
+        val helper = touchHelper ?: return
+        val shouldEnable = !(rawInputSuppressed || viewportGestureSuppressRaw)
+        helperThread.execute {
+            if (touchHelper !== helper) return@execute
+            runCatching { helper.setRawDrawingEnabled(shouldEnable) }
+        }
+    }
+
+    // Viewport gestures
+
+    private fun handleViewportGesture(event: MotionEvent): Boolean {
+        if (event.pointerCount <= 0) return false
+
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                if (viewScale > 1.0001f) {
+                    viewGestureMode = ViewGestureMode.PAN
+                    setViewportGestureRawSuppressed(true)
+                    panLastX = event.getX(0)
+                    panLastY = event.getY(0)
+                    parent?.requestDisallowInterceptTouchEvent(true)
+                    return true
+                }
+                viewGestureMode = ViewGestureMode.NONE
+            }
+
+            MotionEvent.ACTION_POINTER_DOWN -> {
+                if (event.pointerCount >= 2) {
+                    beginPinch(event)
+                    return true
+                }
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                when (viewGestureMode) {
+                    ViewGestureMode.PINCH -> {
+                        if (event.pointerCount >= 2) {
+                            updatePinch(event)
+                            return true
+                        }
+                    }
+
+                    ViewGestureMode.PAN -> {
+                        val x = event.getX(0)
+                        val y = event.getY(0)
+                        val dx = x - panLastX
+                        val dy = y - panLastY
+                        panLastX = x
+                        panLastY = y
+                        viewOffsetX += dx
+                        viewOffsetY += dy
+                        clampViewport()
+                        invalidateSurface()
+                        return true
+                    }
+
+                    ViewGestureMode.NONE -> Unit
+                }
+            }
+
+            MotionEvent.ACTION_POINTER_UP -> {
+                if (viewGestureMode == ViewGestureMode.PINCH) {
+                    val remaining = event.pointerCount - 1
+                    if (remaining >= 2) beginPinchFromRemainingPointers(event, event.actionIndex)
+                    else {
+                        viewGestureMode = ViewGestureMode.NONE
+                        setViewportGestureRawSuppressed(false)
+                    }
+                    return true
+                }
+            }
+
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                if (viewGestureMode != ViewGestureMode.NONE) {
+                    viewGestureMode = ViewGestureMode.NONE
+                    setViewportGestureRawSuppressed(false)
+                    parent?.requestDisallowInterceptTouchEvent(false)
+                    return true
+                }
+                if (viewportGestureSuppressRaw) {
+                    setViewportGestureRawSuppressed(false)
+                }
+            }
+        }
+        return viewGestureMode != ViewGestureMode.NONE
+    }
+
+    private fun beginPinch(event: MotionEvent) {
+        if (event.pointerCount < 2) return
+        val x0 = event.getX(0)
+        val y0 = event.getY(0)
+        val x1 = event.getX(1)
+        val y1 = event.getY(1)
+        val focusX = (x0 + x1) * 0.5f
+        val focusY = (y0 + y1) * 0.5f
+        pinchStartDistance = max(1f, distance(x0, y0, x1, y1))
+        pinchStartScale = viewScale
+        pinchAnchorWorldX = (focusX - viewOffsetX) / pinchStartScale
+        pinchAnchorWorldY = (focusY - viewOffsetY) / pinchStartScale
+        viewGestureMode = ViewGestureMode.PINCH
+        setViewportGestureRawSuppressed(true)
+        panLastX = focusX
+        panLastY = focusY
+        parent?.requestDisallowInterceptTouchEvent(true)
+    }
+
+    private fun beginPinchFromRemainingPointers(event: MotionEvent, liftedPointerIndex: Int) {
+        if (event.pointerCount < 3) {
+            viewGestureMode = ViewGestureMode.NONE
+            return
+        }
+        val first = if (liftedPointerIndex == 0) 1 else 0
+        val second = if (liftedPointerIndex <= 1) 2 else 1
+        val x0 = event.getX(first)
+        val y0 = event.getY(first)
+        val x1 = event.getX(second)
+        val y1 = event.getY(second)
+        val focusX = (x0 + x1) * 0.5f
+        val focusY = (y0 + y1) * 0.5f
+        pinchStartDistance = max(1f, distance(x0, y0, x1, y1))
+        pinchStartScale = viewScale
+        pinchAnchorWorldX = (focusX - viewOffsetX) / pinchStartScale
+        pinchAnchorWorldY = (focusY - viewOffsetY) / pinchStartScale
+        viewGestureMode = ViewGestureMode.PINCH
+        panLastX = focusX
+        panLastY = focusY
+    }
+
+    private fun updatePinch(event: MotionEvent) {
+        if (event.pointerCount < 2) return
+        val x0 = event.getX(0)
+        val y0 = event.getY(0)
+        val x1 = event.getX(1)
+        val y1 = event.getY(1)
+        val focusX = (x0 + x1) * 0.5f
+        val focusY = (y0 + y1) * 0.5f
+        val dist = max(1f, distance(x0, y0, x1, y1))
+        val newScale = (pinchStartScale * (dist / pinchStartDistance)).coerceIn(minViewScale, maxViewScale)
+        viewScale = newScale
+        viewOffsetX = focusX - pinchAnchorWorldX * newScale
+        viewOffsetY = focusY - pinchAnchorWorldY * newScale
+        clampViewport()
+        notifyViewportChanged()
+        invalidateSurface()
+    }
+
+    private fun clampViewport() {
+        val w = width.toFloat()
+        val h = height.toFloat()
+        if (w <= 0f || h <= 0f) return
+        if (viewScale <= 1.0001f) {
+            viewScale = 1f
+            viewOffsetX = 0f
+            viewOffsetY = 0f
+            return
+        }
+        val scaledW = w * viewScale
+        val scaledH = h * viewScale
+        val minX = w - scaledW
+        val minY = h - scaledH
+        viewOffsetX = viewOffsetX.coerceIn(minX, 0f)
+        viewOffsetY = viewOffsetY.coerceIn(minY, 0f)
+    }
+
+    private fun distance(x0: Float, y0: Float, x1: Float, y1: Float): Float {
+        val dx = x1 - x0
+        val dy = y1 - y0
+        return sqrt(dx * dx + dy * dy)
+    }
+
     // Point helpers
+
+    private fun mapStrokePoint(pt: TouchPoint?): TouchPoint? {
+        pt ?: return null
+        val s = strokeViewScale.coerceAtLeast(0.0001f)
+        val x = ((pt.x - strokeViewOffsetX) / s).coerceIn(0f, (width - 1).coerceAtLeast(0).toFloat())
+        val y = ((pt.y - strokeViewOffsetY) / s).coerceIn(0f, (height - 1).coerceAtLeast(0).toFloat())
+        return TouchPoint(pt).also {
+            it.x = x
+            it.y = y
+        }
+    }
+
+    private fun mapStrokePoints(points: List<TouchPoint>): List<TouchPoint> {
+        if (points.isEmpty()) return emptyList()
+        val out = ArrayList<TouchPoint>(points.size)
+        for (p in points) {
+            val mapped = mapStrokePoint(p)
+            if (mapped != null) out.add(mapped)
+        }
+        return out
+    }
 
     private fun appendPoint(pt: TouchPoint?) {
         pt ?: return
@@ -622,6 +981,16 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         return event.getToolType(idx) in listOf(MotionEvent.TOOL_TYPE_STYLUS, MotionEvent.TOOL_TYPE_ERASER)
     }
 
+    private fun eventHasStylus(event: MotionEvent): Boolean {
+        for (i in 0 until event.pointerCount) {
+            val tool = event.getToolType(i)
+            if (tool == MotionEvent.TOOL_TYPE_STYLUS || tool == MotionEvent.TOOL_TYPE_ERASER) {
+                return true
+            }
+        }
+        return false
+    }
+
     // RawInputCallback
 
     private val rawInputCallback = object : RawInputCallback() {
@@ -631,8 +1000,8 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
 
             if (strokeInProgress) {
                 // Some firmware versions emit duplicate begin events inside one gesture.
-                appendPoint(pt)
-                appendRawMovePoint(pt)
+                appendPoint(mapStrokePoint(pt))
+                appendRawMovePoint(mapStrokePoint(pt))
                 Log.d(TAG, "duplicate onBeginRawDrawing style=$activeStyle")
                 return
             }
@@ -641,26 +1010,29 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
             strokePoints.clear()
             rawMovePoints.clear()
             strokeStyle = activeStyle
-            strokeWidthPx = activeWidthPx
+            strokeViewScale = viewScale
+            strokeViewOffsetX = viewOffsetX
+            strokeViewOffsetY = viewOffsetY
+            strokeWidthPx = (activeWidthPx / strokeViewScale.coerceAtLeast(1f)).coerceAtLeast(0.5f)
             strokeColor = activeColor
             strokeLayerId = activeLayerId
             receivedAuthorityList = false
             pendingPenUpRefresh = false
             hasRenderedThisStroke = false
-            appendPoint(pt)
-            appendRawMovePoint(pt)
+            appendPoint(mapStrokePoint(pt))
+            appendRawMovePoint(mapStrokePoint(pt))
             Log.d(TAG, "onBeginRawDrawing style=$activeStyle width=$activeWidthPx layer=$strokeLayerId")
         }
 
         override fun onRawDrawingTouchPointMoveReceived(pt: TouchPoint?) {
-            appendPoint(pt)
-            appendRawMovePoint(pt)
+            appendPoint(mapStrokePoint(pt))
+            appendRawMovePoint(mapStrokePoint(pt))
         }
 
         override fun onRawDrawingTouchPointListReceived(list: TouchPointList?) {
             val pts = list?.points ?: return
             if (pts.isEmpty()) return
-            mergeAuthorityList(pts)
+            mergeAuthorityList(mapStrokePoints(pts))
             receivedAuthorityList = true
         }
 
@@ -669,9 +1041,9 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
             strokeInProgress = false
 
             if (!receivedAuthorityList) {
-                appendPoint(pt)
+                appendPoint(mapStrokePoint(pt))
             }
-            appendRawMovePoint(pt)
+            appendRawMovePoint(mapStrokePoint(pt))
 
             val renderPts = chooseRenderPoints(strokeStyle)
             val layer = layerById(strokeLayerId)

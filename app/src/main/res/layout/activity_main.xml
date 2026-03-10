@@ -15,10 +15,10 @@
             android:layout_height="wrap_content"
             android:background="@drawable/toolbar_white_bottom_line"
             android:gravity="center_vertical"
-            android:paddingStart="4dp"
-            android:paddingTop="3dp"
-            android:paddingEnd="4dp"
-            android:paddingBottom="4dp">
+            android:paddingStart="1dp"
+            android:paddingTop="2dp"
+            android:paddingEnd="1dp"
+            android:paddingBottom="3dp">
 
             <LinearLayout
                 android:id="@+id/toolbarRow"
@@ -45,8 +45,8 @@
                 <View
                     android:layout_width="1dp"
                     android:layout_height="24dp"
-                    android:layout_marginStart="3dp"
-                    android:layout_marginEnd="3dp"
+                    android:layout_marginStart="0dp"
+                    android:layout_marginEnd="0dp"
                     android:background="#22000000" />
 
                 <LinearLayout
@@ -63,25 +63,49 @@
                         android:layout_height="20dp"
                         android:layout_weight="1"
                         android:max="99"
+                        android:minWidth="0dp"
                         android:minHeight="20dp"
+                        android:paddingStart="3dp"
+                        android:paddingLeft="0dp"
+                        android:paddingEnd="0dp"
+                        android:paddingRight="0dp"
                         android:progressDrawable="@drawable/slider_track_rounded"
                         android:splitTrack="false"
+                        android:thumbOffset="0dp"
                         android:thumb="@drawable/slider_thumb_invisible" />
 
                     <TextView
                         android:id="@+id/widthValueLabel"
-                        android:layout_width="36dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="2dp"
-                        android:text="5 px"
+                        android:layout_marginStart="6dp"
+                        android:text="80 px"
+                        android:textColor="#222222"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/zoomValueLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="3dp"
+                        android:layout_marginEnd="4dp"
+                        android:background="@drawable/menu_item_background"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingStart="0dp"
+                        android:paddingTop="2dp"
+                        android:paddingEnd="0dp"
+                        android:paddingBottom="2dp"
+                        android:text="100%"
+                        android:textColor="#222222"
                         android:textSize="11sp" />
                 </LinearLayout>
 
                 <View
                     android:layout_width="1dp"
                     android:layout_height="24dp"
-                    android:layout_marginStart="3dp"
-                    android:layout_marginEnd="3dp"
+                    android:layout_marginStart="0dp"
+                    android:layout_marginEnd="0dp"
                     android:background="#22000000" />
 
                 <LinearLayout
@@ -100,20 +124,20 @@
                         android:id="@+id/swatchWhite"
                         android:layout_width="20dp"
                         android:layout_height="20dp"
-                        android:layout_marginStart="4dp" />
+                        android:layout_marginStart="2dp" />
 
                     <View
                         android:id="@+id/swatchBlue"
                         android:layout_width="20dp"
                         android:layout_height="20dp"
-                        android:layout_marginStart="4dp" />
+                        android:layout_marginStart="2dp" />
                 </LinearLayout>
 
                 <View
                     android:layout_width="1dp"
                     android:layout_height="24dp"
-                    android:layout_marginStart="3dp"
-                    android:layout_marginEnd="3dp"
+                    android:layout_marginStart="1dp"
+                    android:layout_marginEnd="1dp"
                     android:background="#22000000" />
 
                 <LinearLayout
@@ -136,7 +160,7 @@
                         android:id="@+id/buttonMenu"
                         android:layout_width="28dp"
                         android:layout_height="28dp"
-                        android:layout_marginStart="4dp"
+                        android:layout_marginStart="2dp"
                         android:background="@android:color/transparent"
                         android:contentDescription="Menu"
                         android:padding="2dp"
@@ -276,11 +300,35 @@
             android:textColor="@drawable/menu_item_text_color"
             android:textSize="12sp" />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#22000000" />
+
         <TextView
             android:id="@+id/buttonSave"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:background="@drawable/menu_item_background"
+            android:gravity="start|center_vertical"
+            android:minHeight="0dp"
+            android:paddingStart="10dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="8dp"
+            android:text="Export"
+            android:textColor="@drawable/menu_item_text_color"
+            android:textSize="12sp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#22000000" />
+
+        <TextView
+            android:id="@+id/buttonSaveFile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:background="@drawable/menu_item_background"
             android:gravity="start|center_vertical"
             android:minHeight="0dp"
@@ -292,11 +340,15 @@
             android:textColor="@drawable/menu_item_text_color"
             android:textSize="12sp" />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#22000000" />
+
         <TextView
             android:id="@+id/buttonClearLayer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
             android:background="@drawable/menu_item_background"
             android:gravity="start|center_vertical"
             android:minHeight="0dp"
@@ -308,11 +360,15 @@
             android:textColor="@drawable/menu_item_text_color"
             android:textSize="12sp" />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#22000000" />
+
         <TextView
             android:id="@+id/buttonClearFile"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
             android:background="@drawable/menu_item_background"
             android:gravity="start|center_vertical"
             android:minHeight="0dp"
@@ -324,11 +380,35 @@
             android:textColor="@drawable/menu_item_text_color"
             android:textSize="12sp" />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#22000000" />
+
+        <TextView
+            android:id="@+id/buttonResetView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/menu_item_background"
+            android:gravity="start|center_vertical"
+            android:minHeight="0dp"
+            android:paddingStart="10dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="8dp"
+            android:text="Reset view"
+            android:textColor="@drawable/menu_item_text_color"
+            android:textSize="12sp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#22000000" />
+
         <TextView
             android:id="@+id/buttonAbout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
             android:background="@drawable/menu_item_background"
             android:gravity="start|center_vertical"
             android:minHeight="0dp"
