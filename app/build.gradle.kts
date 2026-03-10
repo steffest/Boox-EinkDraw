@@ -3,9 +3,27 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+val releaseStoreFilePath = providers.gradleProperty("BOOXDRAW_STORE_FILE")
+    .orElse("/Users/stef/Steffest_keystore.jks")
+val releaseStorePassword = providers.gradleProperty("BOOXDRAW_STORE_PASSWORD")
+    .orElse(providers.environmentVariable("BOOXDRAW_STORE_PASSWORD"))
+val releaseKeyAlias = providers.gradleProperty("BOOXDRAW_KEY_ALIAS")
+    .orElse(providers.environmentVariable("BOOXDRAW_KEY_ALIAS"))
+val releaseKeyPassword = providers.gradleProperty("BOOXDRAW_KEY_PASSWORD")
+    .orElse(providers.environmentVariable("BOOXDRAW_KEY_PASSWORD"))
+
 android {
     namespace = "com.boox.einkdraw"
     compileSdk = 34
+
+    signingConfigs {
+        create("release") {
+            storeFile = file(releaseStoreFilePath.get())
+            storePassword = releaseStorePassword.orNull
+            keyAlias = releaseKeyAlias.orNull
+            keyPassword = releaseKeyPassword.orNull
+        }
+    }
 
     defaultConfig {
         applicationId = "com.boox.einkdraw"
@@ -23,6 +41,12 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            if (releaseStorePassword.isPresent &&
+                releaseKeyAlias.isPresent &&
+                releaseKeyPassword.isPresent
+            ) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
@@ -78,4 +102,8 @@ dependencies {
     androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")
     // Fix for ActivityScenario ActivityNotFoundException
     debugImplementation("androidx.test:core:1.6.1")
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    exclude("**/com/onyx/android/sdk/data/note/TouchPoint.java")
 }
