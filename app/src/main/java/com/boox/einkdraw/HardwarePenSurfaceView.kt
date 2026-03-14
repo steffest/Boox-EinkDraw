@@ -10,6 +10,7 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.util.Log
+import android.view.InputDevice
 import android.view.MotionEvent
 import android.view.View
 import com.onyx.android.sdk.api.device.epd.EpdController
@@ -19,6 +20,7 @@ import com.onyx.android.sdk.pen.RawInputCallback
 import com.onyx.android.sdk.pen.TouchHelper
 import com.onyx.android.sdk.pen.data.TouchPointList
 import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -39,6 +41,13 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
 
     companion object {
         private const val TAG = "HardwarePenSurface"
+        private const val HOVER_BUTTON_MASK = MotionEvent.BUTTON_PRIMARY or
+            MotionEvent.BUTTON_SECONDARY or
+            MotionEvent.BUTTON_TERTIARY or
+            MotionEvent.BUTTON_STYLUS_PRIMARY or
+            MotionEvent.BUTTON_STYLUS_SECONDARY or
+            MotionEvent.BUTTON_BACK or
+            MotionEvent.BUTTON_FORWARD
     }
 
     data class LayerInfo(
@@ -63,6 +72,13 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         val layers: List<LayerSnapshot>,
     )
 
+    data class StylusHoverButtonState(
+        val hovering: Boolean,
+        val buttonState: Int,
+        val stylusPrimaryPressed: Boolean,
+        val stylusSecondaryPressed: Boolean,
+    )
+
     private data class LayerState(
         val id: Int,
         var name: String,
@@ -85,6 +101,10 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
     private var activeWidthPx = HardwarePenStyle.PENCIL.defaultWidthPx
     private var activeColor = Color.BLACK
     private var rawInputSuppressed = false
+    private var manualEraserMode = false
+    private var stylusTipEraserMode = false
+    private var eraseModeListener: ((Boolean) -> Unit)? = null
+    private var stylusHoverButtonListener: ((StylusHoverButtonState) -> Unit)? = null
 
     // Viewport transform (software canvas only; hardware preview stays 1.0x)
     @Volatile
@@ -119,16 +139,34 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
     private var pendingPenUpRefresh = false
     private var hasRenderedThisStroke = false
     private var strokeInProgress = false
+    private var strokeIsErase = false
     private var strokeViewScale = 1f
     private var strokeViewOffsetX = 0f
     private var strokeViewOffsetY = 0f
 
-    // TouchHelper (configured on a background thread)
-    private val helperThread = Executors.newSingleThreadExecutor()
+    // TouchHelper (configured on a dedicated background thread)
+    @Volatile
+    private var helperWorkerThread: Thread? = null
+    private val helperThread = Executors.newSingleThreadExecutor(
+        ThreadFactory { r ->
+            Thread {
+                helperWorkerThread = Thread.currentThread()
+                r.run()
+            }.apply {
+                name = "HardwarePenHelper"
+                isDaemon = true
+            }
+        }
+    )
     private var touchHelper: TouchHelper? = null
     private var viewportListener: ((Float) -> Unit)? = null
     @Volatile
     private var viewportGestureSuppressRaw = false
+    private var lastStylusButtonState = Int.MIN_VALUE
+    private var lastRawToolType = Int.MIN_VALUE
+    private var stylusHovering = false
+    private var lastHoverButtonState = Int.MIN_VALUE
+    private var lastHoveringState = false
 
     // Reused paint for layer-alpha composition
     private val layerPaint = Paint().apply { isFilterBitmap = true }
@@ -155,6 +193,38 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         listener?.invoke(viewScale)
     }
 
+    fun setOnEraserModeChangedListener(listener: ((Boolean) -> Unit)?) {
+        eraseModeListener = listener
+        listener?.invoke(isEraseModeActive())
+    }
+
+    fun setOnStylusHoverButtonChangedListener(listener: ((StylusHoverButtonState) -> Unit)?) {
+        stylusHoverButtonListener = listener
+    }
+
+    fun setManualEraserMode(enabled: Boolean) {
+        val before = isEraseModeActive()
+        manualEraserMode = enabled
+        val after = isEraseModeActive()
+        if (before != after) {
+            eraseModeListener?.invoke(after)
+            reconfigureTouchHelper()
+        }
+    }
+
+    fun deactivateEraserMode() {
+        val before = isEraseModeActive()
+        manualEraserMode = false
+        stylusTipEraserMode = false
+        val after = isEraseModeActive()
+        if (before != after) {
+            eraseModeListener?.invoke(after)
+            reconfigureTouchHelper()
+        }
+    }
+
+    fun isEraseModeActive(): Boolean = manualEraserMode || stylusTipEraserMode
+
     fun getViewScale(): Float = viewScale
 
     fun resetViewport() {
@@ -173,7 +243,7 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
     fun setRawInputSuppressed(suppressed: Boolean) {
         rawInputSuppressed = suppressed
         val helper = touchHelper ?: return
-        helperThread.execute {
+        runOnHelperThread {
             runCatching { helper.setRawDrawingEnabled(!(suppressed || viewportGestureSuppressRaw)) }
         }
     }
@@ -450,11 +520,15 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         canvas.restore()
         runCatching {
             EpdController.invalidate(this, UpdateMode.HAND_WRITING_REPAINT_MODE)
-            EpdController.refreshScreen(rootView, UpdateMode.HAND_WRITING_REPAINT_MODE)
+            // Refresh only the drawing surface to avoid flashing unrelated UI (toolbar/panels).
+            EpdController.refreshScreen(this, UpdateMode.HAND_WRITING_REPAINT_MODE)
         }
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        updateStylusTipEraserMode(event)
+        logStylusMotionEvent(event, "touch")
+        dispatchStylusHoverButtonState(event, "touch")
         if (rawInputSuppressed) return false
 
         // Finger-only stream is reserved for viewport gestures.
@@ -469,10 +543,17 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         return touchHelper?.onTouchEvent(event) == true || isStylus(event)
     }
 
+    override fun onGenericMotionEvent(event: MotionEvent): Boolean {
+        updateStylusTipEraserMode(event)
+        logStylusMotionEvent(event, "generic")
+        val handledStylus = dispatchStylusHoverButtonState(event, "generic")
+        return handledStylus || super.onGenericMotionEvent(event)
+    }
+
     override fun onDetachedFromWindow() {
         val helper = touchHelper
         touchHelper = null
-        helperThread.execute {
+        runOnHelperThread {
             runCatching {
                 helper?.setRawDrawingEnabled(false)
                 helper?.closeRawDrawing()
@@ -593,20 +674,25 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         if (w <= 0 || h <= 0) return
         val style = activeStyle
         val widthPx = activeWidthPx
+        val eraseMode = isEraseModeActive()
 
-        helperThread.execute {
-            if (touchHelper !== helper) return@execute
+        runOnHelperThread {
+            if (touchHelper !== helper) return@runOnHelperThread
             runCatching {
                 // 1. Width
                 helper.setStrokeWidth(widthPx)
                 helper.enableFingerTouch(false)
                 helper.onlyEnableFingerTouch(false)
                 // 2. Preview color
-                val hardwareColor = when (style) {
-                    HardwarePenStyle.MARKER -> withAlpha(activeColor, 128)
-                    HardwarePenStyle.CHARCOAL -> withAlpha(activeColor, 255)
-                    HardwarePenStyle.CHARCOAL_V2 -> withAlpha(activeColor, 255)
-                    else -> withAlpha(activeColor, 255)
+                val hardwareColor = if (eraseMode) {
+                    withAlpha(Color.WHITE, 255)
+                } else {
+                    when (style) {
+                        HardwarePenStyle.MARKER -> withAlpha(activeColor, 128)
+                        HardwarePenStyle.CHARCOAL -> withAlpha(activeColor, 255)
+                        HardwarePenStyle.CHARCOAL_V2 -> withAlpha(activeColor, 255)
+                        else -> withAlpha(activeColor, 255)
+                    }
                 }
                 helper.setStrokeColor(hardwareColor)
                 // 3. Limits
@@ -614,7 +700,8 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
                 // 4. Open (resets chip)
                 helper.openRawDrawing()
                 // 5. Style after open
-                helper.setStrokeStyle(style.hardwareStrokeStyle)
+                val hardwareStyle = if (eraseMode) HardwarePenStyle.PENCIL else style
+                helper.setStrokeStyle(hardwareStyle.hardwareStrokeStyle)
                 // Re-apply params after style selection
                 helper.setStrokeWidth(widthPx)
                 helper.setStrokeColor(hardwareColor)
@@ -699,9 +786,17 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         viewportGestureSuppressRaw = suppressed
         val helper = touchHelper ?: return
         val shouldEnable = !(rawInputSuppressed || viewportGestureSuppressRaw)
-        helperThread.execute {
-            if (touchHelper !== helper) return@execute
+        runOnHelperThread {
+            if (touchHelper !== helper) return@runOnHelperThread
             runCatching { helper.setRawDrawingEnabled(shouldEnable) }
+        }
+    }
+
+    private fun runOnHelperThread(block: () -> Unit) {
+        if (Thread.currentThread() === helperWorkerThread) {
+            block()
+        } else {
+            helperThread.execute(block)
         }
     }
 
@@ -991,12 +1086,236 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         return false
     }
 
+    private fun eventHasEraser(event: MotionEvent): Boolean {
+        for (i in 0 until event.pointerCount) {
+            if (event.getToolType(i) == MotionEvent.TOOL_TYPE_ERASER) return true
+        }
+        return false
+    }
+
+    private fun updateStylusTipEraserMode(event: MotionEvent) {
+        val hasStylusSource = (event.source and InputDevice.SOURCE_STYLUS) == InputDevice.SOURCE_STYLUS
+        val hasStylusPointer = eventHasStylus(event)
+        if (!hasStylusSource && !hasStylusPointer) return
+
+        val shouldEnable = eventHasEraser(event)
+        setStylusTipEraserMode(shouldEnable)
+    }
+
+    private fun setStylusTipEraserMode(enabled: Boolean, reconfigure: Boolean = true) {
+        val before = isEraseModeActive()
+        val tipChanged = stylusTipEraserMode != enabled
+        if (!tipChanged) return
+        if (!enabled) {
+            // Per app spec: flipping from eraser tip to stylus tip always exits eraser mode.
+            manualEraserMode = false
+        }
+        stylusTipEraserMode = enabled
+        val after = isEraseModeActive()
+        if (before != after) {
+            eraseModeListener?.invoke(after)
+            if (reconfigure) reconfigureTouchHelper()
+        } else if (reconfigure) {
+            reconfigureTouchHelper()
+        }
+    }
+
+    private fun logStylusMotionEvent(event: MotionEvent, channel: String) {
+        val hasStylusSource = (event.source and InputDevice.SOURCE_STYLUS) == InputDevice.SOURCE_STYLUS
+        val hasStylusPointer = eventHasStylus(event)
+        if (!hasStylusSource && !hasStylusPointer) return
+
+        val action = event.actionMasked
+        val buttonState = event.buttonState
+        val isImportantAction = when (action) {
+            MotionEvent.ACTION_DOWN,
+            MotionEvent.ACTION_UP,
+            MotionEvent.ACTION_CANCEL,
+            MotionEvent.ACTION_HOVER_ENTER,
+            MotionEvent.ACTION_HOVER_MOVE,
+            MotionEvent.ACTION_HOVER_EXIT,
+            MotionEvent.ACTION_BUTTON_PRESS,
+            MotionEvent.ACTION_BUTTON_RELEASE,
+            MotionEvent.ACTION_POINTER_DOWN,
+            MotionEvent.ACTION_POINTER_UP,
+            -> true
+            else -> false
+        }
+        val buttonChanged = buttonState != lastStylusButtonState
+        if (!isImportantAction && !buttonChanged) return
+
+        val pointerCount = event.pointerCount
+        val idx = if (pointerCount > 0) event.actionIndex.coerceIn(0, pointerCount - 1) else -1
+        val distance = if (idx >= 0) event.getAxisValue(MotionEvent.AXIS_DISTANCE, idx) else event.getAxisValue(MotionEvent.AXIS_DISTANCE)
+        val tilt = if (idx >= 0) event.getAxisValue(MotionEvent.AXIS_TILT, idx) else event.getAxisValue(MotionEvent.AXIS_TILT)
+        val orientation = if (idx >= 0) event.getAxisValue(MotionEvent.AXIS_ORIENTATION, idx) else event.getAxisValue(MotionEvent.AXIS_ORIENTATION)
+        val pointerSummary = if (pointerCount <= 0) {
+            "none"
+        } else {
+            buildString {
+                for (i in 0 until pointerCount) {
+                    if (i > 0) append("; ")
+                    append("#")
+                    append(event.getPointerId(i))
+                    append(":")
+                    append(toolTypeName(event.getToolType(i)))
+                    append("@")
+                    append(event.getX(i).toInt())
+                    append(",")
+                    append(event.getY(i).toInt())
+                    append(" p=")
+                    append("%.3f".format(event.getPressure(i)))
+                }
+            }
+        }
+
+        Log.i(
+            TAG,
+            "stylus[$channel] action=${actionName(action)} idx=$idx source=0x${event.source.toString(16)} " +
+                "buttons=${buttonStateName(buttonState)} dist=${"%.3f".format(distance)} " +
+                "tilt=${"%.3f".format(tilt)} orient=${"%.3f".format(orientation)} pointers=$pointerSummary"
+        )
+        lastStylusButtonState = buttonState
+    }
+
+    private fun dispatchStylusHoverButtonState(event: MotionEvent, channel: String): Boolean {
+        val hasStylusSource = (event.source and InputDevice.SOURCE_STYLUS) == InputDevice.SOURCE_STYLUS
+        val hasStylusPointer = eventHasStylus(event)
+        if (!hasStylusSource && !hasStylusPointer) return false
+
+        val action = event.actionMasked
+        val idx = if (event.pointerCount > 0) event.actionIndex.coerceIn(0, event.pointerCount - 1) else -1
+        val distance = if (idx >= 0) {
+            event.getAxisValue(MotionEvent.AXIS_DISTANCE, idx)
+        } else {
+            event.getAxisValue(MotionEvent.AXIS_DISTANCE)
+        }
+
+        when (action) {
+            MotionEvent.ACTION_HOVER_ENTER,
+            MotionEvent.ACTION_HOVER_MOVE,
+            -> stylusHovering = true
+
+            MotionEvent.ACTION_HOVER_EXIT -> stylusHovering = false
+
+            MotionEvent.ACTION_BUTTON_PRESS,
+            MotionEvent.ACTION_BUTTON_RELEASE,
+            -> {
+                if (distance > 0f) stylusHovering = true
+            }
+
+            MotionEvent.ACTION_DOWN,
+            MotionEvent.ACTION_MOVE,
+            MotionEvent.ACTION_UP,
+            MotionEvent.ACTION_POINTER_DOWN,
+            MotionEvent.ACTION_POINTER_UP,
+            MotionEvent.ACTION_CANCEL,
+            -> stylusHovering = false
+        }
+
+        val hoverButtons = if (stylusHovering) (event.buttonState and HOVER_BUTTON_MASK) else 0
+        val hoveringChanged = stylusHovering != lastHoveringState
+        val buttonsChanged = hoverButtons != lastHoverButtonState
+        if (!hoveringChanged && !buttonsChanged) return true
+
+        lastHoveringState = stylusHovering
+        lastHoverButtonState = hoverButtons
+        val state = StylusHoverButtonState(
+            hovering = stylusHovering,
+            buttonState = hoverButtons,
+            stylusPrimaryPressed = (hoverButtons and MotionEvent.BUTTON_STYLUS_PRIMARY) != 0 ||
+                (hoverButtons and MotionEvent.BUTTON_SECONDARY) != 0,
+            stylusSecondaryPressed = (hoverButtons and MotionEvent.BUTTON_STYLUS_SECONDARY) != 0 ||
+                (hoverButtons and MotionEvent.BUTTON_TERTIARY) != 0,
+        )
+        stylusHoverButtonListener?.invoke(state)
+        Log.i(
+            TAG,
+            "stylusHover[$channel] action=${actionName(action)} hovering=${state.hovering} " +
+                "buttons=${buttonStateName(state.buttonState)} dist=${"%.3f".format(distance)}"
+        )
+        return true
+    }
+
+    private fun logRawPoint(kind: String, pt: TouchPoint?) {
+        pt ?: return
+        val toolType = readTouchPointInt(pt, "getToolType")
+        val action = readTouchPointInt(pt, "getAction")
+        val toolChanged = toolType != null && toolType != lastRawToolType
+        if (kind == "move" && !toolChanged) return
+        Log.i(
+            TAG,
+            "stylusRaw[$kind] action=${action?.let(::actionName) ?: "n/a"} " +
+                "tool=${toolType?.let(::toolTypeName) ?: "n/a"} " +
+                "x=${"%.1f".format(pt.x)} y=${"%.1f".format(pt.y)} p=${"%.3f".format(pt.pressure)} " +
+                "tiltX=${pt.tiltX} tiltY=${pt.tiltY}"
+        )
+        if (toolType != null) {
+            lastRawToolType = toolType
+        }
+    }
+
+    private fun readTouchPointInt(point: TouchPoint, getterName: String): Int? {
+        return runCatching {
+            val method = point.javaClass.getMethod(getterName)
+            method.invoke(point) as? Int
+        }.getOrNull()
+    }
+
+    private fun actionName(action: Int): String = when (action) {
+        MotionEvent.ACTION_DOWN -> "DOWN"
+        MotionEvent.ACTION_UP -> "UP"
+        MotionEvent.ACTION_MOVE -> "MOVE"
+        MotionEvent.ACTION_CANCEL -> "CANCEL"
+        MotionEvent.ACTION_OUTSIDE -> "OUTSIDE"
+        MotionEvent.ACTION_POINTER_DOWN -> "POINTER_DOWN"
+        MotionEvent.ACTION_POINTER_UP -> "POINTER_UP"
+        MotionEvent.ACTION_HOVER_MOVE -> "HOVER_MOVE"
+        MotionEvent.ACTION_SCROLL -> "SCROLL"
+        MotionEvent.ACTION_HOVER_ENTER -> "HOVER_ENTER"
+        MotionEvent.ACTION_HOVER_EXIT -> "HOVER_EXIT"
+        MotionEvent.ACTION_BUTTON_PRESS -> "BUTTON_PRESS"
+        MotionEvent.ACTION_BUTTON_RELEASE -> "BUTTON_RELEASE"
+        else -> "ACTION_$action"
+    }
+
+    private fun toolTypeName(toolType: Int): String = when (toolType) {
+        MotionEvent.TOOL_TYPE_UNKNOWN -> "UNKNOWN"
+        MotionEvent.TOOL_TYPE_FINGER -> "FINGER"
+        MotionEvent.TOOL_TYPE_STYLUS -> "STYLUS"
+        MotionEvent.TOOL_TYPE_MOUSE -> "MOUSE"
+        MotionEvent.TOOL_TYPE_ERASER -> "ERASER"
+        else -> "TOOL_$toolType"
+    }
+
+    private fun buttonStateName(buttonState: Int): String {
+        if (buttonState == 0) return "none(0x00000000)"
+        val names = ArrayList<String>(6)
+        if ((buttonState and MotionEvent.BUTTON_PRIMARY) != 0) names.add("PRIMARY")
+        if ((buttonState and MotionEvent.BUTTON_SECONDARY) != 0) names.add("SECONDARY")
+        if ((buttonState and MotionEvent.BUTTON_TERTIARY) != 0) names.add("TERTIARY")
+        if ((buttonState and MotionEvent.BUTTON_STYLUS_PRIMARY) != 0) names.add("STYLUS_PRIMARY")
+        if ((buttonState and MotionEvent.BUTTON_STYLUS_SECONDARY) != 0) names.add("STYLUS_SECONDARY")
+        if ((buttonState and MotionEvent.BUTTON_BACK) != 0) names.add("BACK")
+        if ((buttonState and MotionEvent.BUTTON_FORWARD) != 0) names.add("FORWARD")
+        return names.joinToString("|") + "(0x" + buttonState.toUInt().toString(16).padStart(8, '0') + ")"
+    }
+
     // RawInputCallback
 
     private val rawInputCallback = object : RawInputCallback() {
 
         override fun onBeginRawDrawing(success: Boolean, pt: TouchPoint?) {
             ensureLayerStack(width, height)
+            logRawPoint("begin", pt)
+            val rawToolType = pt?.let { readTouchPointInt(it, "getToolType") }
+            when (rawToolType) {
+                MotionEvent.TOOL_TYPE_ERASER -> setStylusTipEraserMode(true, reconfigure = true)
+                MotionEvent.TOOL_TYPE_STYLUS -> setStylusTipEraserMode(false, reconfigure = true)
+                // Some firmware does not expose raw tool type; keep the mode from MotionEvent stream.
+                else -> Unit
+            }
+            strokeIsErase = isEraseModeActive()
 
             if (strokeInProgress) {
                 // Some firmware versions emit duplicate begin events inside one gesture.
@@ -1014,7 +1333,7 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
             strokeViewOffsetX = viewOffsetX
             strokeViewOffsetY = viewOffsetY
             strokeWidthPx = (activeWidthPx / strokeViewScale.coerceAtLeast(1f)).coerceAtLeast(0.5f)
-            strokeColor = activeColor
+            strokeColor = if (strokeIsErase) Color.WHITE else activeColor
             strokeLayerId = activeLayerId
             receivedAuthorityList = false
             pendingPenUpRefresh = false
@@ -1025,6 +1344,7 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         }
 
         override fun onRawDrawingTouchPointMoveReceived(pt: TouchPoint?) {
+            logRawPoint("move", pt)
             appendPoint(mapStrokePoint(pt))
             appendRawMovePoint(mapStrokePoint(pt))
         }
@@ -1037,6 +1357,7 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
         }
 
         override fun onEndRawDrawing(success: Boolean, pt: TouchPoint?) {
+            logRawPoint("end", pt)
             if (!strokeInProgress) return
             strokeInProgress = false
 
@@ -1054,10 +1375,14 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
                 val sig = signalOf(renderPts)
                 Log.d(
                     TAG,
-                    "render: style=$strokeStyle layer=$strokeLayerId source=$source pts=${copy.size} maxP=${sig.maxPressure} tiltNz=${sig.nonZeroTiltCount}"
+                    "render: style=$strokeStyle erase=$strokeIsErase layer=$strokeLayerId source=$source pts=${copy.size} maxP=${sig.maxPressure} tiltNz=${sig.nonZeroTiltCount}"
                 )
                 runCatching {
-                    OnyxStrokeRenderer.render(strokeStyle, copy, strokeWidthPx, strokeColor, layer.canvas, maxPressure())
+                    if (strokeIsErase) {
+                        OnyxStrokeRenderer.erase(strokeStyle, copy, strokeWidthPx, layer.canvas, maxPressure())
+                    } else {
+                        OnyxStrokeRenderer.render(strokeStyle, copy, strokeWidthPx, strokeColor, layer.canvas, maxPressure())
+                    }
                 }.onFailure { e ->
                     Log.e(TAG, "render threw: ${e.javaClass.simpleName}: ${e.message}", e)
                 }
@@ -1084,9 +1409,23 @@ class HardwarePenSurfaceView @JvmOverloads constructor(
             invalidateSurface()
         }
 
-        override fun onBeginRawErasing(success: Boolean, pt: TouchPoint?) = Unit
-        override fun onEndRawErasing(success: Boolean, pt: TouchPoint?) = Unit
-        override fun onRawErasingTouchPointMoveReceived(pt: TouchPoint?) = Unit
-        override fun onRawErasingTouchPointListReceived(list: TouchPointList?) = Unit
+        override fun onBeginRawErasing(success: Boolean, pt: TouchPoint?) {
+            setStylusTipEraserMode(true, reconfigure = true)
+            onBeginRawDrawing(success, pt)
+            strokeIsErase = true
+        }
+
+        override fun onEndRawErasing(success: Boolean, pt: TouchPoint?) {
+            strokeIsErase = true
+            onEndRawDrawing(success, pt)
+        }
+
+        override fun onRawErasingTouchPointMoveReceived(pt: TouchPoint?) {
+            onRawDrawingTouchPointMoveReceived(pt)
+        }
+
+        override fun onRawErasingTouchPointListReceived(list: TouchPointList?) {
+            onRawDrawingTouchPointListReceived(list)
+        }
     }
 }

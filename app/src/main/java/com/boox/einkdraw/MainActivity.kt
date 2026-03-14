@@ -1,6 +1,9 @@
 package com.boox.einkdraw
 
+import android.app.Activity
 import android.app.Dialog
+import android.content.ClipData
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
@@ -12,6 +15,7 @@ import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.text.SpannableStringBuilder
@@ -19,6 +23,8 @@ import android.text.Spanned
 import android.text.method.LinkMovementMethod
 import android.text.style.URLSpan
 import android.util.Base64
+import android.util.Log
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageButton
@@ -29,19 +35,36 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.onyx.android.sdk.api.device.epd.EpdController
+import com.onyx.android.sdk.api.device.epd.UpdateMode
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 class MainActivity : AppCompatActivity() {
+    private enum class EraserExitCause {
+        BRUSH_SELECTION,
+        COLOR_SELECTION,
+        OTHER,
+    }
+
+    companion object {
+        private const val TAG = "MainActivity"
+        private const val PREFS_NAME = "boox_einkdraw_prefs"
+        private const val KEY_LAST_OPEN_URI = "last_open_uri"
+    }
 
     private lateinit var penView: HardwarePenSurfaceView
     private lateinit var rootFrame: View
+    private lateinit var toolbarRow: View
     private lateinit var brushRow: LinearLayout
     private lateinit var widthSeekBar: SeekBar
     private lateinit var widthValueLabel: TextView
@@ -58,6 +81,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fileMenuPanel: View
     private lateinit var buttonLayers: ImageButton
     private lateinit var buttonMenu: ImageButton
+    private lateinit var buttonEraser: ImageButton
     private lateinit var buttonAddLayer: ImageButton
     private lateinit var buttonRemoveLayer: ImageButton
     private lateinit var layerAdapter: LayerListAdapter
@@ -76,6 +100,17 @@ class MainActivity : AppCompatActivity() {
     private var currentInkColor: Int = Color.BLACK
     private var pickerDotColor: Int = Color.BLUE
     private var currentDocumentBaseName: String = "drawing"
+    private var manualEraserMode: Boolean = false
+    private var lastBrushBeforeEraser: HardwarePenStyle? = null
+    private var lastColorBeforeEraser: Int? = null
+    private var eraserWasActive: Boolean = false
+    private var pendingEraserExitCause: EraserExitCause = EraserExitCause.OTHER
+    private var eraserUiTransitionInFlight: Boolean = false
+    private var pendingEraserUiTransitionReset: Runnable? = null
+    private var pendingIncomingViewUri: Uri? = null
+    private var pendingIncomingViewFlags: Int = 0
+    private var pendingIncomingViewAttempts: Int = 0
+    private val openMimeTypes = arrayOf("image/*", "application/json", "text/plain", "application/octet-stream")
 
     private val savePngLauncher = registerForActivityResult(
         ActivityResultContracts.CreateDocument("image/png")
@@ -94,9 +129,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val loadDocumentLauncher = registerForActivityResult(
-        ActivityResultContracts.OpenDocument()
-    ) { uri ->
-        uri?.let { loadDocument(it) }
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val uri = if (result.resultCode == Activity.RESULT_OK) result.data?.data else null
+        if (uri != null) {
+            val flags = result.data?.flags ?: 0
+            val readFlags = flags and (
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+            runCatching { contentResolver.takePersistableUriPermission(uri, readFlags) }
+            rememberLastOpenUri(uri)
+            loadDocument(uri)
+        }
         pickerInFlight = false
         updateRawSuppression()
     }
@@ -106,6 +151,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         rootFrame = findViewById(R.id.rootFrame)
+        toolbarRow = findViewById(R.id.toolbarRow)
         penView = findViewById(R.id.penSurfaceView)
         brushRow = findViewById(R.id.brushButtonRow)
         widthSeekBar = findViewById(R.id.widthSeekBar)
@@ -123,6 +169,7 @@ class MainActivity : AppCompatActivity() {
         fileMenuPanel = findViewById(R.id.fileMenuPanel)
         buttonLayers = findViewById(R.id.buttonLayers)
         buttonMenu = findViewById(R.id.buttonMenu)
+        buttonEraser = findViewById(R.id.buttonEraser)
         buttonAddLayer = findViewById(R.id.buttonAddLayer)
         buttonRemoveLayer = findViewById(R.id.buttonRemoveLayer)
 
@@ -131,6 +178,7 @@ class MainActivity : AppCompatActivity() {
         val clearFileBtn = findViewById<View>(R.id.buttonClearFile)
         val saveBtn = findViewById<View>(R.id.buttonSave)
         val saveFileBtn = findViewById<View>(R.id.buttonSaveFile)
+        val shareBtn = findViewById<View>(R.id.buttonShare)
         val resetViewBtn = findViewById<View>(R.id.buttonResetView)
         val aboutBtn = findViewById<View>(R.id.buttonAbout)
 
@@ -152,13 +200,14 @@ class MainActivity : AppCompatActivity() {
         guardRawMode(clearFileBtn)
         guardRawMode(saveBtn)
         guardRawMode(saveFileBtn)
+        guardRawMode(shareBtn)
         guardRawMode(resetViewBtn)
         guardRawMode(aboutBtn)
         guardRawMode(swatchBlack)
         guardRawMode(swatchWhite)
         guardRawMode(swatchBlue)
         guardRawMode(buttonLayers)
-        guardRawMode(buttonMenu)
+        guardRawMode(buttonEraser)
         guardRawMode(buttonAddLayer)
         guardRawMode(buttonRemoveLayer)
         guardRawMode(layerRecycler)
@@ -170,9 +219,7 @@ class MainActivity : AppCompatActivity() {
             fileMenuPanel.visibility = View.GONE
             pickerInFlight = true
             updateRawSuppression()
-            loadDocumentLauncher.launch(
-                arrayOf("image/*", "application/json", "text/plain", "application/octet-stream")
-            )
+            loadDocumentLauncher.launch(buildOpenDocumentIntent())
         }
         clearLayerBtn.setOnClickListener {
             fileMenuPanel.visibility = View.GONE
@@ -194,13 +241,18 @@ class MainActivity : AppCompatActivity() {
             fileMenuPanel.visibility = View.GONE
             pickerInFlight = true
             updateRawSuppression()
-            savePngLauncher.launch("drawing.png")
+            savePngLauncher.launch("${currentDocumentBaseName}.png")
         }
         saveFileBtn.setOnClickListener {
             fileMenuPanel.visibility = View.GONE
             pickerInFlight = true
             updateRawSuppression()
             saveDpaintLauncher.launch("${currentDocumentBaseName}.json")
+        }
+        shareBtn.setOnClickListener {
+            fileMenuPanel.visibility = View.GONE
+            sharePng()
+            updateRawSuppression()
         }
         resetViewBtn.setOnClickListener {
             fileMenuPanel.visibility = View.GONE
@@ -212,13 +264,31 @@ class MainActivity : AppCompatActivity() {
             showAboutDialog()
         }
         buttonLayers.setOnClickListener { toggleLayerPanel() }
-        buttonMenu.setOnClickListener { toggleFileMenu() }
+        bindImmediateDownAction(buttonMenu) { toggleFileMenu() }
+        buttonEraser.setOnClickListener { toggleManualEraserMode() }
+        penView.setOnEraserModeChangedListener { active ->
+            runOnUiThread { applyEraserModeUiTransition(active) }
+        }
+        penView.setOnStylusHoverButtonChangedListener { state ->
+            Log.i(
+                TAG,
+                "stylusHoverButtons hovering=${state.hovering} primary=${state.stylusPrimaryPressed} " +
+                    "secondary=${state.stylusSecondaryPressed} raw=0x${state.buttonState.toString(16)}"
+            )
+        }
 
         selectBrush(HardwarePenStyle.PENCIL)
         refreshLayerPanel()
         ensureOverlayOrder()
         updateRawSuppression()
         updateZoomLabel(penView.getViewScale())
+        handleIncomingViewIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIncomingViewIntent(intent)
     }
 
     private fun setupBrushButtons() {
@@ -399,6 +469,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun selectBrush(style: HardwarePenStyle) {
+        if (penView.isEraseModeActive()) {
+            pendingEraserExitCause = EraserExitCause.BRUSH_SELECTION
+            manualEraserMode = false
+            penView.deactivateEraserMode()
+        }
+        applyBrushSelection(style)
+    }
+
+    private fun applyBrushSelection(style: HardwarePenStyle) {
         selectedBrushStyle = style
         penView.setStyle(style)
         val width = brushWidths[style] ?: style.defaultWidthPx
@@ -406,17 +485,36 @@ class MainActivity : AppCompatActivity() {
         widthSeekBar.progress = widthToProgress(width)
         widthValueLabel.text = "${width.roundToInt()} px"
 
-        selectedBrushBtn?.apply {
-            alpha = 0.45f
-            translationY = 0f
-            updateBrushIconTransform(this, selected = false)
+        selectedBrushBtn = brushButtons[style]
+        refreshToolVisuals(penView.isEraseModeActive())
+    }
+
+    private fun toggleManualEraserMode() {
+        if (!manualEraserMode) {
+            manualEraserMode = true
+            pendingEraserExitCause = EraserExitCause.OTHER
+            penView.setManualEraserMode(true)
+            return
         }
-        brushButtons[style]?.also { btn ->
-            btn.alpha = 1f
-            btn.translationY = dp(3).toFloat()
-            updateBrushIconTransform(btn, selected = true)
-            selectedBrushBtn = btn
+
+        pendingEraserExitCause = EraserExitCause.OTHER
+        manualEraserMode = false
+        penView.setManualEraserMode(false)
+    }
+
+    private fun refreshToolVisuals(eraseActive: Boolean) {
+        brushButtons.forEach { (style, btn) ->
+            val selected = !eraseActive && style == selectedBrushStyle
+            btn.alpha = if (selected) 1f else 0.45f
+            btn.translationY = if (selected) dp(3).toFloat() else 0f
+            updateBrushIconTransform(btn, selected = selected)
         }
+        updateEraserButtonVisual(eraseActive)
+    }
+
+    private fun updateEraserButtonVisual(active: Boolean) {
+        buttonEraser.alpha = if (active) 1f else 0.45f
+        buttonEraser.translationY = if (active) dp(3).toFloat() else 0f
     }
 
     private fun updateBrushIconTransform(button: ImageButton, selected: Boolean) {
@@ -461,6 +559,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun applyColor(color: Int, swatch: View?, syncPicker: Boolean) {
+        if (penView.isEraseModeActive()) {
+            pendingEraserExitCause = EraserExitCause.COLOR_SELECTION
+            manualEraserMode = false
+            penView.deactivateEraserMode()
+        }
         currentInkColor = Color.rgb(Color.red(color), Color.green(color), Color.blue(color))
         penView.setStrokeColor(color)
         val previous = selectedColorSwatch
@@ -477,6 +580,57 @@ class MainActivity : AppCompatActivity() {
         if (syncPicker) {
             colorPickerView.setColor(currentInkColor)
         }
+    }
+
+    private fun onEraserModeChanged(active: Boolean) {
+        if (active == eraserWasActive) return
+        if (active) {
+            lastBrushBeforeEraser = selectedBrushStyle
+            lastColorBeforeEraser = currentInkColor
+            pendingEraserExitCause = EraserExitCause.OTHER
+            eraserWasActive = true
+            return
+        }
+
+        val exitCause = pendingEraserExitCause
+        pendingEraserExitCause = EraserExitCause.OTHER
+        manualEraserMode = false
+
+        if (exitCause != EraserExitCause.BRUSH_SELECTION) {
+            val restoreBrush = lastBrushBeforeEraser ?: selectedBrushStyle
+            applyBrushSelection(restoreBrush)
+        }
+        if (exitCause != EraserExitCause.COLOR_SELECTION) {
+            val restoreColor = lastColorBeforeEraser
+            if (restoreColor != null) {
+                val restoreSwatch = when (restoreColor) {
+                    Color.BLACK -> swatchBlack
+                    Color.WHITE -> swatchWhite
+                    else -> null
+                }
+                applyColor(restoreColor, swatch = restoreSwatch, syncPicker = true)
+            }
+        }
+        eraserWasActive = false
+    }
+
+    private fun applyEraserModeUiTransition(active: Boolean) {
+        // Force a short pause of hardware preview so toolbar state changes become visible immediately on e-ink.
+        eraserUiTransitionInFlight = true
+        updateRawSuppression()
+
+        onEraserModeChanged(active)
+        refreshToolVisuals(active)
+        refreshToolbarEinkImmediately()
+        rootFrame.postDelayed({ refreshToolbarEinkImmediately() }, 16L)
+
+        pendingEraserUiTransitionReset?.let { rootFrame.removeCallbacks(it) }
+        val reset = Runnable {
+            eraserUiTransitionInFlight = false
+            updateRawSuppression()
+        }
+        pendingEraserUiTransitionReset = reset
+        rootFrame.postDelayed(reset, 48L)
     }
 
     private fun selectedInkColorOf(swatch: View?): Int = when (swatch?.id) {
@@ -512,6 +666,23 @@ class MainActivity : AppCompatActivity() {
 
     private fun formatHex(color: Int): String =
         String.format("#%02X%02X%02X", Color.red(color), Color.green(color), Color.blue(color))
+
+    private fun refreshToolbarEinkImmediately() {
+        toolbarRow.invalidate()
+        brushRow.invalidate()
+        buttonEraser.invalidate()
+        rootFrame.invalidate()
+        val decor = window?.decorView ?: rootFrame
+        rootFrame.post {
+            runCatching {
+                // Use a regular UI refresh mode here; handwriting mode often skips toolbar-only changes.
+                EpdController.invalidate(toolbarRow, UpdateMode.GU)
+                EpdController.refreshScreen(toolbarRow, UpdateMode.GU)
+                EpdController.invalidate(decor, UpdateMode.GU)
+                EpdController.refreshScreen(decor, UpdateMode.GU)
+            }
+        }
+    }
 
     private fun progressToWidth(progress: Int): Float {
         val t = progress / 99f
@@ -566,6 +737,51 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, if (ok) "Saved" else "Save failed", Toast.LENGTH_SHORT).show()
     }
 
+    private fun sharePng() {
+        val bmp = penView.exportBitmap() ?: run {
+            Toast.makeText(this, "Nothing to share", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val safeName = normalizeDocumentBaseName(currentDocumentBaseName)
+        val sharedDir = File(cacheDir, "shared")
+        if (!sharedDir.exists() && !sharedDir.mkdirs()) {
+            Toast.makeText(this, "Share failed", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val target = File(sharedDir, "$safeName.png")
+        val ok = runCatching {
+            FileOutputStream(target).use { out ->
+                bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
+            }
+            true
+        }.getOrDefault(false)
+        if (!ok) {
+            Toast.makeText(this, "Share failed", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val uri = runCatching {
+            FileProvider.getUriForFile(this, "$packageName.fileprovider", target)
+        }.getOrNull()
+        if (uri == null) {
+            Toast.makeText(this, "Share failed", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val sendIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "image/png"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            putExtra(Intent.EXTRA_SUBJECT, safeName)
+            putExtra(Intent.EXTRA_TITLE, safeName)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            clipData = ClipData.newUri(contentResolver, "$safeName.png", uri)
+        }
+        val chooser = Intent.createChooser(sendIntent, "Share drawing")
+        startActivity(chooser)
+    }
+
     private fun loadDocument(uri: Uri) {
         val mime = contentResolver.getType(uri)?.lowercase().orEmpty()
         val name = documentDisplayName(uri)?.lowercase().orEmpty()
@@ -603,6 +819,47 @@ class MainActivity : AppCompatActivity() {
             currentDocumentBaseName = normalizeDocumentBaseName(documentDisplayName(uri))
         }
         Toast.makeText(this, if (loadedImage) "Loaded" else "Load failed", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun handleIncomingViewIntent(incoming: Intent?) {
+        val action = incoming?.action ?: return
+        if (action != Intent.ACTION_VIEW) return
+        val uri = incoming.data ?: return
+        pendingIncomingViewUri = uri
+        pendingIncomingViewFlags = incoming.flags
+        pendingIncomingViewAttempts = 0
+        processPendingIncomingViewIntent()
+    }
+
+    private fun processPendingIncomingViewIntent() {
+        val uri = pendingIncomingViewUri ?: return
+        if (penView.width <= 0 || penView.height <= 0) {
+            if (pendingIncomingViewAttempts >= 40) {
+                Log.w(TAG, "Incoming VIEW uri dropped: pen surface never became ready: $uri")
+                pendingIncomingViewUri = null
+                pendingIncomingViewFlags = 0
+                pendingIncomingViewAttempts = 0
+                Toast.makeText(this, "Load failed", Toast.LENGTH_SHORT).show()
+                return
+            }
+            pendingIncomingViewAttempts += 1
+            penView.postDelayed({ processPendingIncomingViewIntent() }, 32L)
+            return
+        }
+
+        val flags = pendingIncomingViewFlags
+        pendingIncomingViewUri = null
+        pendingIncomingViewFlags = 0
+        pendingIncomingViewAttempts = 0
+
+        val readFlags = flags and (
+            Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+        runCatching { contentResolver.takePersistableUriPermission(uri, readFlags) }
+
+        rememberLastOpenUri(uri)
+        loadDocument(uri)
     }
 
     private fun loadImageIntoCurrentLayer(uri: Uri): Boolean {
@@ -762,6 +1019,31 @@ class MainActivity : AppCompatActivity() {
         return cleaned ?: "drawing"
     }
 
+    private fun buildOpenDocumentIntent(): Intent {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "*/*"
+            putExtra(Intent.EXTRA_MIME_TYPES, openMimeTypes)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+        }
+        val initialUri = lastOpenUri()
+        if (initialUri != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, initialUri)
+        }
+        return intent
+    }
+
+    private fun prefs() = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+
+    private fun rememberLastOpenUri(uri: Uri) {
+        prefs().edit().putString(KEY_LAST_OPEN_URI, uri.toString()).apply()
+    }
+
+    private fun lastOpenUri(): Uri? {
+        val raw = prefs().getString(KEY_LAST_OPEN_URI, null) ?: return null
+        return runCatching { Uri.parse(raw) }.getOrNull()
+    }
+
     private fun beginUiTouch() {
         uiTouchDepth += 1
         updateRawSuppression()
@@ -783,10 +1065,39 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun bindImmediateDownAction(view: View, onDown: () -> Unit) {
+        view.setOnTouchListener { v, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    beginUiTouch()
+                    v.isPressed = true
+                    onDown()
+                    true
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    v.isPressed = false
+                    endUiTouch(false)
+                    v.performClick()
+                    true
+                }
+
+                MotionEvent.ACTION_CANCEL -> {
+                    v.isPressed = false
+                    endUiTouch(true)
+                    true
+                }
+
+                else -> true
+            }
+        }
+    }
+
     private fun updateRawSuppression() {
         val suppress = activityPaused ||
             pickerInFlight ||
             aboutDialogVisible ||
+            eraserUiTransitionInFlight ||
             uiTouchDepth > 0 ||
             layerPanel.visibility == View.VISIBLE ||
             colorPickerPanel.visibility == View.VISIBLE ||
@@ -856,6 +1167,29 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return super.dispatchTouchEvent(ev)
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val isStylusKey = when (event.keyCode) {
+            KeyEvent.KEYCODE_STYLUS_BUTTON_PRIMARY,
+            KeyEvent.KEYCODE_STYLUS_BUTTON_SECONDARY,
+            KeyEvent.KEYCODE_STYLUS_BUTTON_TERTIARY,
+            -> true
+            else -> false
+        }
+        if (isStylusKey) {
+            val action = when (event.action) {
+                KeyEvent.ACTION_DOWN -> "DOWN"
+                KeyEvent.ACTION_UP -> "UP"
+                else -> "ACTION_${event.action}"
+            }
+            Log.i(
+                TAG,
+                "stylusKey action=$action key=${KeyEvent.keyCodeToString(event.keyCode)} " +
+                    "repeat=${event.repeatCount} source=0x${event.source.toString(16)} device=${event.device?.name}"
+            )
+        }
+        return super.dispatchKeyEvent(event)
     }
 
     private fun dismissPanelsIfTappedOutside(rawX: Float, rawY: Float): Boolean {

@@ -36,8 +36,8 @@ android {
         applicationId = "com.boox.einkdraw"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.0.1"
+        versionCode = 2
+        versionName = "0.0.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -110,4 +110,5 @@ dependencies {
 
 tasks.withType<JavaCompile>().configureEach {
     exclude("**/com/onyx/android/sdk/data/note/TouchPoint.java")
+    exclude("**/com/onyx/android/sdk/base/data/TouchPoint.java")
 }

@@ -7,6 +7,8 @@ import android.graphics.DashPathEffect
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
 import android.graphics.Rect
 import android.graphics.RectF
 import com.onyx.android.sdk.data.note.TouchPoint
@@ -46,6 +48,68 @@ import kotlin.math.sqrt
  *  SQUARE_PEN – NeoSquarePen native path-result renderer (fallback: trig approximation)
  */
 object OnyxStrokeRenderer {
+
+    fun erase(
+        style: HardwarePenStyle,
+        points: List<TouchPoint>,
+        widthPx: Float,
+        canvas: Canvas,
+        maxPressure: Float,
+    ) {
+        if (points.isEmpty()) return
+        val w = canvas.width
+        val h = canvas.height
+        if (w <= 0 || h <= 0) return
+        val mask = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        try {
+            val maskCanvas = Canvas(mask)
+            render(style, points, widthPx, Color.BLACK, maskCanvas, maxPressure)
+            normalizeMaskAlpha(mask)
+            val clearPaint = Paint().apply {
+                isFilterBitmap = false
+                xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT)
+            }
+            canvas.drawBitmap(mask, 0f, 0f, clearPaint)
+            clearPaint.xfermode = null
+        } finally {
+            mask.recycle()
+        }
+    }
+
+    fun erase(
+        points: List<TouchPoint>,
+        widthPx: Float,
+        canvas: Canvas,
+    ) {
+        if (points.isEmpty()) return
+        val paint = Paint().apply {
+            color = Color.TRANSPARENT
+            strokeWidth = widthPx.coerceAtLeast(0.5f)
+            style = Paint.Style.STROKE
+            strokeCap = Paint.Cap.ROUND
+            strokeJoin = Paint.Join.ROUND
+            isAntiAlias = true
+            xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+        }
+        if (points.size == 1) {
+            canvas.drawPoint(points[0].x, points[0].y, paint)
+        } else {
+            drawPolyline(points, canvas, paint)
+        }
+        paint.xfermode = null
+    }
+
+    private fun normalizeMaskAlpha(mask: Bitmap) {
+        val w = mask.width
+        val h = mask.height
+        if (w <= 0 || h <= 0) return
+        val pixels = IntArray(w * h)
+        mask.getPixels(pixels, 0, w, 0, 0, w, h)
+        for (i in pixels.indices) {
+            pixels[i] = if ((pixels[i] ushr 24) != 0) 0xFF000000.toInt() else 0
+        }
+        mask.setPixels(pixels, 0, w, 0, 0, w, h)
+    }
 
     // ─── Charcoal V2 rendering ────────────────────────────────────────────────
 
