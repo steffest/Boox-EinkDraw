@@ -5,7 +5,7 @@ Minimal but fast Android drawing app focused on Onyx Boox e-ink devices, with pr
 ![BooxDraw icon](docs/title.png)
 
 ## Download and installation
-Fetch the APK from the [releases](https://github.com/steffest/Boox-EinkDraw/releases/) page and isntall it on your Boox device.
+Fetch the APK from the [releases](https://github.com/steffest/Boox-EinkDraw/releases/) page and install it on your Boox device.
 
 
 
